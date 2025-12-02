@@ -7,7 +7,7 @@ using Spectre.Console.Rendering;
 
 if (args.Length == 0)
 {
-    AnsiConsole.MarkupLine("[red]Usage:[/] EventModelingParser <path-to-eventmodel.json> [--schema <path-to-schema.json>] [--view timeline|slice]");
+    AnsiConsole.MarkupLine("[red]Usage:[/] EventModelingParser <path-to-eventmodel.json> [--schema <path-to-schema.json>] [--view timeline|slice|table]");
     return 1;
 }
 
@@ -54,7 +54,7 @@ if (schemaPath != null)
         AnsiConsole.MarkupLine($"[red]Schema validation failed with {errors.Count} error(s):[/]");
         foreach (var error in errors)
         {
-            AnsiConsole.MarkupLine($"  [red]•[/] {Markup.Escape(error.Path)}: {error.Kind}");
+            AnsiConsole.MarkupLine($"  [red]•[/] {Markup.Escape(error.Path ?? "(root)")}: {error.Kind}");
         }
         return 1;
     }
@@ -81,6 +81,10 @@ if (viewMode == "slice")
 {
     RenderSliceView(model);
 }
+else if (viewMode == "table")
+{
+    RenderTableView(model);
+}
 else
 {
     RenderTimeline(model);
@@ -88,21 +92,268 @@ else
 
 return 0;
 
-void RenderSliceView(EventModel model)
+void RenderHeader(EventModel model, string? viewName = null)
 {
-    // Header
-    var rule = new Rule($"[bold cyan]{Markup.Escape(model.Name)}[/] [dim](Slice View)[/]")
-    {
-        Justification = Justify.Center,
-        Style = Style.Parse("cyan")
-    };
-    AnsiConsole.Write(rule);
+    AnsiConsole.WriteLine();
     
+    // Figlet header
+    var figlet = new FigletText(model.Name)
+        .Color(Color.Cyan1)
+        .Centered();
+    AnsiConsole.Write(figlet);
+    
+    // Subtitle with version and view mode
+    var subtitle = new List<string>();
     if (!string.IsNullOrEmpty(model.Version))
+        subtitle.Add($"v{model.Version}");
+    if (viewName != null)
+        subtitle.Add(viewName);
+    
+    if (subtitle.Count > 0)
     {
-        AnsiConsole.MarkupLine($"[dim]Version {model.Version}[/]");
+        AnsiConsole.Write(new Rule($"[dim]{string.Join(" • ", subtitle)}[/]")
+        {
+            Justification = Justify.Center,
+            Style = Style.Parse("grey")
+        });
     }
     
+    if (!string.IsNullOrEmpty(model.Description))
+    {
+        AnsiConsole.WriteLine();
+        var descPanel = new Panel(new Markup($"[italic]{Markup.Escape(model.Description)}[/]"))
+        {
+            Border = BoxBorder.None,
+            Padding = new Padding(2, 0)
+        };
+        AnsiConsole.Write(descPanel);
+    }
+    
+    AnsiConsole.WriteLine();
+}
+
+void RenderTableView(EventModel model)
+{
+    RenderHeader(model, "Table View");
+    
+    var events = model.Timeline.OfType<EventElement>().ToList();
+    var stateViews = model.Timeline.OfType<StateViewElement>().ToList();
+    var actors = model.Timeline.OfType<ActorElement>().ToList();
+    var commands = model.Timeline.OfType<CommandElement>().ToList();
+    
+    // Events Table
+    if (events.Count > 0)
+    {
+        AnsiConsole.Write(new Rule("[orange1 bold]● Events[/]") { Style = Style.Parse("orange1"), Justification = Justify.Left });
+        
+        var eventTable = new Table()
+            .Border(TableBorder.Rounded)
+            .BorderColor(Color.Orange1)
+            .Title("[orange1]Domain Events[/]")
+            .AddColumn(new TableColumn("[dim]Tick[/]").RightAligned())
+            .AddColumn(new TableColumn("[orange1 bold]Name[/]"))
+            .AddColumn(new TableColumn("[dim]Produced By[/]"))
+            .AddColumn(new TableColumn("[dim]External Source[/]"));
+        
+        foreach (var evt in events.OrderBy(e => e.Tick))
+        {
+            eventTable.AddRow(
+                $"[dim]@{evt.Tick}[/]",
+                $"[orange1 bold]{Markup.Escape(evt.Name)}[/]",
+                !string.IsNullOrEmpty(evt.ProducedBy) ? $"[blue]{Markup.Escape(evt.ProducedBy)}[/]" : "[dim]-[/]",
+                !string.IsNullOrEmpty(evt.ExternalSource) ? Markup.Escape(evt.ExternalSource) : "[dim]-[/]"
+            );
+        }
+        
+        AnsiConsole.Write(eventTable);
+        AnsiConsole.WriteLine();
+    }
+    
+    // State Views Table
+    if (stateViews.Count > 0)
+    {
+        AnsiConsole.Write(new Rule("[green bold]◆ State Views[/]") { Style = Style.Parse("green"), Justification = Justify.Left });
+        
+        var viewTable = new Table()
+            .Border(TableBorder.Rounded)
+            .BorderColor(Color.Green)
+            .Title("[green]Read Models[/]")
+            .AddColumn(new TableColumn("[dim]Tick[/]").RightAligned())
+            .AddColumn(new TableColumn("[green bold]Name[/]"))
+            .AddColumn(new TableColumn("[dim]Subscribes To[/]"));
+        
+        foreach (var sv in stateViews.OrderBy(e => e.Tick))
+        {
+            var subscribes = sv.SubscribesTo.Count > 0 
+                ? string.Join(", ", sv.SubscribesTo.Select(e => $"[orange1]{Markup.Escape(e)}[/]"))
+                : "[dim]-[/]";
+            
+            viewTable.AddRow(
+                $"[dim]@{sv.Tick}[/]",
+                $"[green bold]{Markup.Escape(sv.Name)}[/]",
+                subscribes
+            );
+        }
+        
+        AnsiConsole.Write(viewTable);
+        AnsiConsole.WriteLine();
+    }
+    
+    // Commands Table
+    if (commands.Count > 0)
+    {
+        AnsiConsole.Write(new Rule("[blue bold]▶ Commands[/]") { Style = Style.Parse("blue"), Justification = Justify.Left });
+        
+        var cmdTable = new Table()
+            .Border(TableBorder.Rounded)
+            .BorderColor(Color.Blue)
+            .Title("[blue]Commands[/]")
+            .AddColumn(new TableColumn("[dim]Tick[/]").RightAligned())
+            .AddColumn(new TableColumn("[blue bold]Name[/]"))
+            .AddColumn(new TableColumn("[dim]Produces Events[/]"));
+        
+        foreach (var cmd in commands.OrderBy(e => e.Tick))
+        {
+            // Find events produced by this command
+            var cmdKey = $"{cmd.Name}-{cmd.Tick}";
+            var producedEvents = events.Where(e => e.ProducedBy == cmdKey).ToList();
+            var produces = producedEvents.Count > 0
+                ? string.Join(", ", producedEvents.Select(e => $"[orange1]{Markup.Escape(e.Name)}[/]"))
+                : "[dim]-[/]";
+            
+            cmdTable.AddRow(
+                $"[dim]@{cmd.Tick}[/]",
+                $"[blue bold]{Markup.Escape(cmd.Name)}[/]",
+                produces
+            );
+        }
+        
+        AnsiConsole.Write(cmdTable);
+        AnsiConsole.WriteLine();
+    }
+    
+    // Actors Table
+    if (actors.Count > 0)
+    {
+        AnsiConsole.Write(new Rule("[white bold]○ Actors[/]") { Style = Style.Parse("white"), Justification = Justify.Left });
+        
+        var actorTable = new Table()
+            .Border(TableBorder.Rounded)
+            .BorderColor(Color.Grey)
+            .Title("[white]Actors / Users[/]")
+            .AddColumn(new TableColumn("[dim]Tick[/]").RightAligned())
+            .AddColumn(new TableColumn("[white bold]Name[/]"))
+            .AddColumn(new TableColumn("[dim]Reads View[/]"))
+            .AddColumn(new TableColumn("[dim]Sends Command[/]"));
+        
+        foreach (var actor in actors.OrderBy(e => e.Tick))
+        {
+            actorTable.AddRow(
+                $"[dim]@{actor.Tick}[/]",
+                $"[white bold]{Markup.Escape(actor.Name)}[/]",
+                $"[green]{Markup.Escape(actor.ReadsView)}[/]",
+                $"[blue]{Markup.Escape(actor.SendsCommand)}[/]"
+            );
+        }
+        
+        AnsiConsole.Write(actorTable);
+        AnsiConsole.WriteLine();
+    }
+    
+    // Flow Tree - Shows the data flow
+    AnsiConsole.Write(new Rule("[cyan bold]🔄 Data Flow[/]") { Style = Style.Parse("cyan"), Justification = Justify.Left });
+    
+    var flowTree = new Tree("[cyan]Event Model Flow[/]")
+        .Style(Style.Parse("dim"));
+    
+    // Group by slices (StateView -> Actor -> Command -> Event)
+    foreach (var sv in stateViews.OrderBy(s => s.Tick))
+    {
+        var svNode = flowTree.AddNode($"[green]◆ {Markup.Escape(sv.Name)}[/] [dim]@{sv.Tick}[/]");
+        
+        // Events this view subscribes to
+        if (sv.SubscribesTo.Count > 0)
+        {
+            var subsNode = svNode.AddNode("[dim]← subscribes to[/]");
+            foreach (var eventName in sv.SubscribesTo)
+            {
+                subsNode.AddNode($"[orange1]● {Markup.Escape(eventName)}[/]");
+            }
+        }
+        
+        // Actors that read this view
+        var readingActors = actors.Where(a => a.ReadsView == sv.Name).ToList();
+        foreach (var actor in readingActors)
+        {
+            var actorNode = svNode.AddNode($"[white]○ {Markup.Escape(actor.Name)}[/] [dim]@{actor.Tick}[/]");
+            
+            // Command this actor sends
+            var cmd = commands.FirstOrDefault(c => c.Name == actor.SendsCommand);
+            if (cmd != null)
+            {
+                var cmdNode = actorNode.AddNode($"[blue]▶ {Markup.Escape(cmd.Name)}[/] [dim]@{cmd.Tick}[/]");
+                
+                // Events produced by this command
+                var cmdKey = $"{cmd.Name}-{cmd.Tick}";
+                var producedEvents = events.Where(e => e.ProducedBy == cmdKey).ToList();
+                if (producedEvents.Count > 0)
+                {
+                    var prodNode = cmdNode.AddNode("[dim]→ produces[/]");
+                    foreach (var evt in producedEvents)
+                    {
+                        prodNode.AddNode($"[orange1]● {Markup.Escape(evt.Name)}[/] [dim]@{evt.Tick}[/]");
+                    }
+                }
+            }
+        }
+    }
+    
+    // External events
+    var externalEvents = events.Where(e => !string.IsNullOrEmpty(e.ExternalSource)).ToList();
+    if (externalEvents.Count > 0)
+    {
+        var extNode = flowTree.AddNode("[yellow]⚡ External Events[/]");
+        foreach (var evt in externalEvents)
+        {
+            extNode.AddNode($"[orange1]● {Markup.Escape(evt.Name)}[/] [dim]from {Markup.Escape(evt.ExternalSource!)}[/]");
+        }
+    }
+    
+    AnsiConsole.Write(flowTree);
+    AnsiConsole.WriteLine();
+    
+    // Summary Panel
+    RenderSummaryPanel(model);
+}
+
+void RenderSummaryPanel(EventModel model)
+{
+    var events = model.Timeline.OfType<EventElement>().Count();
+    var stateViews = model.Timeline.OfType<StateViewElement>().Count();
+    var actors = model.Timeline.OfType<ActorElement>().Count();
+    var commands = model.Timeline.OfType<CommandElement>().Count();
+    
+    var summaryGrid = new Grid()
+        .AddColumn()
+        .AddColumn()
+        .AddColumn()
+        .AddColumn();
+    
+    summaryGrid.AddRow(
+        new Panel($"[orange1 bold]{events}[/]\n[dim]Events[/]") { Border = BoxBorder.Rounded, BorderStyle = new Style(Color.Orange1) },
+        new Panel($"[green bold]{stateViews}[/]\n[dim]Views[/]") { Border = BoxBorder.Rounded, BorderStyle = new Style(Color.Green) },
+        new Panel($"[blue bold]{commands}[/]\n[dim]Commands[/]") { Border = BoxBorder.Rounded, BorderStyle = new Style(Color.Blue) },
+        new Panel($"[white bold]{actors}[/]\n[dim]Actors[/]") { Border = BoxBorder.Rounded, BorderStyle = new Style(Color.Grey) }
+    );
+    
+    AnsiConsole.Write(new Rule("[dim]Summary[/]") { Style = Style.Parse("grey") });
+    AnsiConsole.Write(summaryGrid);
+    AnsiConsole.WriteLine();
+}
+
+void RenderSliceView(EventModel model)
+{
+    RenderHeader(model, "Slice View");
     AnsiConsole.WriteLine();
     
     // Collect all elements
@@ -293,25 +544,7 @@ void RenderSliceView(EventModel model)
 
 void RenderTimeline(EventModel model)
 {
-    // Header
-    var rule = new Rule($"[bold cyan]{Markup.Escape(model.Name)}[/]")
-    {
-        Justification = Justify.Center,
-        Style = Style.Parse("cyan")
-    };
-    AnsiConsole.Write(rule);
-    
-    if (!string.IsNullOrEmpty(model.Version))
-    {
-        AnsiConsole.MarkupLine($"[dim]Version {model.Version}[/]");
-    }
-    
-    if (!string.IsNullOrEmpty(model.Description))
-    {
-        AnsiConsole.MarkupLine($"[dim italic]{Markup.Escape(model.Description)}[/]");
-    }
-    
-    AnsiConsole.WriteLine();
+    RenderHeader(model, "Timeline View");
 
     // Timeline - sorted by tick, with spacing based on tick distance
     var sortedTimeline = model.Timeline.OrderBy(e => e.Tick).ToList();
@@ -336,23 +569,7 @@ void RenderTimeline(EventModel model)
     AnsiConsole.WriteLine();
     
     // Summary
-    var events = model.Timeline.OfType<EventElement>().ToList();
-    var stateViews = model.Timeline.OfType<StateViewElement>().ToList();
-    var actors = model.Timeline.OfType<ActorElement>().ToList();
-    var commands = model.Timeline.OfType<CommandElement>().ToList();
-    
-    var summaryTable = new Table()
-        .Border(TableBorder.Rounded)
-        .AddColumn("Type")
-        .AddColumn("Count")
-        .AddColumn("Symbol");
-    
-    summaryTable.AddRow("[orange1]Events[/]", events.Count.ToString(), "[orange1]●[/]");
-    summaryTable.AddRow("[green]State Views[/]", stateViews.Count.ToString(), "[green]◆[/]");
-    summaryTable.AddRow("[white]Actors[/]", actors.Count.ToString(), "[white]○[/]");
-    summaryTable.AddRow("[blue]Commands[/]", commands.Count.ToString(), "[blue]▶[/]");
-    
-    AnsiConsole.Write(summaryTable);
+    RenderSummaryPanel(model);
 }
 
 void RenderTimelineElement(TimelineElement element, bool isLast, int extraLines = 0)
