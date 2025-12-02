@@ -28,7 +28,7 @@
       }
     },
     {
-      "type": "view",
+      "type": "stateView",
       "name": "ShoppingCart",
       "inbound": ["ProductAddedToCart", "CartUpdated"],
       "example": {
@@ -77,7 +77,7 @@
       }
     },
     {
-      "type": "view",
+      "type": "stateView",
       "name": "OrderConfirmation",
       "inbound": ["OrderCreated"],
       "example": {
@@ -88,7 +88,7 @@
       }
     },
     {
-      "type": "view",
+      "type": "stateView",
       "name": "PendingOrders",
       "inbound": ["OrderCreated", "OrderPaid"],
       "example": {
@@ -134,7 +134,7 @@
       }
     },
     {
-      "type": "view",
+      "type": "stateView",
       "name": "OrdersReadyToShip",
       "inbound": ["OrderPaid", "OrderShipped"],
       "example": {
@@ -170,7 +170,7 @@
       }
     },
     {
-      "type": "view",
+      "type": "stateView",
       "name": "CustomerOrderTracking",
       "inbound": ["OrderCreated", "OrderPaid", "OrderShipped", "OrderDelivered"],
       "example": {

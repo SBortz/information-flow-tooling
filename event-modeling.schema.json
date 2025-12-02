@@ -32,7 +32,7 @@
       "items": {
         "oneOf": [
           { "$ref": "#/definitions/event" },
-          { "$ref": "#/definitions/view" },
+          { "$ref": "#/definitions/stateView" },
           { "$ref": "#/definitions/actor" },
           { "$ref": "#/definitions/command" }
         ]
@@ -65,22 +65,22 @@
       }
     },
     
-    "view": {
+    "stateView": {
       "type": "object",
-      "description": "A view (read model) is a projected representation of data built from events.",
+      "description": "A state view (read model) is a projected representation of data built from events.",
       "required": ["type", "name", "inbound"],
       "additionalProperties": false,
       "properties": {
         "type": {
-          "const": "view"
+          "const": "stateView"
         },
         "name": {
           "type": "string",
-          "description": "Name of the view (e.g. 'ShoppingCart', 'OrderList')"
+          "description": "Name of the state view (e.g. 'ShoppingCart', 'OrderList')"
         },
         "inbound": {
           "type": "array",
-          "description": "Names of the events that update this view",
+          "description": "Names of the events that update this state view",
           "items": { "type": "string" }
         },
         "example": {

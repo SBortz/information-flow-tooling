@@ -110,15 +110,15 @@ Console.WriteLine();
 
 // Summary
 var events = model.Timeline.OfType<EventElement>().ToList();
-var views = model.Timeline.OfType<ViewElement>().ToList();
+var stateViews = model.Timeline.OfType<StateViewElement>().ToList();
 var actors = model.Timeline.OfType<ActorElement>().ToList();
 var commands = model.Timeline.OfType<CommandElement>().ToList();
 
 Console.WriteLine("Summary:");
-Console.WriteLine($"  Events:   {events.Count}");
-Console.WriteLine($"  Views:    {views.Count}");
-Console.WriteLine($"  Actors:   {actors.Count}");
-Console.WriteLine($"  Commands: {commands.Count}");
+Console.WriteLine($"  Events:      {events.Count}");
+Console.WriteLine($"  State Views: {stateViews.Count}");
+Console.WriteLine($"  Actors:      {actors.Count}");
+Console.WriteLine($"  Commands:    {commands.Count}");
 
 return 0;
 
@@ -127,7 +127,7 @@ void PrintTimelineElement(TimelineElement element, int index)
     var (color, symbol) = element switch
     {
         EventElement => (ConsoleColor.Yellow, "⚡"),
-        ViewElement => (ConsoleColor.Blue, "📋"),
+        StateViewElement => (ConsoleColor.Blue, "📋"),
         ActorElement => (ConsoleColor.Green, "👤"),
         CommandElement => (ConsoleColor.Magenta, "▶"),
         _ => (ConsoleColor.White, "?")
@@ -148,9 +148,9 @@ void PrintTimelineElement(TimelineElement element, int index)
             Console.ResetColor();
             break;
             
-        case ViewElement view when view.Inbound.Count > 0:
+        case StateViewElement stateView when stateView.Inbound.Count > 0:
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($" ← [{string.Join(", ", view.Inbound)}]");
+            Console.Write($" ← [{string.Join(", ", stateView.Inbound)}]");
             Console.ResetColor();
             break;
             
