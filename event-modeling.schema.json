@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://event-modeling.org/schema/v1",
+  "title": "Event Modeling File Format",
+  "description": "A human-readable format for describing event-driven systems using the Event Modeling methodology. The order in the timeline determines the temporal sequence.",
+  "type": "object",
+  
+  "required": ["name", "timeline"],
+  
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to the JSON schema"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the modeled system"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the system"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version of the model",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    
+    "timeline": {
+      "type": "array",
+      "description": "The chronologically ordered sequence. The order in the array determines the position on the timeline from left to right.",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/definitions/event" },
+          { "$ref": "#/definitions/view" },
+          { "$ref": "#/definitions/actor" },
+          { "$ref": "#/definitions/command" }
+        ]
+      }
+    }
+  },
+  
+  "definitions": {
+    "event": {
+      "type": "object",
+      "description": "An event represents something that has happened. Events are immutable and named in past tense.",
+      "required": ["type", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "event"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the event (past tense, e.g. 'OrderCreated')"
+        },
+        "externalSource": {
+          "type": "string",
+          "description": "For external events: the source (e.g. 'Carrier Webhook')"
+        },
+        "example": {
+          "type": "object",
+          "description": "Example data for this event"
+        }
+      }
+    },
+    
+    "view": {
+      "type": "object",
+      "description": "A view (read model) is a projected representation of data built from events.",
+      "required": ["type", "name", "inbound"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "view"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the view (e.g. 'ShoppingCart', 'OrderList')"
+        },
+        "inbound": {
+          "type": "array",
+          "description": "Names of the events that update this view",
+          "items": { "type": "string" }
+        },
+        "example": {
+          "type": "object",
+          "description": "Example data for the read model"
+        }
+      }
+    },
+    
+    "actor": {
+      "type": "object",
+      "description": "An actor interacts with the system: reads a view and sends a command.",
+      "required": ["type", "name", "inbound", "outbound"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "actor"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the actor (e.g. 'Customer', 'WarehouseWorker')"
+        },
+        "inbound": {
+          "type": "string",
+          "description": "Name of the view that the actor reads"
+        },
+        "outbound": {
+          "type": "string",
+          "description": "Name of the command that the actor sends"
+        }
+      }
+    },
+    
+    "command": {
+      "type": "object",
+      "description": "A command represents an intent to do something. Commands produce events.",
+      "required": ["type", "name", "outbound"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "command"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the command (imperative, e.g. 'PlaceOrder')"
+        },
+        "outbound": {
+          "type": "array",
+          "description": "Names of the events that this command can produce",
+          "items": { "type": "string" }
+        },
+        "example": {
+          "type": "object",
+          "description": "Example data for this command"
+        }
+      }
+    }
+  }
+}

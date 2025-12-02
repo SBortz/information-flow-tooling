@@ -1,0 +1,199 @@
+{
+  "$schema": "./event-modeling.schema.json",
+  "name": "Order Management System",
+  "description": "Ein einfaches Bestellsystem zur Demonstration des Event Modeling Formats",
+  "version": "1.0.0",
+  
+  "timeline": [
+    {
+      "type": "event",
+      "name": "ProductAddedToCart",
+      "example": {
+        "cartId": "cart-123",
+        "productId": "prod-456",
+        "productName": "Wireless Keyboard",
+        "quantity": 1,
+        "unitPrice": 79.99,
+        "addedAt": "2024-01-15T10:30:00Z"
+      }
+    },
+    {
+      "type": "event",
+      "name": "CartUpdated",
+      "example": {
+        "cartId": "cart-123",
+        "totalItems": 2,
+        "totalAmount": 159.98,
+        "updatedAt": "2024-01-15T10:32:00Z"
+      }
+    },
+    {
+      "type": "view",
+      "name": "ShoppingCart",
+      "inbound": ["ProductAddedToCart", "CartUpdated"],
+      "example": {
+        "cartId": "cart-123",
+        "customerId": "cust-789",
+        "items": [
+          { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 },
+          { "productId": "prod-457", "name": "Mouse Pad", "quantity": 1, "price": 19.99 }
+        ],
+        "totalAmount": 99.98
+      }
+    },
+    {
+      "type": "actor",
+      "name": "Customer",
+      "inbound": "ShoppingCart",
+      "outbound": "PlaceOrder"
+    },
+    {
+      "type": "command",
+      "name": "PlaceOrder",
+      "outbound": ["OrderCreated"],
+      "example": {
+        "cartId": "cart-123",
+        "customerId": "cust-789",
+        "shippingAddress": {
+          "street": "Musterstraße 42",
+          "city": "Berlin",
+          "zip": "10115"
+        },
+        "paymentMethod": "credit_card"
+      }
+    },
+    {
+      "type": "event",
+      "name": "OrderCreated",
+      "example": {
+        "orderId": "order-001",
+        "customerId": "cust-789",
+        "items": [
+          { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+        ],
+        "totalAmount": 79.99,
+        "status": "pending",
+        "createdAt": "2024-01-15T10:35:00Z"
+      }
+    },
+    {
+      "type": "view",
+      "name": "OrderConfirmation",
+      "inbound": ["OrderCreated"],
+      "example": {
+        "orderId": "order-001",
+        "message": "Vielen Dank für Ihre Bestellung!",
+        "estimatedDelivery": "2024-01-18",
+        "totalAmount": 79.99
+      }
+    },
+    {
+      "type": "view",
+      "name": "PendingOrders",
+      "inbound": ["OrderCreated", "OrderPaid"],
+      "example": {
+        "orders": [
+          { "orderId": "order-001", "customerId": "cust-789", "amount": 79.99, "status": "pending" }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "PaymentProcessor",
+      "inbound": "PendingOrders",
+      "outbound": "ProcessPayment"
+    },
+    {
+      "type": "command",
+      "name": "ProcessPayment",
+      "outbound": ["OrderPaid", "PaymentFailed"],
+      "example": {
+        "orderId": "order-001",
+        "amount": 79.99,
+        "paymentMethod": "credit_card",
+        "cardToken": "tok_visa_4242"
+      }
+    },
+    {
+      "type": "event",
+      "name": "OrderPaid",
+      "example": {
+        "orderId": "order-001",
+        "paymentId": "pay-555",
+        "amount": 79.99,
+        "paidAt": "2024-01-15T10:36:00Z"
+      }
+    },
+    {
+      "type": "event",
+      "name": "PaymentFailed",
+      "example": {
+        "orderId": "order-001",
+        "reason": "Insufficient funds",
+        "failedAt": "2024-01-15T10:36:00Z"
+      }
+    },
+    {
+      "type": "view",
+      "name": "OrdersReadyToShip",
+      "inbound": ["OrderPaid", "OrderShipped"],
+      "example": {
+        "orders": [
+          { "orderId": "order-001", "customerId": "cust-789", "paidAt": "2024-01-15T10:36:00Z" }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "WarehouseWorker",
+      "inbound": "OrdersReadyToShip",
+      "outbound": "ShipOrder"
+    },
+    {
+      "type": "command",
+      "name": "ShipOrder",
+      "outbound": ["OrderShipped"],
+      "example": {
+        "orderId": "order-001",
+        "trackingNumber": "DHL-123456789",
+        "carrier": "DHL"
+      }
+    },
+    {
+      "type": "event",
+      "name": "OrderShipped",
+      "example": {
+        "orderId": "order-001",
+        "trackingNumber": "DHL-123456789",
+        "carrier": "DHL",
+        "shippedAt": "2024-01-16T14:00:00Z"
+      }
+    },
+    {
+      "type": "view",
+      "name": "CustomerOrderTracking",
+      "inbound": ["OrderCreated", "OrderPaid", "OrderShipped", "OrderDelivered"],
+      "example": {
+        "orderId": "order-001",
+        "status": "shipped",
+        "trackingNumber": "DHL-123456789",
+        "timeline": [
+          { "status": "created", "at": "2024-01-15T10:35:00Z" },
+          { "status": "paid", "at": "2024-01-15T10:36:00Z" },
+          { "status": "shipped", "at": "2024-01-16T14:00:00Z" }
+        ]
+      }
+    },
+    {
+      "type": "event",
+      "name": "OrderDelivered",
+      "externalSource": "Carrier Webhook",
+      "example": {
+        "orderId": "order-001",
+        "deliveredAt": "2024-01-18T11:23:00Z",
+        "signature": "M. Mustermann"
+      }
+    }
+  ]
+}
+
