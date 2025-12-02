@@ -5,10 +5,11 @@ using Spectre.Console;
 using Spectre.Console.Json;
 using Spectre.Console.Rendering;
 
-if (args.Length == 0)
+// Check for help flag or no arguments
+if (args.Length == 0 || args.Contains("--help") || args.Contains("-h") || args.Contains("-?"))
 {
-    AnsiConsole.MarkupLine("[red]Usage:[/] EventModelingParser <path-to-eventmodel.json> [--schema <path-to-schema.json>] [--view timeline|slice|table]");
-    return 1;
+    ShowHelp();
+    return args.Length == 0 ? 1 : 0;
 }
 
 var filePath = args[0];
@@ -17,14 +18,148 @@ string viewMode = "timeline";
 
 for (int i = 1; i < args.Length; i++)
 {
-    if (args[i] == "--schema" && i + 1 < args.Length)
+    if ((args[i] == "--schema" || args[i] == "-s") && i + 1 < args.Length)
     {
         schemaPath = args[++i];
     }
-    else if (args[i] == "--view" && i + 1 < args.Length)
+    else if ((args[i] == "--view" || args[i] == "-v") && i + 1 < args.Length)
     {
         viewMode = args[++i].ToLower();
     }
+}
+
+void ShowHelp()
+{
+    // Header
+    AnsiConsole.WriteLine();
+    var title = new FigletText("EM Parser")
+        .Color(Color.Cyan1)
+        .Centered();
+    AnsiConsole.Write(title);
+    
+    AnsiConsole.Write(new Rule("[dim]Event Modeling File Format Parser & Visualizer[/]")
+    {
+        Justification = Justify.Center,
+        Style = Style.Parse("grey")
+    });
+    AnsiConsole.WriteLine();
+    
+    // Usage
+    var usagePanel = new Panel(
+        new Markup("[white]EventModelingParser[/] [cyan]<file>[/] [dim][[options]][/]"))
+    {
+        Header = new PanelHeader("[yellow bold]Usage[/]"),
+        Border = BoxBorder.Rounded,
+        BorderStyle = new Style(Color.Yellow),
+        Padding = new Padding(2, 0)
+    };
+    AnsiConsole.Write(usagePanel);
+    AnsiConsole.WriteLine();
+    
+    // Arguments
+    var argsTable = new Table()
+        .Border(TableBorder.Rounded)
+        .BorderColor(Color.Grey)
+        .Title("[cyan bold]Arguments[/]")
+        .AddColumn(new TableColumn("[cyan]Argument[/]").Width(20))
+        .AddColumn(new TableColumn("[dim]Description[/]"));
+    
+    argsTable.AddRow(
+        "[cyan]<file>[/]",
+        "Path to the [yellow].eventmodel.json[/] file to parse"
+    );
+    
+    AnsiConsole.Write(argsTable);
+    AnsiConsole.WriteLine();
+    
+    // Options
+    var optionsTable = new Table()
+        .Border(TableBorder.Rounded)
+        .BorderColor(Color.Grey)
+        .Title("[green bold]Options[/]")
+        .AddColumn(new TableColumn("[green]Option[/]").Width(25))
+        .AddColumn(new TableColumn("[dim]Description[/]"));
+    
+    optionsTable.AddRow(
+        "[green]-v[/], [green]--view[/] [dim]<mode>[/]",
+        "Display mode for the event model\n" +
+        "  [blue]timeline[/] - Vertical timeline view [dim](default)[/]\n" +
+        "  [blue]slice[/]    - Detailed slice view with JSON examples\n" +
+        "  [blue]table[/]    - Tabular overview with data flow tree"
+    );
+    optionsTable.AddRow(
+        "[green]-s[/], [green]--schema[/] [dim]<path>[/]",
+        "Path to JSON schema file for validation"
+    );
+    optionsTable.AddRow(
+        "[green]-h[/], [green]--help[/], [green]-?[/]",
+        "Show this help message"
+    );
+    
+    AnsiConsole.Write(optionsTable);
+    AnsiConsole.WriteLine();
+    
+    // View Modes Detail
+    var viewsTable = new Table()
+        .Border(TableBorder.Rounded)
+        .BorderColor(Color.Blue)
+        .Title("[blue bold]View Modes[/]")
+        .AddColumn(new TableColumn("[blue]Mode[/]").Width(12))
+        .AddColumn(new TableColumn("[dim]Best For[/]"))
+        .AddColumn(new TableColumn("[dim]Features[/]"));
+    
+    viewsTable.AddRow(
+        "[blue bold]timeline[/]",
+        "Quick overview",
+        "Chronological flow, symbols by type, relationships"
+    );
+    viewsTable.AddRow(
+        "[blue bold]slice[/]",
+        "Detailed analysis",
+        "JSON examples, panels, command/view details"
+    );
+    viewsTable.AddRow(
+        "[blue bold]table[/]",
+        "Documentation",
+        "Tables per type, [cyan]data flow tree[/], summary cards"
+    );
+    
+    AnsiConsole.Write(viewsTable);
+    AnsiConsole.WriteLine();
+    
+    // Examples
+    AnsiConsole.Write(new Rule("[yellow]Examples[/]") { Style = Style.Parse("yellow"), Justification = Justify.Left });
+    AnsiConsole.WriteLine();
+    
+    AnsiConsole.MarkupLine("  [dim]# Basic usage with default timeline view[/]");
+    AnsiConsole.MarkupLine("  [white]EventModelingParser[/] [cyan]my-model.eventmodel.json[/]");
+    AnsiConsole.WriteLine();
+    
+    AnsiConsole.MarkupLine("  [dim]# Use table view for documentation[/]");
+    AnsiConsole.MarkupLine("  [white]EventModelingParser[/] [cyan]my-model.eventmodel.json[/] [green]--view table[/]");
+    AnsiConsole.WriteLine();
+    
+    AnsiConsole.MarkupLine("  [dim]# Validate against schema and show slice view[/]");
+    AnsiConsole.MarkupLine("  [white]EventModelingParser[/] [cyan]my-model.eventmodel.json[/] [green]-s schema.json -v slice[/]");
+    AnsiConsole.WriteLine();
+    
+    // Legend
+    AnsiConsole.Write(new Rule("[dim]Symbol Legend[/]") { Style = Style.Parse("grey"), Justification = Justify.Left });
+    var legendGrid = new Grid()
+        .AddColumn()
+        .AddColumn()
+        .AddColumn()
+        .AddColumn();
+    
+    legendGrid.AddRow(
+        "[orange1]● Event[/]",
+        "[green]◆ State View[/]",
+        "[blue]▶ Command[/]",
+        "[white]○ Actor[/]"
+    );
+    
+    AnsiConsole.Write(legendGrid);
+    AnsiConsole.WriteLine();
 }
 
 if (!File.Exists(filePath))
