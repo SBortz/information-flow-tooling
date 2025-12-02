@@ -104,12 +104,15 @@ void RenderTimeline(EventModel model)
         .AddColumn(new TableColumn("").Centered().Width(1).NoWrap())
         .AddColumn(new TableColumn("").Centered().Width(1).NoWrap())
         .AddColumn(new TableColumn("").Centered().Width(1).NoWrap())
+        .AddColumn(new TableColumn("").Centered().Width(1).NoWrap())
         .AddColumn(new TableColumn("").LeftAligned())
         .AddColumn(new TableColumn("").LeftAligned());
     
-    foreach (var element in model.Timeline)
+    for (int i = 0; i < model.Timeline.Count; i++)
     {
-        AddTimelineRow(table, element);
+        var element = model.Timeline[i];
+        var isLast = i == model.Timeline.Count - 1;
+        AddTimelineRow(table, element, isLast);
     }
     
     AnsiConsole.Write(table);
@@ -136,7 +139,7 @@ void RenderTimeline(EventModel model)
     AnsiConsole.Write(summaryTable);
 }
 
-void AddTimelineRow(Table table, TimelineElement element)
+void AddTimelineRow(Table table, TimelineElement element, bool isLast)
 {
     var (eventCol, viewCmdCol, actorCol, name, details) = element switch
     {
@@ -171,10 +174,13 @@ void AddTimelineRow(Table table, TimelineElement element)
         _ => ("", "", "", element.Name, "")
     };
     
+    var timelineChar = isLast ? "[dim]↓[/]" : "[dim]│[/]";
+    
     table.AddRow(
         eventCol,
         viewCmdCol,
         actorCol,
+        timelineChar,
         $"[bold]{Markup.Escape(name)}[/]",
         $"[dim]{Markup.Escape(details)}[/]"
     );
