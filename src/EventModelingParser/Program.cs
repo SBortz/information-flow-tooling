@@ -131,10 +131,10 @@ void RenderTimeline(EventModel model)
         .AddColumn("Count")
         .AddColumn("Symbol");
     
-    summaryTable.AddRow("[yellow]Events[/]", events.Count.ToString(), "[yellow]●[/]");
-    summaryTable.AddRow("[blue]State Views[/]", stateViews.Count.ToString(), "[blue]◆[/]");
-    summaryTable.AddRow("[green]Actors[/]", actors.Count.ToString(), "[green]○[/]");
-    summaryTable.AddRow("[magenta]Commands[/]", commands.Count.ToString(), "[magenta]▶[/]");
+    summaryTable.AddRow("[orange1]Events[/]", events.Count.ToString(), "[orange1]●[/]");
+    summaryTable.AddRow("[green]State Views[/]", stateViews.Count.ToString(), "[green]◆[/]");
+    summaryTable.AddRow("[white]Actors[/]", actors.Count.ToString(), "[white]○[/]");
+    summaryTable.AddRow("[blue]Commands[/]", commands.Count.ToString(), "[blue]▶[/]");
     
     AnsiConsole.Write(summaryTable);
 }
@@ -144,7 +144,7 @@ void AddTimelineRow(Table table, TimelineElement element, bool isLast)
     var (eventCol, viewCmdCol, actorCol, name, details) = element switch
     {
         EventElement evt => (
-            "[yellow]●[/]",
+            "[orange1]●[/]",
             "",
             "",
             evt.Name,
@@ -152,14 +152,14 @@ void AddTimelineRow(Table table, TimelineElement element, bool isLast)
         ),
         StateViewElement sv => (
             "",
-            "[blue]◆[/]",
+            "[green]◆[/]",
             "",
             sv.Name,
             sv.SubscribesTo.Count > 0 ? $"← [{string.Join(", ", sv.SubscribesTo)}]" : ""
         ),
         CommandElement cmd => (
             "",
-            "[magenta]▶[/]",
+            "[blue]▶[/]",
             "",
             cmd.Name,
             cmd.Produces.Count > 0 ? $"→ [{string.Join(", ", cmd.Produces)}]" : ""
@@ -167,7 +167,7 @@ void AddTimelineRow(Table table, TimelineElement element, bool isLast)
         ActorElement actor => (
             "",
             "",
-            "[green]○[/]",
+            "[white]○[/]",
             actor.Name,
             $"{actor.ReadsView} → {actor.SendsCommand}"
         ),
