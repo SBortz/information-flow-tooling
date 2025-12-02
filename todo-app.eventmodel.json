@@ -1,0 +1,118 @@
+{
+  "$schema": "https://event-modeling.org/schema/v1",
+  "name": "Todo App",
+  "description": "Eine einfache Todo-Anwendung zum Verwalten von Aufgaben",
+  "version": "1.0.0",
+
+  "timeline": [
+    {
+      "type": "stateview",
+      "name": "TodoList",
+      "tick": 1,
+      "subscribesTo": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "example": {
+        "todos": []
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 2,
+      "readsView": "TodoList",
+      "sendsCommand": "CreateTodo"
+    },
+    {
+      "type": "command",
+      "name": "CreateTodo",
+      "tick": 3,
+      "example": {
+        "title": "Einkaufen gehen"
+      }
+    },
+    {
+      "type": "event",
+      "name": "TodoCreated",
+      "tick": 4,
+      "producedBy": "CreateTodo-3",
+      "example": {
+        "id": "abc-123",
+        "title": "Einkaufen gehen",
+        "createdAt": "2025-12-02T10:00:00Z"
+      }
+    },
+
+    {
+      "type": "stateview",
+      "name": "TodoList",
+      "tick": 5,
+      "subscribesTo": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "example": {
+        "todos": [
+          { "id": "abc-123", "title": "Einkaufen gehen", "completed": false }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 6,
+      "readsView": "TodoList",
+      "sendsCommand": "CompleteTodo"
+    },
+    {
+      "type": "command",
+      "name": "CompleteTodo",
+      "tick": 7,
+      "example": {
+        "todoId": "abc-123"
+      }
+    },
+    {
+      "type": "event",
+      "name": "TodoCompleted",
+      "tick": 8,
+      "producedBy": "CompleteTodo-7",
+      "example": {
+        "todoId": "abc-123",
+        "completedAt": "2025-12-02T11:00:00Z"
+      }
+    },
+
+    {
+      "type": "stateview",
+      "name": "TodoList",
+      "tick": 9,
+      "subscribesTo": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "example": {
+        "todos": [
+          { "id": "abc-123", "title": "Einkaufen gehen", "completed": true }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 10,
+      "readsView": "TodoList",
+      "sendsCommand": "DeleteTodo"
+    },
+    {
+      "type": "command",
+      "name": "DeleteTodo",
+      "tick": 11,
+      "example": {
+        "todoId": "abc-123"
+      }
+    },
+    {
+      "type": "event",
+      "name": "TodoDeleted",
+      "tick": 12,
+      "producedBy": "DeleteTodo-11",
+      "example": {
+        "todoId": "abc-123",
+        "deletedAt": "2025-12-02T12:00:00Z"
+      }
+    }
+  ]
+}
