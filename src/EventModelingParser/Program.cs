@@ -1,10 +1,11 @@
 using System.Text.Json;
 using EventModelingParser.Models;
 using NJsonSchema;
+using Spectre.Console;
 
 if (args.Length == 0)
 {
-    Console.WriteLine("Usage: EventModelingParser <path-to-eventmodel.json> [--schema <path-to-schema.json>]");
+    AnsiConsole.MarkupLine("[red]Usage:[/] EventModelingParser <path-to-eventmodel.json> [--schema <path-to-schema.json>]");
     return 1;
 }
 
@@ -21,9 +22,7 @@ for (int i = 1; i < args.Length; i++)
 
 if (!File.Exists(filePath))
 {
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine($"Error: File not found: {filePath}");
-    Console.ResetColor();
+    AnsiConsole.MarkupLine($"[red]Error:[/] File not found: {filePath}");
     return 1;
 }
 
@@ -34,33 +33,27 @@ if (schemaPath != null)
 {
     if (!File.Exists(schemaPath))
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"Error: Schema file not found: {schemaPath}");
-        Console.ResetColor();
+        AnsiConsole.MarkupLine($"[red]Error:[/] Schema file not found: {schemaPath}");
         return 1;
     }
 
-    Console.WriteLine("Validating against schema...");
+    AnsiConsole.MarkupLine("[dim]Validating against schema...[/]");
     var schemaJson = await File.ReadAllTextAsync(schemaPath);
     var schema = await JsonSchema.FromJsonAsync(schemaJson);
     var errors = schema.Validate(json);
 
     if (errors.Count > 0)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"Schema validation failed with {errors.Count} error(s):");
+        AnsiConsole.MarkupLine($"[red]Schema validation failed with {errors.Count} error(s):[/]");
         foreach (var error in errors)
         {
-            Console.WriteLine($"  - {error.Path}: {error.Kind}");
+            AnsiConsole.MarkupLine($"  [red]•[/] {error.Path}: {error.Kind}");
         }
-        Console.ResetColor();
         return 1;
     }
 
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine("Schema validation passed!");
-    Console.ResetColor();
-    Console.WriteLine();
+    AnsiConsole.MarkupLine("[green]✓ Schema validation passed![/]");
+    AnsiConsole.WriteLine();
 }
 
 // Parse the model
@@ -72,101 +65,117 @@ try
 }
 catch (JsonException ex)
 {
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine($"Error parsing JSON: {ex.Message}");
-    Console.ResetColor();
+    AnsiConsole.MarkupLine($"[red]Error parsing JSON:[/] {ex.Message}");
     return 1;
 }
 
-// Output header
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
-Console.WriteLine($"║  {model.Name,-60}║");
-if (!string.IsNullOrEmpty(model.Version))
-    Console.WriteLine($"║  Version: {model.Version,-52}║");
-Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
-Console.ResetColor();
-
-if (!string.IsNullOrEmpty(model.Description))
-{
-    Console.WriteLine();
-    Console.WriteLine(model.Description);
-}
-
-Console.WriteLine();
-Console.WriteLine($"Timeline ({model.Timeline.Count} elements):");
-Console.WriteLine("─────────────────────────────────────────────────────────────────");
-
-// Output timeline elements
-int index = 0;
-foreach (var element in model.Timeline)
-{
-    index++;
-    PrintTimelineElement(element, index);
-}
-
-Console.WriteLine("─────────────────────────────────────────────────────────────────");
-Console.WriteLine();
-
-// Summary
-var events = model.Timeline.OfType<EventElement>().ToList();
-var stateViews = model.Timeline.OfType<StateViewElement>().ToList();
-var actors = model.Timeline.OfType<ActorElement>().ToList();
-var commands = model.Timeline.OfType<CommandElement>().ToList();
-
-Console.WriteLine("Summary:");
-Console.WriteLine($"  Events:      {events.Count}");
-Console.WriteLine($"  State Views: {stateViews.Count}");
-Console.WriteLine($"  Actors:      {actors.Count}");
-Console.WriteLine($"  Commands:    {commands.Count}");
+// Render the timeline
+RenderTimeline(model);
 
 return 0;
 
-void PrintTimelineElement(TimelineElement element, int index)
+void RenderTimeline(EventModel model)
 {
-    var (color, symbol) = element switch
+    // Header
+    var rule = new Rule($"[bold cyan]{Markup.Escape(model.Name)}[/]")
     {
-        EventElement => (ConsoleColor.Yellow, "⚡"),
-        StateViewElement => (ConsoleColor.Blue, "📋"),
-        ActorElement => (ConsoleColor.Green, "👤"),
-        CommandElement => (ConsoleColor.Magenta, "▶"),
-        _ => (ConsoleColor.White, "?")
+        Justification = Justify.Center,
+        Style = Style.Parse("cyan")
     };
-
-    Console.ForegroundColor = color;
-    Console.Write($"  {index,2}. [{element.Type,-7}] ");
-    Console.ResetColor();
-    Console.ForegroundColor = ConsoleColor.White;
-    Console.Write($"{symbol} {element.Name}");
-    Console.ResetColor();
-
-    switch (element)
+    AnsiConsole.Write(rule);
+    
+    if (!string.IsNullOrEmpty(model.Version))
     {
-        case EventElement evt when !string.IsNullOrEmpty(evt.ExternalSource):
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($" (external: {evt.ExternalSource})");
-            Console.ResetColor();
-            break;
-            
-        case StateViewElement stateView when stateView.SubscribesTo.Count > 0:
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($" ← [{string.Join(", ", stateView.SubscribesTo)}]");
-            Console.ResetColor();
-            break;
-            
-        case ActorElement actor:
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($" ({actor.ReadsView} → {actor.SendsCommand})");
-            Console.ResetColor();
-            break;
-            
-        case CommandElement cmd when cmd.Produces.Count > 0:
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($" → [{string.Join(", ", cmd.Produces)}]");
-            Console.ResetColor();
-            break;
+        AnsiConsole.MarkupLine($"[dim]Version {model.Version}[/]");
     }
+    
+    if (!string.IsNullOrEmpty(model.Description))
+    {
+        AnsiConsole.MarkupLine($"[dim italic]{Markup.Escape(model.Description)}[/]");
+    }
+    
+    AnsiConsole.WriteLine();
 
-    Console.WriteLine();
+    // Timeline table
+    var table = new Table()
+        .Border(TableBorder.None)
+        .BorderColor(Color.Grey)
+        .HideHeaders()
+        .AddColumn(new TableColumn("").Centered().Width(1).NoWrap())
+        .AddColumn(new TableColumn("").Centered().Width(1).NoWrap())
+        .AddColumn(new TableColumn("").Centered().Width(1).NoWrap())
+        .AddColumn(new TableColumn("").LeftAligned())
+        .AddColumn(new TableColumn("").LeftAligned());
+    
+    foreach (var element in model.Timeline)
+    {
+        AddTimelineRow(table, element);
+    }
+    
+    AnsiConsole.Write(table);
+    
+    AnsiConsole.WriteLine();
+    
+    // Summary
+    var events = model.Timeline.OfType<EventElement>().ToList();
+    var stateViews = model.Timeline.OfType<StateViewElement>().ToList();
+    var actors = model.Timeline.OfType<ActorElement>().ToList();
+    var commands = model.Timeline.OfType<CommandElement>().ToList();
+    
+    var summaryTable = new Table()
+        .Border(TableBorder.Rounded)
+        .AddColumn("Type")
+        .AddColumn("Count")
+        .AddColumn("Symbol");
+    
+    summaryTable.AddRow("[yellow]Events[/]", events.Count.ToString(), "[yellow]●[/]");
+    summaryTable.AddRow("[blue]State Views[/]", stateViews.Count.ToString(), "[blue]◆[/]");
+    summaryTable.AddRow("[green]Actors[/]", actors.Count.ToString(), "[green]○[/]");
+    summaryTable.AddRow("[magenta]Commands[/]", commands.Count.ToString(), "[magenta]▶[/]");
+    
+    AnsiConsole.Write(summaryTable);
 }
 
+void AddTimelineRow(Table table, TimelineElement element)
+{
+    var (eventCol, viewCmdCol, actorCol, name, details) = element switch
+    {
+        EventElement evt => (
+            "[yellow]●[/]",
+            "",
+            "",
+            evt.Name,
+            !string.IsNullOrEmpty(evt.ExternalSource) ? $"external: {evt.ExternalSource}" : ""
+        ),
+        StateViewElement sv => (
+            "",
+            "[blue]◆[/]",
+            "",
+            sv.Name,
+            sv.SubscribesTo.Count > 0 ? $"← [{string.Join(", ", sv.SubscribesTo)}]" : ""
+        ),
+        CommandElement cmd => (
+            "",
+            "[magenta]▶[/]",
+            "",
+            cmd.Name,
+            cmd.Produces.Count > 0 ? $"→ [{string.Join(", ", cmd.Produces)}]" : ""
+        ),
+        ActorElement actor => (
+            "",
+            "",
+            "[green]○[/]",
+            actor.Name,
+            $"{actor.ReadsView} → {actor.SendsCommand}"
+        ),
+        _ => ("", "", "", element.Name, "")
+    };
+    
+    table.AddRow(
+        eventCol,
+        viewCmdCol,
+        actorCol,
+        $"[bold]{Markup.Escape(name)}[/]",
+        $"[dim]{Markup.Escape(details)}[/]"
+    );
+}
