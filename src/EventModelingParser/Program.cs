@@ -273,8 +273,9 @@ void RenderTableView(EventModel model)
     var actors = model.Timeline.OfType<ActorElement>().ToList();
     var commands = model.Timeline.OfType<CommandElement>().ToList();
     
-    // Events Table
-    if (events.Count > 0)
+    // Events Table (distinct by name)
+    var distinctEvents = events.GroupBy(e => e.Name).Select(g => g.First()).ToList();
+    if (distinctEvents.Count > 0)
     {
         AnsiConsole.Write(new Rule("[orange1 bold]● Events[/]") { Style = Style.Parse("orange1"), Justification = Justify.Left });
         
@@ -282,17 +283,26 @@ void RenderTableView(EventModel model)
             .Border(TableBorder.Rounded)
             .BorderColor(Color.Orange1)
             .Title("[orange1]Domain Events[/]")
-            .AddColumn(new TableColumn("[dim]Tick[/]").RightAligned())
             .AddColumn(new TableColumn("[orange1 bold]Name[/]"))
             .AddColumn(new TableColumn("[dim]Produced By[/]"))
             .AddColumn(new TableColumn("[dim]External Source[/]"));
         
-        foreach (var evt in events.OrderBy(e => e.Tick))
+        foreach (var evt in distinctEvents.OrderBy(e => e.Name))
         {
+            // Find all commands that produce this event
+            var producedByCommands = events
+                .Where(e => e.Name == evt.Name && !string.IsNullOrEmpty(e.ProducedBy))
+                .Select(e => e.ProducedBy!.Split('-')[0])
+                .Distinct()
+                .ToList();
+            
+            var producedBy = producedByCommands.Count > 0
+                ? string.Join(", ", producedByCommands.Select(c => $"[blue]{Markup.Escape(c)}[/]"))
+                : "[dim]-[/]";
+            
             eventTable.AddRow(
-                $"[dim]@{evt.Tick}[/]",
                 $"[orange1 bold]{Markup.Escape(evt.Name)}[/]",
-                !string.IsNullOrEmpty(evt.ProducedBy) ? $"[blue]{Markup.Escape(evt.ProducedBy)}[/]" : "[dim]-[/]",
+                producedBy,
                 !string.IsNullOrEmpty(evt.ExternalSource) ? Markup.Escape(evt.ExternalSource) : "[dim]-[/]"
             );
         }
@@ -301,8 +311,9 @@ void RenderTableView(EventModel model)
         AnsiConsole.WriteLine();
     }
     
-    // State Views Table
-    if (stateViews.Count > 0)
+    // State Views Table (distinct by name)
+    var distinctStateViews = stateViews.GroupBy(sv => sv.Name).Select(g => g.First()).ToList();
+    if (distinctStateViews.Count > 0)
     {
         AnsiConsole.Write(new Rule("[green bold]◆ State Views[/]") { Style = Style.Parse("green"), Justification = Justify.Left });
         
@@ -310,18 +321,16 @@ void RenderTableView(EventModel model)
             .Border(TableBorder.Rounded)
             .BorderColor(Color.Green)
             .Title("[green]Read Models[/]")
-            .AddColumn(new TableColumn("[dim]Tick[/]").RightAligned())
             .AddColumn(new TableColumn("[green bold]Name[/]"))
             .AddColumn(new TableColumn("[dim]Subscribes To[/]"));
         
-        foreach (var sv in stateViews.OrderBy(e => e.Tick))
+        foreach (var sv in distinctStateViews.OrderBy(e => e.Name))
         {
             var subscribes = sv.SubscribesTo.Count > 0 
                 ? string.Join(", ", sv.SubscribesTo.Select(e => $"[orange1]{Markup.Escape(e)}[/]"))
                 : "[dim]-[/]";
             
             viewTable.AddRow(
-                $"[dim]@{sv.Tick}[/]",
                 $"[green bold]{Markup.Escape(sv.Name)}[/]",
                 subscribes
             );
@@ -331,8 +340,9 @@ void RenderTableView(EventModel model)
         AnsiConsole.WriteLine();
     }
     
-    // Commands Table
-    if (commands.Count > 0)
+    // Commands Table (distinct by name)
+    var distinctCommands = commands.GroupBy(c => c.Name).Select(g => g.First()).ToList();
+    if (distinctCommands.Count > 0)
     {
         AnsiConsole.Write(new Rule("[blue bold]▶ Commands[/]") { Style = Style.Parse("blue"), Justification = Justify.Left });
         
@@ -340,21 +350,24 @@ void RenderTableView(EventModel model)
             .Border(TableBorder.Rounded)
             .BorderColor(Color.Blue)
             .Title("[blue]Commands[/]")
-            .AddColumn(new TableColumn("[dim]Tick[/]").RightAligned())
             .AddColumn(new TableColumn("[blue bold]Name[/]"))
             .AddColumn(new TableColumn("[dim]Produces Events[/]"));
         
-        foreach (var cmd in commands.OrderBy(e => e.Tick))
+        foreach (var cmd in distinctCommands.OrderBy(e => e.Name))
         {
-            // Find events produced by this command
-            var cmdKey = $"{cmd.Name}-{cmd.Tick}";
-            var producedEvents = events.Where(e => e.ProducedBy == cmdKey).ToList();
-            var produces = producedEvents.Count > 0
-                ? string.Join(", ", producedEvents.Select(e => $"[orange1]{Markup.Escape(e.Name)}[/]"))
+            // Find all events produced by commands with this name
+            var producedEventNames = commands
+                .Where(c => c.Name == cmd.Name)
+                .SelectMany(c => events.Where(e => e.ProducedBy == $"{c.Name}-{c.Tick}"))
+                .Select(e => e.Name)
+                .Distinct()
+                .ToList();
+            
+            var produces = producedEventNames.Count > 0
+                ? string.Join(", ", producedEventNames.Select(e => $"[orange1]{Markup.Escape(e)}[/]"))
                 : "[dim]-[/]";
             
             cmdTable.AddRow(
-                $"[dim]@{cmd.Tick}[/]",
                 $"[blue bold]{Markup.Escape(cmd.Name)}[/]",
                 produces
             );
@@ -497,10 +510,10 @@ void RenderTableView(EventModel model)
 
 void RenderSummaryPanel(EventModel model)
 {
-    var events = model.Timeline.OfType<EventElement>().Count();
-    var stateViews = model.Timeline.OfType<StateViewElement>().Count();
-    var actors = model.Timeline.OfType<ActorElement>().Count();
-    var commands = model.Timeline.OfType<CommandElement>().Count();
+    var events = model.Timeline.OfType<EventElement>().Select(e => e.Name).Distinct().Count();
+    var stateViews = model.Timeline.OfType<StateViewElement>().Select(sv => sv.Name).Distinct().Count();
+    var actors = model.Timeline.OfType<ActorElement>().Select(a => a.Name).Distinct().Count();
+    var commands = model.Timeline.OfType<CommandElement>().Select(c => c.Name).Distinct().Count();
     
     var summaryGrid = new Grid()
         .AddColumn()
