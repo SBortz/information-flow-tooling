@@ -148,9 +148,9 @@ void PrintTimelineElement(TimelineElement element, int index)
             Console.ResetColor();
             break;
             
-        case StateViewElement stateView when stateView.Inbound.Count > 0:
+        case StateViewElement stateView when stateView.SubscribesTo.Count > 0:
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($" ← [{string.Join(", ", stateView.Inbound)}]");
+            Console.Write($" ← [{string.Join(", ", stateView.SubscribesTo)}]");
             Console.ResetColor();
             break;
             
@@ -160,9 +160,9 @@ void PrintTimelineElement(TimelineElement element, int index)
             Console.ResetColor();
             break;
             
-        case CommandElement cmd when cmd.Outbound.Count > 0:
+        case CommandElement cmd when cmd.Produces.Count > 0:
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($" → [{string.Join(", ", cmd.Outbound)}]");
+            Console.Write($" → [{string.Join(", ", cmd.Produces)}]");
             Console.ResetColor();
             break;
     }

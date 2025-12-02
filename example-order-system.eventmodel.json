@@ -30,7 +30,7 @@
     {
       "type": "stateview",
       "name": "ShoppingCart",
-      "inbound": ["ProductAddedToCart", "CartUpdated"],
+      "subscribesTo": ["ProductAddedToCart", "CartUpdated"],
       "example": {
         "cartId": "cart-123",
         "customerId": "cust-789",
@@ -50,7 +50,7 @@
     {
       "type": "command",
       "name": "PlaceOrder",
-      "outbound": ["OrderCreated"],
+      "produces": ["OrderCreated"],
       "example": {
         "cartId": "cart-123",
         "customerId": "cust-789",
@@ -79,7 +79,7 @@
     {
       "type": "stateview",
       "name": "OrderConfirmation",
-      "inbound": ["OrderCreated"],
+      "subscribesTo": ["OrderCreated"],
       "example": {
         "orderId": "order-001",
         "message": "Vielen Dank für Ihre Bestellung!",
@@ -90,7 +90,7 @@
     {
       "type": "stateview",
       "name": "PendingOrders",
-      "inbound": ["OrderCreated", "OrderPaid"],
+      "subscribesTo": ["OrderCreated", "OrderPaid"],
       "example": {
         "orders": [
           { "orderId": "order-001", "customerId": "cust-789", "amount": 79.99, "status": "pending" }
@@ -106,7 +106,7 @@
     {
       "type": "command",
       "name": "ProcessPayment",
-      "outbound": ["OrderPaid", "PaymentFailed"],
+      "produces": ["OrderPaid", "PaymentFailed"],
       "example": {
         "orderId": "order-001",
         "amount": 79.99,
@@ -136,7 +136,7 @@
     {
       "type": "stateview",
       "name": "OrdersReadyToShip",
-      "inbound": ["OrderPaid", "OrderShipped"],
+      "subscribesTo": ["OrderPaid", "OrderShipped"],
       "example": {
         "orders": [
           { "orderId": "order-001", "customerId": "cust-789", "paidAt": "2024-01-15T10:36:00Z" }
@@ -152,7 +152,7 @@
     {
       "type": "command",
       "name": "ShipOrder",
-      "outbound": ["OrderShipped"],
+      "produces": ["OrderShipped"],
       "example": {
         "orderId": "order-001",
         "trackingNumber": "DHL-123456789",
@@ -172,7 +172,7 @@
     {
       "type": "stateview",
       "name": "CustomerOrderTracking",
-      "inbound": ["OrderCreated", "OrderPaid", "OrderShipped", "OrderDelivered"],
+      "subscribesTo": ["OrderCreated", "OrderPaid", "OrderShipped", "OrderDelivered"],
       "example": {
         "orderId": "order-001",
         "status": "shipped",

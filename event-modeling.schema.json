@@ -68,7 +68,7 @@
     "stateview": {
       "type": "object",
       "description": "A state view (read model) is a projected representation of data built from events.",
-      "required": ["type", "name", "inbound"],
+      "required": ["type", "name", "subscribesTo"],
       "additionalProperties": false,
       "properties": {
         "type": {
@@ -78,9 +78,9 @@
           "type": "string",
           "description": "Name of the state view (e.g. 'ShoppingCart', 'OrderList')"
         },
-        "inbound": {
+        "subscribesTo": {
           "type": "array",
-          "description": "Names of the events that update this state view",
+          "description": "Names of the events that this state view subscribes to",
           "items": { "type": "string" }
         },
         "example": {
@@ -117,7 +117,7 @@
     "command": {
       "type": "object",
       "description": "A command represents an intent to do something. Commands produce events.",
-      "required": ["type", "name", "outbound"],
+      "required": ["type", "name", "produces"],
       "additionalProperties": false,
       "properties": {
         "type": {
@@ -127,9 +127,9 @@
           "type": "string",
           "description": "Name of the command (imperative, e.g. 'PlaceOrder')"
         },
-        "outbound": {
+        "produces": {
           "type": "array",
-          "description": "Names of the events that this command can produce",
+          "description": "Names of the events that this command produces",
           "items": { "type": "string" }
         },
         "example": {

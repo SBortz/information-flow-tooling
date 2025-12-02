@@ -49,8 +49,8 @@ public class StateViewElement : TimelineElement
 {
     public override string Type => "stateview";
     
-    [JsonPropertyName("inbound")]
-    public List<string> Inbound { get; set; } = new();
+    [JsonPropertyName("subscribesTo")]
+    public List<string> SubscribesTo { get; set; } = new();
     
     [JsonPropertyName("example")]
     public object? Example { get; set; }
@@ -71,8 +71,8 @@ public class CommandElement : TimelineElement
 {
     public override string Type => "command";
     
-    [JsonPropertyName("outbound")]
-    public List<string> Outbound { get; set; } = new();
+    [JsonPropertyName("produces")]
+    public List<string> Produces { get; set; } = new();
     
     [JsonPropertyName("example")]
     public object? Example { get; set; }
