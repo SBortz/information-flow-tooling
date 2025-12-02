@@ -2,6 +2,8 @@ using System.Text.Json;
 using EventModelingParser.Models;
 using NJsonSchema;
 using Spectre.Console;
+using Spectre.Console.Json;
+using Spectre.Console.Rendering;
 
 if (args.Length == 0)
 {
@@ -158,6 +160,9 @@ void RenderSliceView(EventModel model)
                         content.Add($"  [white]○ {Markup.Escape(actor.Name)}[/] [dim]@{actor.Tick}[/] → [blue]{Markup.Escape(actor.SendsCommand)}[/]");
                     }
                 }
+                
+                // Example data handled separately
+                
                 break;
                 
             case CommandElement cmd:
@@ -187,6 +192,9 @@ void RenderSliceView(EventModel model)
                         content.Add($"  [orange1]● {Markup.Escape(evt.Name)}[/] [dim]@{evt.Tick}[/]");
                     }
                 }
+                
+                // Example data handled separately
+                
                 break;
                 
             default:
@@ -211,14 +219,44 @@ void RenderSliceView(EventModel model)
         // Timeline prefix
         AnsiConsole.MarkupLine($"{symbol} [dim]{tickStr} │[/]");
         
-        // Panel content with timeline on the left
-        var panelContent = string.Join("\n", content.Count > 0 ? content : new[] { "[dim](no details)[/]" });
+        // Get example data if available
+        object? exampleData = slice switch
+        {
+            StateViewElement sv => sv.Example,
+            CommandElement cmd => cmd.Example,
+            _ => null
+        };
+        
+        // Build panel content with JSON first, then details
+        IRenderable panelContent;
+        if (exampleData != null)
+        {
+            var exampleJson = JsonSerializer.Serialize(exampleData, new JsonSerializerOptions { WriteIndented = true });
+            var jsonContent = new JsonText(exampleJson);
+            
+            if (content.Count > 0)
+            {
+                // JSON first, then empty line, then details
+                var textContent = new Markup(string.Join("\n", content));
+                panelContent = new Rows(jsonContent, new Text(""), textContent);
+            }
+            else
+            {
+                panelContent = jsonContent;
+            }
+        }
+        else
+        {
+            panelContent = new Markup(string.Join("\n", content.Count > 0 ? content : new[] { "[dim](no details)[/]" }));
+        }
+        
         var panel = new Panel(panelContent)
         {
             Header = new PanelHeader(title),
             Border = BoxBorder.Rounded,
             BorderStyle = new Style(borderColor),
-            Padding = new Padding(1, 0, 1, 0)
+            Padding = new Padding(1, 0, 1, 0),
+            Expand = true
         };
         
         AnsiConsole.Write(panel);
