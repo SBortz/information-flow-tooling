@@ -8,6 +8,7 @@
     {
       "type": "event",
       "name": "ProductAddedToCart",
+      "tick": 10,
       "example": {
         "cartId": "cart-123",
         "productId": "prod-456",
@@ -20,6 +21,7 @@
     {
       "type": "event",
       "name": "CartUpdated",
+      "tick": 20,
       "example": {
         "cartId": "cart-123",
         "totalItems": 2,
@@ -30,6 +32,7 @@
     {
       "type": "stateview",
       "name": "ShoppingCart",
+      "tick": 30,
       "subscribesTo": ["ProductAddedToCart", "CartUpdated"],
       "example": {
         "cartId": "cart-123",
@@ -44,13 +47,14 @@
     {
       "type": "actor",
       "name": "Customer",
+      "tick": 40,
       "readsView": "ShoppingCart",
       "sendsCommand": "PlaceOrder"
     },
     {
       "type": "command",
       "name": "PlaceOrder",
-      "produces": ["OrderCreated"],
+      "tick": 50,
       "example": {
         "cartId": "cart-123",
         "customerId": "cust-789",
@@ -65,6 +69,8 @@
     {
       "type": "event",
       "name": "OrderCreated",
+      "tick": 60,
+      "producedBy": "PlaceOrder-50",
       "example": {
         "orderId": "order-001",
         "customerId": "cust-789",
@@ -79,6 +85,7 @@
     {
       "type": "stateview",
       "name": "OrderConfirmation",
+      "tick": 70,
       "subscribesTo": ["OrderCreated"],
       "example": {
         "orderId": "order-001",
@@ -90,6 +97,7 @@
     {
       "type": "stateview",
       "name": "PendingOrders",
+      "tick": 80,
       "subscribesTo": ["OrderCreated", "OrderPaid"],
       "example": {
         "orders": [
@@ -100,13 +108,14 @@
     {
       "type": "actor",
       "name": "PaymentProcessor",
+      "tick": 90,
       "readsView": "PendingOrders",
       "sendsCommand": "ProcessPayment"
     },
     {
       "type": "command",
       "name": "ProcessPayment",
-      "produces": ["OrderPaid", "PaymentFailed"],
+      "tick": 100,
       "example": {
         "orderId": "order-001",
         "amount": 79.99,
@@ -117,6 +126,8 @@
     {
       "type": "event",
       "name": "OrderPaid",
+      "tick": 110,
+      "producedBy": "ProcessPayment-100",
       "example": {
         "orderId": "order-001",
         "paymentId": "pay-555",
@@ -127,6 +138,8 @@
     {
       "type": "event",
       "name": "PaymentFailed",
+      "tick": 120,
+      "producedBy": "ProcessPayment-100",
       "example": {
         "orderId": "order-001",
         "reason": "Insufficient funds",
@@ -136,6 +149,7 @@
     {
       "type": "stateview",
       "name": "OrdersReadyToShip",
+      "tick": 130,
       "subscribesTo": ["OrderPaid", "OrderShipped"],
       "example": {
         "orders": [
@@ -146,13 +160,14 @@
     {
       "type": "actor",
       "name": "WarehouseWorker",
+      "tick": 140,
       "readsView": "OrdersReadyToShip",
       "sendsCommand": "ShipOrder"
     },
     {
       "type": "command",
       "name": "ShipOrder",
-      "produces": ["OrderShipped"],
+      "tick": 150,
       "example": {
         "orderId": "order-001",
         "trackingNumber": "DHL-123456789",
@@ -162,6 +177,8 @@
     {
       "type": "event",
       "name": "OrderShipped",
+      "tick": 160,
+      "producedBy": "ShipOrder-150",
       "example": {
         "orderId": "order-001",
         "trackingNumber": "DHL-123456789",
@@ -172,6 +189,7 @@
     {
       "type": "stateview",
       "name": "CustomerOrderTracking",
+      "tick": 170,
       "subscribesTo": ["OrderCreated", "OrderPaid", "OrderShipped", "OrderDelivered"],
       "example": {
         "orderId": "order-001",
@@ -187,6 +205,7 @@
     {
       "type": "event",
       "name": "OrderDelivered",
+      "tick": 180,
       "externalSource": "Carrier Webhook",
       "example": {
         "orderId": "order-001",
@@ -196,4 +215,3 @@
     }
   ]
 }
-

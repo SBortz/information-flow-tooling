@@ -30,112 +30,63 @@
       "type": "array",
       "description": "The chronologically ordered sequence. The order in the array determines the position on the timeline from left to right.",
       "items": {
-        "oneOf": [
-          { "$ref": "#/definitions/event" },
-          { "$ref": "#/definitions/stateview" },
-          { "$ref": "#/definitions/actor" },
-          { "$ref": "#/definitions/command" }
+        "type": "object",
+        "required": ["type", "name", "tick"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["event", "stateview", "actor", "command"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "tick": {
+            "type": "integer",
+            "description": "Logical timestamp (Lamport clock) for ordering"
+          },
+          "producedBy": {
+            "type": "string",
+            "description": "For events: reference to the command that produced this event (format: 'CommandName-Tick')"
+          },
+          "externalSource": {
+            "type": "string",
+            "description": "For external events: the source (e.g. 'Carrier Webhook')"
+          },
+          "subscribesTo": {
+            "type": "array",
+            "description": "For state views: names of the events that this state view subscribes to",
+            "items": { "type": "string" }
+          },
+          "readsView": {
+            "type": "string",
+            "description": "For actors: name of the state view that the actor reads"
+          },
+          "sendsCommand": {
+            "type": "string",
+            "description": "For actors: name of the command that the actor sends"
+          },
+          "example": {
+            "description": "Example data"
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "const": "event" } } },
+            "then": { "description": "An event represents something that has happened." }
+          },
+          {
+            "if": { "properties": { "type": { "const": "stateview" } } },
+            "then": { "required": ["subscribesTo"] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "actor" } } },
+            "then": { "required": ["readsView", "sendsCommand"] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "command" } } },
+            "then": { "description": "A command represents an intent to do something." }
+          }
         ]
-      }
-    }
-  },
-  
-  "definitions": {
-    "event": {
-      "type": "object",
-      "description": "An event represents something that has happened. Events are immutable and named in past tense.",
-      "required": ["type", "name"],
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "const": "event"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the event (past tense, e.g. 'OrderCreated')"
-        },
-        "externalSource": {
-          "type": "string",
-          "description": "For external events: the source (e.g. 'Carrier Webhook')"
-        },
-        "example": {
-          "type": "object",
-          "description": "Example data for this event"
-        }
-      }
-    },
-    
-    "stateview": {
-      "type": "object",
-      "description": "A state view (read model) is a projected representation of data built from events.",
-      "required": ["type", "name", "subscribesTo"],
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "const": "stateview"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the state view (e.g. 'ShoppingCart', 'OrderList')"
-        },
-        "subscribesTo": {
-          "type": "array",
-          "description": "Names of the events that this state view subscribes to",
-          "items": { "type": "string" }
-        },
-        "example": {
-          "type": "object",
-          "description": "Example data for the read model"
-        }
-      }
-    },
-    
-    "actor": {
-      "type": "object",
-      "description": "An actor interacts with the system: reads a view and sends a command.",
-      "required": ["type", "name", "readsView", "sendsCommand"],
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "const": "actor"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the actor (e.g. 'Customer', 'WarehouseWorker')"
-        },
-        "readsView": {
-          "type": "string",
-          "description": "Name of the state view that the actor reads"
-        },
-        "sendsCommand": {
-          "type": "string",
-          "description": "Name of the command that the actor sends"
-        }
-      }
-    },
-    
-    "command": {
-      "type": "object",
-      "description": "A command represents an intent to do something. Commands produce events.",
-      "required": ["type", "name", "produces"],
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "const": "command"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the command (imperative, e.g. 'PlaceOrder')"
-        },
-        "produces": {
-          "type": "array",
-          "description": "Names of the events that this command produces",
-          "items": { "type": "string" }
-        },
-        "example": {
-          "type": "object",
-          "description": "Example data for this command"
-        }
       }
     }
   }

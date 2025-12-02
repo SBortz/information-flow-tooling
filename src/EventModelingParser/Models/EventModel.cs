@@ -32,11 +32,17 @@ public abstract class TimelineElement
     
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
+    
+    [JsonPropertyName("tick")]
+    public int Tick { get; set; }
 }
 
 public class EventElement : TimelineElement
 {
     public override string Type => "event";
+    
+    [JsonPropertyName("producedBy")]
+    public string? ProducedBy { get; set; }
     
     [JsonPropertyName("externalSource")]
     public string? ExternalSource { get; set; }
@@ -70,9 +76,6 @@ public class ActorElement : TimelineElement
 public class CommandElement : TimelineElement
 {
     public override string Type => "command";
-    
-    [JsonPropertyName("produces")]
-    public List<string> Produces { get; set; } = new();
     
     [JsonPropertyName("example")]
     public object? Example { get; set; }

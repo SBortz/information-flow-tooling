@@ -47,7 +47,7 @@ if (schemaPath != null)
         AnsiConsole.MarkupLine($"[red]Schema validation failed with {errors.Count} error(s):[/]");
         foreach (var error in errors)
         {
-            AnsiConsole.MarkupLine($"  [red]•[/] {error.Path}: {error.Kind}");
+            AnsiConsole.MarkupLine($"  [red]•[/] {Markup.Escape(error.Path)}: {error.Kind}");
         }
         return 1;
     }
@@ -148,7 +148,9 @@ void AddTimelineRow(Table table, TimelineElement element, bool isLast)
             "",
             "",
             evt.Name,
-            !string.IsNullOrEmpty(evt.ExternalSource) ? $"external: {evt.ExternalSource}" : ""
+            !string.IsNullOrEmpty(evt.ProducedBy) 
+                ? $"← {evt.ProducedBy}" 
+                : (!string.IsNullOrEmpty(evt.ExternalSource) ? $"external: {evt.ExternalSource}" : "")
         ),
         StateViewElement sv => (
             "",
@@ -162,7 +164,7 @@ void AddTimelineRow(Table table, TimelineElement element, bool isLast)
             "[blue]▶[/]",
             "",
             cmd.Name,
-            cmd.Produces.Count > 0 ? $"→ [{string.Join(", ", cmd.Produces)}]" : ""
+            ""
         ),
         ActorElement actor => (
             "",
@@ -175,13 +177,14 @@ void AddTimelineRow(Table table, TimelineElement element, bool isLast)
     };
     
     var timelineChar = isLast ? "[dim]↓[/]" : "[dim]│[/]";
+    var tickDisplay = $"[dim]@{element.Tick}[/]";
     
     table.AddRow(
         eventCol,
         viewCmdCol,
         actorCol,
         timelineChar,
-        $"[bold]{Markup.Escape(name)}[/]",
+        $"[bold]{Markup.Escape(name)}[/] {tickDisplay}",
         $"[dim]{Markup.Escape(details)}[/]"
     );
 }
