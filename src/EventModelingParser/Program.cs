@@ -984,6 +984,7 @@ void RenderTimelineElement(TimelineElement element, bool isLast, int extraLines 
     {
         object? exampleData = element switch
         {
+            EventElement evt => evt.Example,
             StateViewElement sv => sv.Example,
             CommandElement cmd => cmd.Example,
             _ => null
