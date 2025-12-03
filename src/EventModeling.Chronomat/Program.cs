@@ -17,6 +17,7 @@ var filePath = args[0];
 string? schemaPath = null;
 string? viewMode = null;
 bool? showExamples = null;
+string? outputFile = null;
 
 for (int i = 1; i < args.Length; i++)
 {
@@ -31,6 +32,10 @@ for (int i = 1; i < args.Length; i++)
     else if (args[i] == "--example" || args[i] == "-e")
     {
         showExamples = true;
+    }
+    else if ((args[i] == "--output" || args[i] == "-o") && i + 1 < args.Length)
+    {
+        outputFile = args[++i];
     }
 }
 
@@ -139,6 +144,10 @@ void ShowHelp()
         "Show example data in timeline view"
     );
     optionsTable.AddRow(
+        "[green]-o[/], [green]--output[/] [dim]<file>[/]",
+        "Save output to a text file"
+    );
+    optionsTable.AddRow(
         "[green]-s[/], [green]--schema[/] [dim]<path>[/]",
         "Path to JSON schema file for validation"
     );
@@ -192,6 +201,10 @@ void ShowHelp()
     
     AnsiConsole.MarkupLine("  [dim]# Validate against schema and show slice view[/]");
     AnsiConsole.MarkupLine("  [white]chronomat[/] [cyan]my-model.eventmodel.json[/] [green]-s schema.json -v slice[/]");
+    AnsiConsole.WriteLine();
+    
+    AnsiConsole.MarkupLine("  [dim]# Export timeline to a text file[/]");
+    AnsiConsole.MarkupLine("  [white]chronomat[/] [cyan]my-model.eventmodel.json[/] [green]-v timeline -e -o output.txt[/]");
     AnsiConsole.WriteLine();
     
     // Legend
@@ -262,18 +275,43 @@ catch (JsonException ex)
     return 1;
 }
 
-// Render based on view mode
+// Determine view name for header
+var viewDisplayName = viewMode switch
+{
+    "slice" => "Slice View",
+    "table" => "Table View",
+    _ => "Timeline View"
+};
+
+// Always render header to console first
+RenderHeader(model, viewDisplayName);
+
+// Start recording AFTER header if output file is specified
+if (outputFile != null)
+{
+    AnsiConsole.Record();
+}
+
+// Render based on view mode (without header since we already rendered it)
 if (viewMode == "slice")
 {
-    RenderSliceView(model);
+    RenderSliceView(model, renderHeader: false);
 }
 else if (viewMode == "table")
 {
-    RenderTableView(model);
+    RenderTableView(model, renderHeader: false);
 }
 else
 {
-    RenderTimeline(model, showExamples ?? false);
+    RenderTimeline(model, showExamples ?? false, renderHeader: false);
+}
+
+// Save to file if output was specified
+if (outputFile != null)
+{
+    var text = AnsiConsole.ExportText();
+    await File.WriteAllTextAsync(outputFile, text);
+    AnsiConsole.MarkupLine($"\n[green]✓ Output saved to:[/] {outputFile}");
 }
 
 return 0;
@@ -405,9 +443,9 @@ void RenderHeader(EventModel model, string? viewName = null)
     AnsiConsole.WriteLine();
 }
 
-void RenderTableView(EventModel model)
+void RenderTableView(EventModel model, bool renderHeader = true)
 {
-    RenderHeader(model, "Table View");
+    if (renderHeader) RenderHeader(model, "Table View");
     
     var events = model.Timeline.OfType<EventElement>().ToList();
     var stateViews = model.Timeline.OfType<StateViewElement>().ToList();
@@ -707,9 +745,9 @@ void RenderSummaryPanel(EventModel model)
     AnsiConsole.WriteLine();
 }
 
-void RenderSliceView(EventModel model)
+void RenderSliceView(EventModel model, bool renderHeader = true)
 {
-    RenderHeader(model, "Slice View");
+    if (renderHeader) RenderHeader(model, "Slice View");
     AnsiConsole.WriteLine();
     
     // Collect all elements
@@ -898,9 +936,9 @@ void RenderSliceView(EventModel model)
     }
 }
 
-void RenderTimeline(EventModel model, bool showExamples = false)
+void RenderTimeline(EventModel model, bool showExamples = false, bool renderHeader = true)
 {
-    RenderHeader(model, "Timeline View");
+    if (renderHeader) RenderHeader(model, "Timeline View");
 
     // Timeline - sorted by tick, with spacing based on tick distance
     var sortedTimeline = model.Timeline.OrderBy(e => e.Tick).ToList();
