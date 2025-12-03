@@ -23,7 +23,7 @@
 
   <!-- Include logo as content -->
   <ItemGroup>
-    <Content Include="..\..\logo.png" Link="logo.png">
+    <Content Include="..\..\docs\images\logo.png" Link="logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

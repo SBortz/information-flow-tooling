@@ -1,5 +1,9 @@
 # Event Modeling File Format
 
+<p align="center">
+  <img src="docs/images/logo.png" alt="Event Modeling File Format" width="200">
+</p>
+
 A human-readable JSON format for describing event-driven systems using [Event Modeling](https://eventmodeling.org/).
 
 ---
