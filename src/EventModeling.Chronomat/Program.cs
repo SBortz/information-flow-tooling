@@ -1,5 +1,6 @@
 using System.Text.Json;
-using EventModelingParser.Models;
+using System.Reflection;
+using EventModeling.Chronomat.Models;
 using NJsonSchema;
 using Spectre.Console;
 using Spectre.Console.Json;
@@ -58,12 +59,30 @@ showExamples ??= false;
 
 void ShowHelp()
 {
-    // Header
+    // Header with logo
     AnsiConsole.WriteLine();
-    var title = new FigletText("Chronos")
-        .Color(Color.Cyan1)
-        .Centered();
-    AnsiConsole.Write(title);
+    
+    var figlet = new FigletText("Chronomat")
+        .Color(Color.Cyan1);
+    
+    // Try to load and display logo
+    var logoPath = Path.Combine(AppContext.BaseDirectory, "logo.png");
+    if (File.Exists(logoPath))
+    {
+        var logo = new CanvasImage(logoPath);
+        logo.MaxWidth(24);
+        
+        var headerGrid = new Grid()
+            .AddColumn(new GridColumn().Width(26).NoWrap())
+            .AddColumn(new GridColumn().NoWrap());
+        
+        headerGrid.AddRow(logo, figlet);
+        AnsiConsole.Write(Align.Center(headerGrid));
+    }
+    else
+    {
+        AnsiConsole.Write(Align.Center(figlet));
+    }
     
     AnsiConsole.Write(new Rule("[dim]Event Modeling Visualizer[/]")
     {
@@ -74,7 +93,7 @@ void ShowHelp()
     
     // Usage
     var usagePanel = new Panel(
-        new Markup("[white]chronos[/] [cyan]<file>[/] [dim][[options]][/]"))
+        new Markup("[white]chronomat[/] [cyan]<file>[/] [dim][[options]][/]"))
     {
         Header = new PanelHeader("[yellow bold]Usage[/]"),
         Border = BoxBorder.Rounded,
@@ -164,15 +183,15 @@ void ShowHelp()
     AnsiConsole.WriteLine();
     
     AnsiConsole.MarkupLine("  [dim]# Basic usage with default timeline view[/]");
-    AnsiConsole.MarkupLine("  [white]chronos[/] [cyan]my-model.eventmodel.json[/]");
+    AnsiConsole.MarkupLine("  [white]chronomat[/] [cyan]my-model.eventmodel.json[/]");
     AnsiConsole.WriteLine();
     
     AnsiConsole.MarkupLine("  [dim]# Use table view for documentation[/]");
-    AnsiConsole.MarkupLine("  [white]chronos[/] [cyan]my-model.eventmodel.json[/] [green]--view table[/]");
+    AnsiConsole.MarkupLine("  [white]chronomat[/] [cyan]my-model.eventmodel.json[/] [green]--view table[/]");
     AnsiConsole.WriteLine();
     
     AnsiConsole.MarkupLine("  [dim]# Validate against schema and show slice view[/]");
-    AnsiConsole.MarkupLine("  [white]chronos[/] [cyan]my-model.eventmodel.json[/] [green]-s schema.json -v slice[/]");
+    AnsiConsole.MarkupLine("  [white]chronomat[/] [cyan]my-model.eventmodel.json[/] [green]-s schema.json -v slice[/]");
     AnsiConsole.WriteLine();
     
     // Legend
@@ -328,14 +347,30 @@ void RenderHeader(EventModel model, string? viewName = null)
 {
     AnsiConsole.WriteLine();
     
-    // Create logo and figlet
-    var logo = CreateHourglassLogo();
-    var figlet = new FigletText("Chronos")
+    var figlet = new FigletText("Chronomat")
         .Color(Color.Cyan1);
+    
+    // Try to load logo image, fallback to hourglass canvas
+    var logoPath = Path.Combine(AppContext.BaseDirectory, "logo.png");
+    IRenderable logo;
+    int logoWidth;
+    
+    if (File.Exists(logoPath))
+    {
+        var canvasImage = new CanvasImage(logoPath);
+        canvasImage.MaxWidth(24);
+        logo = canvasImage;
+        logoWidth = 26;
+    }
+    else
+    {
+        logo = CreateHourglassLogo();
+        logoWidth = 28;
+    }
     
     // Combine logo and figlet side by side
     var headerGrid = new Grid()
-        .AddColumn(new GridColumn().Width(28).NoWrap())
+        .AddColumn(new GridColumn().Width(logoWidth).NoWrap())
         .AddColumn(new GridColumn().NoWrap());
     
     headerGrid.AddRow(logo, figlet);

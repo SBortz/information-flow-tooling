@@ -11,14 +11,21 @@
     <PackageReference Include="NJsonSchema" Version="11.0.0" />
     <PackageReference Include="Spectre.Console" Version="0.49.1" />
     <PackageReference Include="Spectre.Console.Json" Version="0.49.1" />
+    <PackageReference Include="Spectre.Console.ImageSharp" Version="0.49.1" />
   </ItemGroup>
 
   <!-- Embed the schema file from the repository root -->
   <ItemGroup>
     <EmbeddedResource Include="..\..\event-modeling.schema.json" Link="event-modeling.schema.json">
-      <LogicalName>EventModelingParser.event-modeling.schema.json</LogicalName>
+      <LogicalName>EventModeling.Chronomat.event-modeling.schema.json</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 
-</Project>
+  <!-- Include logo as content -->
+  <ItemGroup>
+    <Content Include="..\..\logo.png" Link="logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
+</Project>

@@ -5,9 +5,9 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7D29AD96-F2A1-4027-A46B-1EF499EE0756}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventModelingParser", "src\EventModelingParser\EventModelingParser.csproj", "{B6BEB806-3056-42F2-B4D7-0E6D4CB1DE48}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventModelingToolkit.Converter", "src\EventModelingToolkit.Converter\EventModelingToolkit.Converter.csproj", "{BF54D012-068F-453D-A2D2-5711EBE0DBB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventModeling.Chronomat", "src\EventModeling.Chronomat\EventModeling.Chronomat.csproj", "{E038FD0F-C394-445D-8C5C-703AB3C2571C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,17 +18,17 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B6BEB806-3056-42F2-B4D7-0E6D4CB1DE48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6BEB806-3056-42F2-B4D7-0E6D4CB1DE48}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6BEB806-3056-42F2-B4D7-0E6D4CB1DE48}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6BEB806-3056-42F2-B4D7-0E6D4CB1DE48}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BF54D012-068F-453D-A2D2-5711EBE0DBB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BF54D012-068F-453D-A2D2-5711EBE0DBB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF54D012-068F-453D-A2D2-5711EBE0DBB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF54D012-068F-453D-A2D2-5711EBE0DBB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E038FD0F-C394-445D-8C5C-703AB3C2571C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E038FD0F-C394-445D-8C5C-703AB3C2571C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E038FD0F-C394-445D-8C5C-703AB3C2571C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E038FD0F-C394-445D-8C5C-703AB3C2571C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{B6BEB806-3056-42F2-B4D7-0E6D4CB1DE48} = {7D29AD96-F2A1-4027-A46B-1EF499EE0756}
 		{BF54D012-068F-453D-A2D2-5711EBE0DBB3} = {7D29AD96-F2A1-4027-A46B-1EF499EE0756}
+		{E038FD0F-C394-445D-8C5C-703AB3C2571C} = {7D29AD96-F2A1-4027-A46B-1EF499EE0756}
 	EndGlobalSection
 EndGlobal
