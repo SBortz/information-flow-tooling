@@ -75,7 +75,7 @@
     "StateView": {
       "type": "object",
       "description": "A state view (read model) built from events. Named as a noun (e.g. PendingOrders, CustomerProfile).",
-      "required": ["type", "name", "tick", "subscribesTo"],
+      "required": ["type", "name", "tick", "fromEvents"],
       "additionalProperties": false,
       "properties": {
         "type": {
@@ -89,11 +89,10 @@
           "type": "integer",
           "description": "Logical timestamp for ordering on the timeline"
         },
-        "subscribesTo": {
+        "fromEvents": {
           "type": "array",
-          "description": "Names of the events this state view subscribes to",
-          "items": { "type": "string" },
-          "minItems": 1
+          "description": "Names of the events this state view is built from",
+          "items": { "type": "string" }
         },
         "example": {
           "description": "Example state of the view"

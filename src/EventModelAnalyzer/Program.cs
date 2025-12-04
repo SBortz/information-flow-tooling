@@ -492,19 +492,19 @@ void RenderTableView(EventModel model, bool renderHeader = true)
             .AddColumn(new TableColumn("[green bold]Name[/]"))
             .AddColumn(new TableColumn("[dim]Subscribes To[/]"));
         
-        // Group by name and merge SubscribesTo lists
+        // Group by name and merge FromEvents lists
         var distinctStateViews = stateViews
             .GroupBy(sv => sv.Name)
             .Select(g => new {
                 Name = g.Key,
-                SubscribesTo = g.SelectMany(sv => sv.SubscribesTo).Distinct().ToList()
+                FromEvents = g.SelectMany(sv => sv.FromEvents).Distinct().ToList()
             })
             .OrderBy(sv => sv.Name);
         
         foreach (var sv in distinctStateViews)
         {
-            var subscribes = sv.SubscribesTo.Count > 0 
-                ? string.Join(", ", sv.SubscribesTo.Select(e => $"[orange1]{Markup.Escape(e)}[/]"))
+            var subscribes = sv.FromEvents.Count > 0 
+                ? string.Join(", ", sv.FromEvents.Select(e => $"[orange1]{Markup.Escape(e)}[/]"))
                 : "[dim]-[/]";
             
             viewTable.AddRow(
@@ -616,7 +616,7 @@ void RenderTableView(EventModel model, bool renderHeader = true)
         .GroupBy(sv => sv.Name)
         .ToDictionary(
             g => g.Key,
-            g => g.SelectMany(sv => sv.SubscribesTo).Distinct().ToList()
+            g => g.SelectMany(sv => sv.FromEvents).Distinct().ToList()
         );
     
     // Build grouped data for Commands (all events produced by commands with same name)
@@ -647,10 +647,10 @@ void RenderTableView(EventModel model, bool renderHeader = true)
         var svNode = flowTree.AddNode($"[green]◆ {Markup.Escape(svName)}[/]");
         
         // Events this view subscribes to
-        if (stateViewData.TryGetValue(svName, out var subscribesTo) && subscribesTo.Count > 0)
+        if (stateViewData.TryGetValue(svName, out var fromEvents) && fromEvents.Count > 0)
         {
             var subsNode = svNode.AddNode("[dim]← subscribes to[/]");
-            foreach (var eventName in subscribesTo.OrderBy(e => e))
+            foreach (var eventName in fromEvents.OrderBy(e => e))
             {
                 subsNode.AddNode($"[orange1]● {Markup.Escape(eventName)}[/]");
             }
@@ -783,10 +783,10 @@ void RenderSliceView(EventModel model, bool renderHeader = true)
                 symbol = "[green]◆[/]";
                 
                 // Events this view subscribes to
-                if (sv.SubscribesTo.Count > 0)
+                if (sv.FromEvents.Count > 0)
                 {
-                    content.Add("[dim]subscribesTo:[/]");
-                    foreach (var eventName in sv.SubscribesTo)
+                    content.Add("[dim]fromEvents:[/]");
+                    foreach (var eventName in sv.FromEvents)
                     {
                         var evt = events.FirstOrDefault(e => e.Name == eventName);
                         var tickInfo = evt != null ? $" [dim]@{evt.Tick}[/]" : "";
@@ -1035,10 +1035,10 @@ void RenderTimelineElement(TimelineElement element, bool isLast, int extraLines 
             break;
             
         case StateViewElement sv:
-            if (sv.SubscribesTo.Count > 0)
+            if (sv.FromEvents.Count > 0)
             {
-                var eventNames = string.Join("[dim],[/] ", sv.SubscribesTo.Select(e => $"[orange1]{Markup.Escape(e)}[/]"));
-                AnsiConsole.MarkupLine($"{detailPrefix}[dim]subscribesTo:[/] {eventNames}");
+                var eventNames = string.Join("[dim],[/] ", sv.FromEvents.Select(e => $"[orange1]{Markup.Escape(e)}[/]"));
+                AnsiConsole.MarkupLine($"{detailPrefix}[dim]fromEvents:[/] {eventNames}");
             }
             break;
             

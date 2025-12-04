@@ -9,7 +9,7 @@
       "type": "stateview",
       "name": "TodoList",
       "tick": 1,
-      "subscribesTo": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "fromEvents": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
       "example": {
         "todos": []
       }
@@ -45,7 +45,7 @@
       "type": "stateview",
       "name": "TodoList",
       "tick": 5,
-      "subscribesTo": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "fromEvents": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
       "example": {
         "todos": [
           { "id": "abc-123", "title": "Einkaufen gehen", "completed": false }
@@ -82,7 +82,7 @@
       "type": "stateview",
       "name": "TodoList",
       "tick": 9,
-      "subscribesTo": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "fromEvents": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
       "example": {
         "todos": [
           { "id": "abc-123", "title": "Einkaufen gehen", "completed": true }
