@@ -55,8 +55,8 @@ public class StateViewElement : TimelineElement
 {
     public override string Type => "stateview";
     
-    [JsonPropertyName("fromEvents")]
-    public List<string> FromEvents { get; set; } = new();
+    [JsonPropertyName("subscribesTo")]
+    public List<string> SubscribesTo { get; set; } = new();
     
     [JsonPropertyName("example")]
     public object? Example { get; set; }

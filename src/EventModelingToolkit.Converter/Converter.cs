@@ -244,7 +244,7 @@ public class Converter
             {
                 Name = NormalizeName(readModel.Title),
                 Tick = _currentTick,
-                FromEvents = inboundEvents,
+                SubscribesTo = inboundEvents,
                 Example = CreateExampleFromFields(readModel.Fields)
             };
 

@@ -64,7 +64,7 @@ A minimal event model showing the core flow: **Event → StateView → Actor →
       "type": "stateview",
       "name": "PendingOrders",
       "tick": 20,
-      "fromEvents": ["OrderPlaced", "OrderShipped"],
+      "subscribesTo": ["OrderPlaced", "OrderShipped"],
       "example": {
         "orders": [
           { "orderId": "ord-123", "status": "pending", "amount": 99.99 }
@@ -194,7 +194,7 @@ dotnet run --project src/EventModelAnalyzer -- model.eventmodel.json -s event-mo
        │            }
        │
        ◆       @20  PendingOrders
-       │            fromEvents: OrderPlaced, OrderShipped
+       │            subscribesTo: OrderPlaced, OrderShipped
        │
        │  ○    @30  WarehouseWorker
        │            readsView: PendingOrders
