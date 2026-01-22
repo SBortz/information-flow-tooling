@@ -1,12 +1,12 @@
 # Information Flow Tooling
 
-A human-readable JSON format for describing event-driven systems using [Information Flow](https://eventmodeling.org/) methodology.
+A human-readable JSON format for describing event-driven systems using [Event Modeling](https://eventmodeling.org/) methodology.
 
 ---
 
 ## 1. Why
 
-Information Flow is a powerful methodology for designing software systems. But where do you store the model?
+Modeling information flows is a powerful methodology for designing software systems. But where do you store the model? 
 
 **The Problem:**
 - Proprietary tools lock your designs into their platforms
