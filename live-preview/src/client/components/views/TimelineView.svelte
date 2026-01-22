@@ -118,9 +118,24 @@
     top: 0;
     bottom: 0;
     left: 0;
-    right: 0;
+    width: 58px;
     pointer-events: none;
     z-index: 2;
+    background-image:
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 3px,
+        rgba(107, 114, 128, 0.18) 3px,
+        rgba(107, 114, 128, 0.18) 4px
+      ),
+      linear-gradient(
+        rgba(107, 114, 128, 0.05),
+        rgba(107, 114, 128, 0.05)
+      );
+    background-position: 26px 0, 26px 0;
+    background-size: 30px 100%, 30px 100%;
+    background-repeat: no-repeat, no-repeat;
   }
 
   .tl-line::before,
