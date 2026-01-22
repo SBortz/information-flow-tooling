@@ -1,5 +1,5 @@
 {
-  "$schema": "./information-flow.schema.json",
+  "$schema": "../information-flow.schema.json",
   "name": "Library Management System",
   "description": "Ein Bibliotheksverwaltungssystem mit Ausleihe, Rückgabe, Reservierung und automatischen Mahnungen",
   "version": "1.0.0",

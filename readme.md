@@ -118,7 +118,12 @@ A minimal information flow model showing the core flow: **Event â†’ StateView â†
 
 The `tick` determines position on the timeline. Elements display in ascending order. Gaps between ticks create visual spacing in the output.
 
+### Example Files
 
+See the `examples/` folder for example models:
+- `order-system.informationflow.json` - E-commerce order flow
+- `library-management.informationflow.json` - Library with loans, reservations, reminders
+- `todo-app.informationflow.json` - Simple todo application
 
 ---
 
@@ -126,6 +131,12 @@ The `tick` determines position on the timeline. Elements display in ascending or
 
 There are still some challenges to be solved. I will write more about them soon.
 
+- **Duplicate definitions** - How to handle elements that appear multiple times with diverging details? The current approach is to simply keep duplication.
+- **Given-When-Then scenarios** - GWTs add significant complexity and reduce readability. Options:
+  - Keep them as separate scenario files?
+  - Add a dedicated section for variations at the end of the model?
+- **Model validation** - Detecting errors and inconsistencies in the model.
+- **AI-powered implementation** - Generate application code from the model file.
 
 
 
@@ -138,7 +149,7 @@ The **Information Flow Tooling CLI** (`ift`) is a CLI tool to visualize `.inform
 ### Installation
 
 ```bash
-git clone https://github.com/your-org/information-flow-tooling.git
+git clone https://github.com/SBortz/information-flow-tooling.git
 cd information-flow-tooling
 dotnet build
 ```
@@ -234,7 +245,7 @@ The **IFT Converter** converts other Information Flow formats into the `.informa
 
 ### Supported Formats
 
-- **Miro Information Flow Toolkit** - Export from Martin Dilgers tool available on miro (https://www.nebulit.de/en/eventmodeling-tooling)
+- **Event Modeling Toolkit** - Export from the Event Modeling toolkit available on miro
 
 ### Usage
 

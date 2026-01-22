@@ -1,5 +1,5 @@
 {
-  "$schema": "./information-flow.schema.json",
+  "$schema": "../information-flow.schema.json",
   "name": "Order Management System",
   "description": "Ein einfaches Bestellsystem zur Demonstration des Information Flow Formats",
   "version": "1.0.0",

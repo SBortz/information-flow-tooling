@@ -1,5 +1,5 @@
 {
-  "$schema": "./information-flow.schema.json",
+  "$schema": "../information-flow.schema.json",
   "name": "Neue Todo-Listen Anwendung",
   "description": "Eine Todo-Anwendung mit Use Cases: Todos eintragen, abhaken und Übersicht ansehen",
   "version": "1.0.0",
