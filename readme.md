@@ -2,6 +2,8 @@
 
 A human-readable JSON format for describing event-driven systems using [Event Modeling](https://eventmodeling.org/) methodology.
 
+![Timeline View](docs/images/timeline-view.png)
+
 ---
 
 ## 1. Why
@@ -24,16 +26,16 @@ A simple, human-readable JSON format that:
 ## 2. Philosophy
 
 - **Information Flow is a continuous process.**  
-  The format must allow incomplete systems to be saved. The format itself should allow invalid models.
+  The format must allow incomplete systems to be saved. Since the methodology helps to develop the system design, the format itself should allow work-in-progress models that might be invalid in the beginning.
 
 - **Validation belongs in tools, not the format.**  
   The file specification stays simple. Applications derive insights and validates.
 
 - **No Slices in the file.**  
-  Slices are implementation/project management concerns. They belong in a separate view, not the design file.
+  Slices are implementation/project management concerns. They belong in a separate view, not the design file. They can also easily be derived from the model if necessary.
 
 - **Human-readable above all.**  
-  The file should be transparent - something you can check in, diff, and manually correct.
+  The file should be human readable and be able to correct manually with a text editor if necessary. Therefore this file format keeps a clean flow of what happens sequentially in the system.
 
 - **GWTs are separate.**  
   Given-When-Then scenarios are alternative timelines. They don't belong on the main timeline.
