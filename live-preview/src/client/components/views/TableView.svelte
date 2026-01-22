@@ -14,6 +14,20 @@
 </script>
 
 <div class="table-view">
+  {#if modelStore.model}
+    <div class="model-info">
+      <div class="model-info-header">
+        <h2>{modelStore.model.name}</h2>
+        {#if modelStore.model.version}
+          <span class="model-version">v{modelStore.model.version}</span>
+        {/if}
+      </div>
+      {#if modelStore.model.description}
+        <p class="model-description">{modelStore.model.description}</p>
+      {/if}
+    </div>
+  {/if}
+
   {#if events.length > 0}
     <div class="table-section">
       <h2 class="events"><span class="symbol">●</span> Events ({events.length})</h2>
@@ -120,6 +134,40 @@
 <style>
   .table-view {
     padding: 2rem;
+  }
+
+  .model-info {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  .model-info-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .model-info-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .model-version {
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+  }
+
+  .model-description {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
   }
 
   .table-section {

@@ -4,15 +4,9 @@
 
 <header class="header">
   <div class="header-left">
-    <h1>{modelStore.model?.name ?? 'Information Flow'}</h1>
-    {#if modelStore.model?.description}
-      <span class="meta">{modelStore.model.description}</span>
-    {/if}
+    <h1>Information Flow Tooling</h1>
   </div>
   <div class="header-right">
-    {#if modelStore.model?.version}
-      <span class="version">v{modelStore.model.version}</span>
-    {/if}
     <span class="status">
       Watching {modelStore.watchedFile}
     </span>
@@ -29,32 +23,15 @@
     border-bottom: 1px solid var(--border);
   }
 
-  .header-left {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
   h1 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
-  }
-
-  .meta {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
   }
 
   .header-right {
     display: flex;
     align-items: center;
     gap: 1rem;
-  }
-
-  .version {
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    font-family: var(--font-mono);
   }
 
   .status {

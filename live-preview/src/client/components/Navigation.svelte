@@ -3,9 +3,9 @@
   import type { ViewMode } from '../lib/types';
 
   const tabs: { id: ViewMode; label: string }[] = [
+    { id: 'table', label: 'Info' },
     { id: 'timeline', label: 'Timeline' },
     { id: 'slice', label: 'Slices & Scenarios' },
-    { id: 'table', label: 'Consolidated' },
   ];
 
   function handleExpandAllChange(event: Event) {

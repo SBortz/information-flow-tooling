@@ -4,7 +4,7 @@ class ModelStore {
   model = $state<InformationFlowModel | null>(null);
   error = $state<string | null>(null);
   watchedFile = $state<string>('');
-  view = $state<ViewMode>('timeline');
+  view = $state<ViewMode>('table');
   expandAll = $state(false);
 
   get events(): Event[] {
