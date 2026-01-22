@@ -447,10 +447,10 @@ void RenderTableView(EventModel model, bool renderHeader = true)
 {
     if (renderHeader) RenderHeader(model, "Table View");
     
-    var events = model.Timeline.Events;
-    var stateViews = model.Timeline.StateViews;
-    var actors = model.Timeline.Actors;
-    var commands = model.Timeline.Commands;
+    var events = model.Timeline.OfType<Event>().ToList();
+    var stateViews = model.Timeline.OfType<State>().ToList();
+    var actors = model.Timeline.OfType<Actor>().ToList();
+    var commands = model.Timeline.OfType<Command>().ToList();
     
     // Events Table
     if (events.Count > 0)
@@ -722,10 +722,10 @@ void RenderTableView(EventModel model, bool renderHeader = true)
 
 void RenderSummaryPanel(EventModel model)
 {
-    var events = model.Timeline.Events.Count;
-    var stateViews = model.Timeline.StateViews.Count;
-    var actors = model.Timeline.Actors.Count;
-    var commands = model.Timeline.Commands.Count;
+    var events = model.Timeline.OfType<Event>().Count();
+    var stateViews = model.Timeline.OfType<State>().Count();
+    var actors = model.Timeline.OfType<Actor>().Count();
+    var commands = model.Timeline.OfType<Command>().Count();
     
     var summaryGrid = new Grid()
         .AddColumn()
@@ -751,8 +751,8 @@ void RenderSliceView(EventModel model, bool renderHeader = true)
     AnsiConsole.WriteLine();
     
     // Collect all elements
-    var events = model.Timeline.Events;
-    var actors = model.Timeline.Actors;
+    var events = model.Timeline.OfType<Event>().ToList();
+    var actors = model.Timeline.OfType<Actor>().ToList();
     
     // Build lookup: which events are produced by which command (by tick)
     var eventsByCommandTick = events
@@ -761,8 +761,8 @@ void RenderSliceView(EventModel model, bool renderHeader = true)
         .ToDictionary(g => g.Key, g => g.ToList());
     
     // Get slices: StateViews and Commands, sorted by tick
-    var slices = model.Timeline.StateViews.Cast<ITimelineElement>()
-        .Concat(model.Timeline.Commands)
+    var slices = model.Timeline.OfType<State>().Cast<ITimelineElement>()
+        .Concat(model.Timeline.OfType<Command>())
         .OrderBy(e => e.Tick)
         .ToList();
     
@@ -943,7 +943,7 @@ void RenderTimeline(EventModel model, bool showExamples = false, bool renderHead
     if (renderHeader) RenderHeader(model, "Timeline View");
 
     // Timeline - sorted by tick, with spacing based on tick distance
-    var sortedTimeline = model.Timeline.All.ToList();
+    var sortedTimeline = model.Timeline.OrderBy(e => e.Tick).ToList();
     
     for (int i = 0; i < sortedTimeline.Count; i++)
     {

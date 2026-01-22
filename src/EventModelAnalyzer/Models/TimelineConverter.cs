@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace EventModelAnalyzer.Models;
 
-public class TimelineConverter : JsonConverter<Timeline>
+public class TimelineConverter : JsonConverter<List<ITimelineElement>>
 {
-    public override Timeline Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override List<ITimelineElement> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var timeline = new Timeline();
+        var elements = new List<ITimelineElement>();
         
         if (reader.TokenType != JsonTokenType.StartArray)
             throw new JsonException("Expected array");
@@ -23,32 +23,25 @@ public class TimelineConverter : JsonConverter<Timeline>
             var type = typeProp.GetString();
             var json = root.GetRawText();
             
-            switch (type)
+            ITimelineElement element = type switch
             {
-                case "event":
-                    timeline.Events.Add(JsonSerializer.Deserialize<Event>(json, options)!);
-                    break;
-                case "stateview":
-                    timeline.StateViews.Add(JsonSerializer.Deserialize<State>(json, options)!);
-                    break;
-                case "actor":
-                    timeline.Actors.Add(JsonSerializer.Deserialize<Actor>(json, options)!);
-                    break;
-                case "command":
-                    timeline.Commands.Add(JsonSerializer.Deserialize<Command>(json, options)!);
-                    break;
-                default:
-                    throw new JsonException($"Unknown type: {type}");
-            }
+                "event" => JsonSerializer.Deserialize<Event>(json, options)!,
+                "stateview" => JsonSerializer.Deserialize<State>(json, options)!,
+                "actor" => JsonSerializer.Deserialize<Actor>(json, options)!,
+                "command" => JsonSerializer.Deserialize<Command>(json, options)!,
+                _ => throw new JsonException($"Unknown type: {type}")
+            };
+            
+            elements.Add(element);
         }
         
-        return timeline;
+        return elements;
     }
 
-    public override void Write(Utf8JsonWriter writer, Timeline value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, List<ITimelineElement> value, JsonSerializerOptions options)
     {
         writer.WriteStartArray();
-        foreach (var item in value.All)
+        foreach (var item in value)
         {
             JsonSerializer.Serialize(writer, item, item.GetType(), options);
         }

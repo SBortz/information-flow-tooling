@@ -13,5 +13,5 @@ public record EventModel(
     
     [JsonPropertyName("timeline")]
     [JsonConverter(typeof(TimelineConverter))]
-    public Timeline Timeline { get; init; } = new();
+    public List<ITimelineElement> Timeline { get; init; } = [];
 }
