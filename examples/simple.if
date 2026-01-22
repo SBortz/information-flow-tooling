@@ -1,0 +1,342 @@
+{
+  "$schema": "../information-flow.schema.json",
+  "name": "Todo App",
+  "description": "Eine einfache Todo-Anwendung zum Verwalten von Aufgaben",
+  "version": "1.0.0",
+
+  "timeline": [
+    {
+      "type": "state",
+      "name": "TodoList",
+      "tick": 1,
+      "sourcedFrom": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "example": {
+        "todos": []
+      },
+      "scenarios": [
+        {
+          "name": "Leere Liste ohne Events",
+          "given": [],
+          "then": {
+            "todos": []
+          }
+        },
+        {
+          "name": "Ein offenes Todo nach Erstellung",
+          "given": [
+            {
+              "event": "TodoCreated",
+              "data": { "id": "todo-1", "title": "Einkaufen", "createdAt": "2025-12-02T10:00:00Z" }
+            }
+          ],
+          "then": {
+            "todos": [
+              { "id": "todo-1", "title": "Einkaufen", "completed": false }
+            ]
+          }
+        },
+        {
+          "name": "Abgeschlossenes Todo wird markiert",
+          "given": [
+            {
+              "event": "TodoCreated",
+              "data": { "id": "todo-1", "title": "Einkaufen", "createdAt": "2025-12-02T10:00:00Z" }
+            },
+            {
+              "event": "TodoCompleted",
+              "data": { "todoId": "todo-1", "completedAt": "2025-12-02T11:00:00Z" }
+            }
+          ],
+          "then": {
+            "todos": [
+              { "id": "todo-1", "title": "Einkaufen", "completed": true }
+            ]
+          }
+        },
+        {
+          "name": "Gelöschtes Todo verschwindet aus Liste",
+          "given": [
+            {
+              "event": "TodoCreated",
+              "data": { "id": "todo-1", "title": "Einkaufen", "createdAt": "2025-12-02T10:00:00Z" }
+            },
+            {
+              "event": "TodoDeleted",
+              "data": { "todoId": "todo-1", "deletedAt": "2025-12-02T12:00:00Z" }
+            }
+          ],
+          "then": {
+            "todos": []
+          }
+        },
+        {
+          "name": "Mehrere Todos mit gemischtem Status",
+          "given": [
+            {
+              "event": "TodoCreated",
+              "data": { "id": "todo-1", "title": "Einkaufen", "createdAt": "2025-12-02T10:00:00Z" }
+            },
+            {
+              "event": "TodoCreated",
+              "data": { "id": "todo-2", "title": "Sport machen", "createdAt": "2025-12-02T10:05:00Z" }
+            },
+            {
+              "event": "TodoCompleted",
+              "data": { "todoId": "todo-1", "completedAt": "2025-12-02T11:00:00Z" }
+            }
+          ],
+          "then": {
+            "todos": [
+              { "id": "todo-1", "title": "Einkaufen", "completed": true },
+              { "id": "todo-2", "title": "Sport machen", "completed": false }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 2,
+      "readsView": "TodoList",
+      "sendsCommand": "CreateTodo"
+    },
+    {
+      "type": "command",
+      "name": "CreateTodo",
+      "tick": 3,
+      "example": {
+        "title": "Einkaufen gehen"
+      },
+      "scenarios": [
+        {
+          "name": "Erfolgreich Todo erstellen",
+          "given": [],
+          "when": {
+            "title": "Einkaufen gehen"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "TodoCreated",
+                "data": { "id": "generated-id", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Ablehnung bei leerem Titel",
+          "given": [],
+          "when": {
+            "title": ""
+          },
+          "then": {
+            "fails": "Titel darf nicht leer sein"
+          }
+        },
+        {
+          "name": "Ablehnung bei zu langem Titel",
+          "given": [],
+          "when": {
+            "title": "Dies ist ein viel zu langer Titel der die maximale Zeichenanzahl von 200 Zeichen überschreitet und daher vom System abgelehnt werden sollte weil er einfach nicht mehr lesbar ist und keinen Sinn macht"
+          },
+          "then": {
+            "fails": "Titel darf maximal 200 Zeichen haben"
+          }
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "TodoCreated",
+      "tick": 4,
+      "producedBy": "CreateTodo-3",
+      "example": {
+        "id": "abc-123",
+        "title": "Einkaufen gehen",
+        "createdAt": "2025-12-02T10:00:00Z"
+      }
+    },
+
+    {
+      "type": "state",
+      "name": "TodoList",
+      "tick": 5,
+      "sourcedFrom": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "example": {
+        "todos": [
+          { "id": "abc-123", "title": "Einkaufen gehen", "completed": false }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 6,
+      "readsView": "TodoList",
+      "sendsCommand": "CompleteTodo"
+    },
+    {
+      "type": "command",
+      "name": "CompleteTodo",
+      "tick": 7,
+      "example": {
+        "todoId": "abc-123"
+      },
+      "scenarios": [
+        {
+          "name": "Erfolgreich Todo abschließen",
+          "given": [
+            {
+              "event": "TodoCreated",
+              "data": { "id": "abc-123", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+            }
+          ],
+          "when": {
+            "todoId": "abc-123"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "TodoCompleted",
+                "data": { "todoId": "abc-123", "completedAt": "2025-12-02T11:00:00Z" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Ablehnung wenn Todo nicht existiert",
+          "given": [],
+          "when": {
+            "todoId": "nicht-vorhanden"
+          },
+          "then": {
+            "fails": "Todo nicht gefunden"
+          }
+        },
+        {
+          "name": "Ablehnung wenn Todo bereits abgeschlossen",
+          "given": [
+            {
+              "event": "TodoCreated",
+              "data": { "id": "abc-123", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+            },
+            {
+              "event": "TodoCompleted",
+              "data": { "todoId": "abc-123", "completedAt": "2025-12-02T11:00:00Z" }
+            }
+          ],
+          "when": {
+            "todoId": "abc-123"
+          },
+          "then": {
+            "fails": "Todo ist bereits abgeschlossen"
+          }
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "TodoCompleted",
+      "tick": 8,
+      "producedBy": "CompleteTodo-7",
+      "example": {
+        "todoId": "abc-123",
+        "completedAt": "2025-12-02T11:00:00Z"
+      }
+    },
+
+    {
+      "type": "state",
+      "name": "TodoList",
+      "tick": 9,
+      "sourcedFrom": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
+      "example": {
+        "todos": [
+          { "id": "abc-123", "title": "Einkaufen gehen", "completed": true }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 10,
+      "readsView": "TodoList",
+      "sendsCommand": "DeleteTodo"
+    },
+    {
+      "type": "command",
+      "name": "DeleteTodo",
+      "tick": 11,
+      "example": {
+        "todoId": "abc-123"
+      },
+      "scenarios": [
+        {
+          "name": "Erfolgreich Todo löschen",
+          "given": [
+            {
+              "event": "TodoCreated",
+              "data": { "id": "abc-123", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+            }
+          ],
+          "when": {
+            "todoId": "abc-123"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "TodoDeleted",
+                "data": { "todoId": "abc-123", "deletedAt": "2025-12-02T12:00:00Z" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Ablehnung wenn Todo nicht existiert",
+          "given": [],
+          "when": {
+            "todoId": "nicht-vorhanden"
+          },
+          "then": {
+            "fails": "Todo nicht gefunden"
+          }
+        },
+        {
+          "name": "Auch abgeschlossene Todos können gelöscht werden",
+          "given": [
+            {
+              "event": "TodoCreated",
+              "data": { "id": "abc-123", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+            },
+            {
+              "event": "TodoCompleted",
+              "data": { "todoId": "abc-123", "completedAt": "2025-12-02T11:00:00Z" }
+            }
+          ],
+          "when": {
+            "todoId": "abc-123"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "TodoDeleted",
+                "data": { "todoId": "abc-123", "deletedAt": "2025-12-02T12:00:00Z" }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "TodoDeleted",
+      "tick": 12,
+      "producedBy": "DeleteTodo-11",
+      "example": {
+        "todoId": "abc-123",
+        "deletedAt": "2025-12-02T12:00:00Z"
+      }
+    }
+  ]
+}

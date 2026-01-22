@@ -16,6 +16,26 @@ import {
 import { colors, getElementStyle, box } from './colors.js';
 import { renderHeader } from './timeline.js';
 
+// Get terminal width for smart truncation
+const terminalWidth = process.stdout.columns || 80;
+
+/**
+ * Get visible length of string (without ANSI codes)
+ */
+function visibleLength(str: string): number {
+  return str.replace(/\x1b\[[0-9;]*m/g, '').length;
+}
+
+/**
+ * Truncate string only if it exceeds available width
+ */
+function smartTruncate(str: string, reservedChars: number = 10): string {
+  const maxLen = Math.min(terminalWidth - reservedChars, 80); // Cap at 80 for readability
+  const visible = visibleLength(str);
+  if (visible <= maxLen) return str;
+  return str.substring(0, maxLen - 3) + '...';
+}
+
 /**
  * Render the slice view - detailed panels for each slice
  */
@@ -65,7 +85,7 @@ export function renderSlice(model: InformationFlowModel): void {
 /**
  * Render command scenarios (Given-When-Then)
  */
-function renderCommandScenarios(scenarios: CommandScenario[]): string[] {
+function renderCommandScenarios(scenarios: CommandScenario[], commandName: string): string[] {
   const lines: string[] = [];
   lines.push(`${chalk.yellow.bold('Scenarios')} ${colors.dim(`(${scenarios.length})`)}`);
   
@@ -74,30 +94,32 @@ function renderCommandScenarios(scenarios: CommandScenario[]): string[] {
     const outcomeSymbol = scenario.then.fails ? colors.red('✗') : colors.green('✓');
     lines.push(`  ${outcomeSymbol} ${colors.yellow(scenario.name)}`);
     
-    // Given (compact)
+    // Given - one line per event with data
     if (scenario.given.length > 0) {
-      const givenEvents = scenario.given.map(e => colors.event(e.event)).join(', ');
-      lines.push(`      ${colors.dim('Given:')} ${givenEvents}`);
+      lines.push(`      ${colors.dim('Given:')}`);
+      for (const ref of scenario.given) {
+        const dataJson = ref.data ? ` ${colors.grey(smartTruncate(JSON.stringify(ref.data), 20))}` : '';
+        lines.push(`        ${colors.event(ref.event)}${dataJson}`);
+      }
     } else {
       lines.push(`      ${colors.dim('Given:')} ${chalk.dim.italic('(keine Vorbedingungen)')}`);
     }
     
-    // When (compact JSON)
+    // When - with command name
     if (scenario.when) {
       const whenJson = JSON.stringify(scenario.when);
-      if (whenJson.length <= 60) {
-        lines.push(`      ${colors.dim('When:')} ${colors.grey(whenJson)}`);
-      } else {
-        lines.push(`      ${colors.dim('When:')} ${colors.grey(whenJson.substring(0, 57) + '...')}`);
-      }
+      lines.push(`      ${colors.dim('When:')} ${colors.command(commandName)} ${colors.grey(smartTruncate(whenJson, 20))}`);
     }
     
-    // Then
+    // Then - with event data
     if (scenario.then.fails) {
       lines.push(`      ${colors.dim('Then:')} ${colors.red('✗ ' + scenario.then.fails)}`);
     } else if (scenario.then.produces && scenario.then.produces.length > 0) {
-      const producedEvents = scenario.then.produces.map(e => colors.event(e.event)).join(', ');
-      lines.push(`      ${colors.dim('Then:')} → ${producedEvents}`);
+      lines.push(`      ${colors.dim('Then:')}`);
+      for (const ref of scenario.then.produces) {
+        const dataJson = ref.data ? ` ${colors.grey(smartTruncate(JSON.stringify(ref.data), 20))}` : '';
+        lines.push(`        → ${colors.event(ref.event)}${dataJson}`);
+      }
     }
   }
   
@@ -115,22 +137,21 @@ function renderStateViewScenarios(scenarios: StateViewScenario[]): string[] {
     // Scenario name
     lines.push(`  ${colors.state('◇')} ${colors.yellow(scenario.name)}`);
     
-    // Given (compact)
+    // Given - one line per event with data
     if (scenario.given.length > 0) {
-      const givenEvents = scenario.given.map(e => colors.event(e.event)).join(', ');
-      lines.push(`      ${colors.dim('Given:')} ${givenEvents}`);
+      lines.push(`      ${colors.dim('Given:')}`);
+      for (const ref of scenario.given) {
+        const dataJson = ref.data ? ` ${colors.grey(smartTruncate(JSON.stringify(ref.data), 20))}` : '';
+        lines.push(`        ${colors.event(ref.event)}${dataJson}`);
+      }
     } else {
       lines.push(`      ${colors.dim('Given:')} ${chalk.dim.italic('(keine Events)')}`);
     }
     
-    // Then (compact JSON)
+    // Then
     if (scenario.then) {
       const thenJson = JSON.stringify(scenario.then);
-      if (thenJson.length <= 60) {
-        lines.push(`      ${colors.dim('Then:')} ${colors.grey(thenJson)}`);
-      } else {
-        lines.push(`      ${colors.dim('Then:')} ${colors.grey(thenJson.substring(0, 57) + '...')}`);
-      }
+      lines.push(`      ${colors.dim('Then:')} ${colors.grey(smartTruncate(thenJson, 14))}`);
     }
   }
   
@@ -153,6 +174,10 @@ function renderSlicePanel(
   const content: string[] = [];
   let scenarioLines: string[] = [];
   
+  // Add slice name as first line
+  content.push(`${color.bold(slice.name)}`);
+  content.push('');
+  
   if (isStateView(slice)) {
     const sv = slice as StateView;
     
@@ -169,7 +194,7 @@ function renderSlicePanel(
     // Actors that read this view
     const readingActors = actors.filter(a => a.readsView === sv.name);
     if (readingActors.length > 0) {
-      if (content.length > 0) content.push('');
+      if (content.length > 2) content.push('');
       content.push(colors.dim('readBy:'));
       for (const actor of readingActors) {
         content.push(
@@ -200,7 +225,7 @@ function renderSlicePanel(
     const cmdKey = `${cmd.name}-${cmd.tick}`;
     const producedEvents = eventsByCommandTick.get(cmdKey) || [];
     if (producedEvents.length > 0) {
-      if (content.length > 0) content.push('');
+      if (content.length > 2) content.push('');
       content.push(colors.dim('produces:'));
       for (const evt of producedEvents.sort((a, b) => a.tick - b.tick)) {
         content.push(`  ${colors.event('●')} ${colors.event(evt.name)} ${colors.dim(`@${evt.tick}`)}`);
@@ -209,51 +234,51 @@ function renderSlicePanel(
     
     // Scenarios (Given-When-Then)
     if (cmd.scenarios && cmd.scenarios.length > 0) {
-      scenarioLines = renderCommandScenarios(cmd.scenarios);
+      scenarioLines = renderCommandScenarios(cmd.scenarios, cmd.name);
     }
   }
   
   // Get example data
   const exampleData = slice.example;
   
-  // Build panel content
-  let panelContent: string;
+  // Build panel content: Name first, then example JSON, then details, then scenarios
+  const panelLines: string[] = [];
+  
+  // 1. Name (bold)
+  panelLines.push(color.bold(slice.name));
+  
+  // 2. Example JSON
   if (exampleData) {
+    panelLines.push('');
     const exampleJson = JSON.stringify(exampleData, null, 2);
     const jsonColored = exampleJson
       .replace(/"([^"]+)":/g, `${colors.cyan('"$1"')}:`)
       .replace(/: "([^"]+)"/g, `: ${colors.yellow('"$1"')}`)
       .replace(/: (\d+)/g, `: ${colors.yellow('$1')}`)
       .replace(/: (true|false)/g, `: ${colors.yellow('$1')}`);
-    
-    const parts: string[] = [jsonColored];
-    if (content.length > 0) {
-      parts.push('');
-      parts.push(content.join('\n'));
-    }
-    if (scenarioLines.length > 0) {
-      parts.push('');
-      parts.push(scenarioLines.join('\n'));
-    }
-    panelContent = parts.join('\n');
-  } else {
-    const parts: string[] = [];
-    if (content.length > 0) {
-      parts.push(content.join('\n'));
-    }
-    if (scenarioLines.length > 0) {
-      if (parts.length > 0) parts.push('');
-      parts.push(scenarioLines.join('\n'));
-    }
-    panelContent = parts.length > 0 ? parts.join('\n') : colors.dim('(no details)');
+    panelLines.push(jsonColored);
   }
+  
+  // 3. Details (content without name)
+  const details = content.slice(2).filter(line => line !== '');
+  if (details.length > 0) {
+    panelLines.push('');
+    panelLines.push(...details);
+  }
+  
+  // 4. Scenarios
+  if (scenarioLines.length > 0) {
+    panelLines.push('');
+    panelLines.push(...scenarioLines);
+  }
+  
+  const panelContent = panelLines.join('\n') || colors.dim('(no details)');
   
   // Timeline prefix
   const tickStr = `@${slice.tick}`.padStart(5);
   console.log(`${color(symbol)} ${colors.dim(`${tickStr} │`)}`);
   
-  // Title and panel
-  const title = `${color(symbol)} ${color.bold(slice.name)}`;
+  // Panel
   console.log(box(panelContent, { borderColor: color }));
   
   // Timeline continuation

@@ -103,18 +103,25 @@ export function rule(text?: string, style: 'full' | 'left' | 'center' = 'center'
 /**
  * Create a box around text
  */
-export function box(content: string, options?: { borderColor?: typeof chalk; padding?: number }): string {
-  const { borderColor = colors.grey, padding = 1 } = options || {};
+export function box(content: string, options?: { borderColor?: typeof chalk; padding?: number; fullWidth?: boolean }): string {
+  const { borderColor = colors.grey, padding = 1, fullWidth = true } = options || {};
+  const terminalWidth = process.stdout.columns || 80;
   const lines = content.split('\n');
-  const maxLength = Math.max(...lines.map(l => l.replace(/\x1b\[[0-9;]*m/g, '').length));
-  const width = maxLength + padding * 2;
+  const maxContentLength = Math.max(...lines.map(l => l.replace(/\x1b\[[0-9;]*m/g, '').length));
+  
+  // Calculate inner width: terminal width minus box borders and padding
+  const innerWidth = fullWidth 
+    ? terminalWidth - 2 - (padding * 2)  // 2 for │ borders
+    : maxContentLength;
+  
+  const width = innerWidth + padding * 2;
   
   const top = borderColor('╭' + '─'.repeat(width) + '╮');
   const bottom = borderColor('╰' + '─'.repeat(width) + '╯');
   
   const paddedLines = lines.map(line => {
     const visibleLength = line.replace(/\x1b\[[0-9;]*m/g, '').length;
-    const rightPad = maxLength - visibleLength;
+    const rightPad = Math.max(0, innerWidth - visibleLength);
     return borderColor('│') + ' '.repeat(padding) + line + ' '.repeat(rightPad + padding) + borderColor('│');
   });
   
