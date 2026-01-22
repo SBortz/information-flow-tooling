@@ -146,39 +146,73 @@ There are still some challenges to be solved. I will write more about them soon.
 
 The **Information Flow Tooling CLI** (`ift`) is a CLI tool to visualize `.informationflow.json` files.
 
-### Installation
+Two implementations are available:
+- **.NET** - Full-featured, requires .NET 10 SDK
+- **Node.js/TypeScript** - Cross-platform, requires Node.js 18+
+
+Both provide identical functionality and output.
+
+---
+
+### 4.1 Node.js / TypeScript CLI
+
+#### Installation
 
 ```bash
-git clone https://github.com/SBortz/information-flow-tooling.git
-cd information-flow-tooling/src
+cd nodejs-cli-tooling
+npm install
+npm run build
+```
+
+#### Usage
+
+```bash
+node dist/index.js <file> [options]
+```
+
+Or link globally:
+```bash
+npm link
+ift <file> [options]
+```
+
+#### Examples
+
+```bash
+# Interactive mode - prompts for view selection
+node dist/index.js model.informationflow.json
+
+# Timeline view with example data
+node dist/index.js model.informationflow.json -v timeline -e
+
+# Table view for documentation
+node dist/index.js model.informationflow.json -v table
+
+# Validate against schema first
+node dist/index.js model.informationflow.json -s information-flow.schema.json -v slice
+
+# Export to file
+node dist/index.js model.informationflow.json -v timeline -e -o output.txt
+```
+
+---
+
+### 4.2 .NET CLI
+
+#### Installation
+
+```bash
+cd dotnet-cli-tooling
 dotnet build
 ```
 
-### Usage
+#### Usage
 
 ```bash
 dotnet run --project InformationFlowToolingCli -- <file> [options]
 ```
 
-### Options
-
-| Option | Description |
-|--------|-------------|
-| `-v, --view <mode>` | Display mode (see below) |
-| `-e, --example` | Show example data in output |
-| `-o, --output <file>` | Export output to a text file (without header) |
-| `-s, --schema <path>` | Validate against JSON schema first |
-| `-h, --help` | Show help |
-
-### View Modes
-
-| Mode | Best For | Description |
-|------|----------|-------------|
-| `timeline` | Quick overview | Vertical chronological view with symbols |
-| `slice` | Detailed analysis | Panels with JSON examples and relationships |
-| `table` | Documentation | Tables per type with data flow tree |
-
-### Examples
+#### Examples
 
 ```bash
 # Interactive mode - prompts for view selection
@@ -196,6 +230,26 @@ dotnet run --project InformationFlowToolingCli -- model.informationflow.json -v 
 # Validate against schema first
 dotnet run --project InformationFlowToolingCli -- model.informationflow.json -s information-flow.schema.json -v timeline
 ```
+
+---
+
+### CLI Options (both versions)
+
+| Option | Description |
+|--------|-------------|
+| `-v, --view <mode>` | Display mode (see below) |
+| `-e, --example` | Show example data in output |
+| `-o, --output <file>` | Export output to a text file (without header) |
+| `-s, --schema <path>` | Validate against JSON schema first |
+| `-h, --help` | Show help |
+
+### View Modes
+
+| Mode | Best For | Description |
+|------|----------|-------------|
+| `timeline` | Quick overview | Vertical chronological view with symbols |
+| `slice` | Detailed analysis | Panels with JSON examples and relationships |
+| `table` | Documentation | Tables per type with data flow tree |
 
 ### Output Example (Timeline)
 
