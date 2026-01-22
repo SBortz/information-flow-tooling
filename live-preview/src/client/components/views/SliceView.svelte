@@ -47,14 +47,14 @@
     {@const type = isStateSlice ? 'state' : 'command'}
     {@const symbol = isStateSlice ? '◆' : '▶'}
 
-    <div class="slice-panel {type}">
-      <div class="slice-header">
+    <details class="slice-panel {type}" open={modelStore.expandAll}>
+      <summary class="slice-header">
         <div>
           <span class="symbol {type}">{symbol}</span>
           <span class="name">{slice.name}</span>
         </div>
         <span class="tick">@{slice.tick}</span>
-      </div>
+      </summary>
 
       <div class="slice-content">
         {#if slice.example}
@@ -168,7 +168,7 @@
           </div>
         {/if}
       </div>
-    </div>
+    </details>
   {/each}
 </div>
 
@@ -203,6 +203,16 @@
     padding: 1rem 1.5rem;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .slice-header::-webkit-details-marker {
+    display: none;
+  }
+
+  .slice-panel:not([open]) .slice-header {
+    border-bottom: none;
   }
 
   .slice-header .name {
