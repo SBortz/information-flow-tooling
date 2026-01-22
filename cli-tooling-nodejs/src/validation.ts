@@ -1,7 +1,20 @@
 import Ajv from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { readFile } from 'fs/promises';
+import { existsSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { colors } from './views/colors.js';
+
+/**
+ * Get the path to the bundled schema (copied during build)
+ */
+export function getBundledSchemaPath(): string | null {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const schemaPath = join(__dirname, 'information-flow.schema.json');
+  return existsSync(schemaPath) ? schemaPath : null;
+}
 
 /**
  * Validate a JSON document against a JSON Schema

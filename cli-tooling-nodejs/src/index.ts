@@ -8,7 +8,7 @@ import { InformationFlowModel, ViewMode } from './models/types.js';
 import { renderTimeline } from './views/timeline.js';
 import { renderSlice } from './views/slice.js';
 import { renderTable } from './views/table.js';
-import { validateAgainstSchema, printValidationResult } from './validation.js';
+import { validateAgainstSchema, getBundledSchemaPath, printValidationResult } from './validation.js';
 import { colors, rule } from './views/colors.js';
 
 // CLI setup
@@ -20,7 +20,8 @@ program
   .option('-v, --view <mode>', 'Display mode: timeline, slice, or table')
   .option('-e, --example', 'Show example data in timeline view')
   .option('-o, --output <file>', 'Save output to a text file')
-  .option('-s, --schema <path>', 'Path to JSON schema file for validation');
+  .option('-s, --schema <path>', 'Path to JSON schema file for validation')
+  .option('--validate', 'Validate against bundled schema');
 
 program.addHelpText('after', `
 ${colors.dim('View Modes:')}
@@ -70,14 +71,16 @@ async function main(): Promise<number> {
   }
   
   // Schema validation
-  if (options.schema) {
-    if (!existsSync(options.schema)) {
-      console.error(colors.red('Error:') + ` Schema file not found: ${options.schema}`);
+  const schemaPath = options.validate ? getBundledSchemaPath() : options.schema;
+  
+  if (schemaPath) {
+    if (!existsSync(schemaPath)) {
+      console.error(colors.red('Error:') + ` Schema file not found: ${schemaPath}`);
       return 1;
     }
     
     console.log(colors.dim('Validating against schema...'));
-    const result = await validateAgainstSchema(model, options.schema);
+    const result = await validateAgainstSchema(model, schemaPath);
     printValidationResult(result);
     
     if (!result.valid) {
