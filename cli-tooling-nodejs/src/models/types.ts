@@ -8,6 +8,41 @@ export interface ITimelineElement {
 }
 
 /**
+ * A reference to an event with optional example data for scenarios
+ */
+export interface EventReference {
+  event: string;
+  data?: unknown;
+}
+
+/**
+ * The outcome of a command scenario - either produces events or fails
+ */
+export interface CommandScenarioOutcome {
+  produces?: EventReference[];
+  fails?: string;
+}
+
+/**
+ * A Given-When-Then scenario for a command
+ */
+export interface CommandScenario {
+  name: string;
+  given: EventReference[];
+  when?: unknown;
+  then: CommandScenarioOutcome;
+}
+
+/**
+ * A Given-Then scenario for a state view
+ */
+export interface StateViewScenario {
+  name: string;
+  given: EventReference[];
+  then?: unknown;
+}
+
+/**
  * An event represents something that has happened.
  * Named in past tense (e.g. OrderPlaced, OrderShipped).
  */
@@ -26,6 +61,7 @@ export interface StateView extends ITimelineElement {
   type: 'state';
   sourcedFrom: string[];
   example?: unknown;
+  scenarios?: StateViewScenario[];
 }
 
 /**
@@ -45,6 +81,7 @@ export interface Actor extends ITimelineElement {
 export interface Command extends ITimelineElement {
   type: 'command';
   example?: unknown;
+  scenarios?: CommandScenario[];
 }
 
 /**

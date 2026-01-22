@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import {
   InformationFlowModel,
   TimelineElement,
@@ -9,6 +10,8 @@ import {
   Command,
   Actor,
   isActor,
+  CommandScenario,
+  StateViewScenario,
 } from '../models/types.js';
 import { colors, getElementStyle, box } from './colors.js';
 import { renderHeader } from './timeline.js';
@@ -60,6 +63,81 @@ export function renderSlice(model: InformationFlowModel): void {
 }
 
 /**
+ * Render command scenarios (Given-When-Then)
+ */
+function renderCommandScenarios(scenarios: CommandScenario[]): string[] {
+  const lines: string[] = [];
+  lines.push(`${chalk.yellow.bold('Scenarios')} ${colors.dim(`(${scenarios.length})`)}`);
+  
+  for (const scenario of scenarios) {
+    // Scenario name with outcome indicator
+    const outcomeSymbol = scenario.then.fails ? colors.red('✗') : colors.green('✓');
+    lines.push(`  ${outcomeSymbol} ${colors.yellow(scenario.name)}`);
+    
+    // Given (compact)
+    if (scenario.given.length > 0) {
+      const givenEvents = scenario.given.map(e => colors.event(e.event)).join(', ');
+      lines.push(`      ${colors.dim('Given:')} ${givenEvents}`);
+    } else {
+      lines.push(`      ${colors.dim('Given:')} ${chalk.dim.italic('(keine Vorbedingungen)')}`);
+    }
+    
+    // When (compact JSON)
+    if (scenario.when) {
+      const whenJson = JSON.stringify(scenario.when);
+      if (whenJson.length <= 60) {
+        lines.push(`      ${colors.dim('When:')} ${colors.grey(whenJson)}`);
+      } else {
+        lines.push(`      ${colors.dim('When:')} ${colors.grey(whenJson.substring(0, 57) + '...')}`);
+      }
+    }
+    
+    // Then
+    if (scenario.then.fails) {
+      lines.push(`      ${colors.dim('Then:')} ${colors.red('✗ ' + scenario.then.fails)}`);
+    } else if (scenario.then.produces && scenario.then.produces.length > 0) {
+      const producedEvents = scenario.then.produces.map(e => colors.event(e.event)).join(', ');
+      lines.push(`      ${colors.dim('Then:')} → ${producedEvents}`);
+    }
+  }
+  
+  return lines;
+}
+
+/**
+ * Render state view scenarios (Given-Then)
+ */
+function renderStateViewScenarios(scenarios: StateViewScenario[]): string[] {
+  const lines: string[] = [];
+  lines.push(`${chalk.yellow.bold('Scenarios')} ${colors.dim(`(${scenarios.length})`)}`);
+  
+  for (const scenario of scenarios) {
+    // Scenario name
+    lines.push(`  ${colors.state('◇')} ${colors.yellow(scenario.name)}`);
+    
+    // Given (compact)
+    if (scenario.given.length > 0) {
+      const givenEvents = scenario.given.map(e => colors.event(e.event)).join(', ');
+      lines.push(`      ${colors.dim('Given:')} ${givenEvents}`);
+    } else {
+      lines.push(`      ${colors.dim('Given:')} ${chalk.dim.italic('(keine Events)')}`);
+    }
+    
+    // Then (compact JSON)
+    if (scenario.then) {
+      const thenJson = JSON.stringify(scenario.then);
+      if (thenJson.length <= 60) {
+        lines.push(`      ${colors.dim('Then:')} ${colors.grey(thenJson)}`);
+      } else {
+        lines.push(`      ${colors.dim('Then:')} ${colors.grey(thenJson.substring(0, 57) + '...')}`);
+      }
+    }
+  }
+  
+  return lines;
+}
+
+/**
  * Render a single slice panel
  */
 function renderSlicePanel(
@@ -73,6 +151,7 @@ function renderSlicePanel(
 ): void {
   const { symbol, color } = getElementStyle(slice.type);
   const content: string[] = [];
+  let scenarioLines: string[] = [];
   
   if (isStateView(slice)) {
     const sv = slice as StateView;
@@ -98,6 +177,11 @@ function renderSlicePanel(
         );
       }
     }
+    
+    // Scenarios (Given-Then)
+    if (sv.scenarios && sv.scenarios.length > 0) {
+      scenarioLines = renderStateViewScenarios(sv.scenarios);
+    }
   } else if (isCommand(slice)) {
     const cmd = slice as Command;
     
@@ -122,6 +206,11 @@ function renderSlicePanel(
         content.push(`  ${colors.event('●')} ${colors.event(evt.name)} ${colors.dim(`@${evt.tick}`)}`);
       }
     }
+    
+    // Scenarios (Given-When-Then)
+    if (cmd.scenarios && cmd.scenarios.length > 0) {
+      scenarioLines = renderCommandScenarios(cmd.scenarios);
+    }
   }
   
   // Get example data
@@ -137,13 +226,26 @@ function renderSlicePanel(
       .replace(/: (\d+)/g, `: ${colors.yellow('$1')}`)
       .replace(/: (true|false)/g, `: ${colors.yellow('$1')}`);
     
+    const parts: string[] = [jsonColored];
     if (content.length > 0) {
-      panelContent = jsonColored + '\n\n' + content.join('\n');
-    } else {
-      panelContent = jsonColored;
+      parts.push('');
+      parts.push(content.join('\n'));
     }
+    if (scenarioLines.length > 0) {
+      parts.push('');
+      parts.push(scenarioLines.join('\n'));
+    }
+    panelContent = parts.join('\n');
   } else {
-    panelContent = content.length > 0 ? content.join('\n') : colors.dim('(no details)');
+    const parts: string[] = [];
+    if (content.length > 0) {
+      parts.push(content.join('\n'));
+    }
+    if (scenarioLines.length > 0) {
+      if (parts.length > 0) parts.push('');
+      parts.push(scenarioLines.join('\n'));
+    }
+    panelContent = parts.length > 0 ? parts.join('\n') : colors.dim('(no details)');
   }
   
   // Timeline prefix
