@@ -2,20 +2,15 @@ using System.Text.Json.Serialization;
 
 namespace EventModelAnalyzer.Models;
 
-public class State
+public record State(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("tick")] int Tick,
+    [property: JsonPropertyName("example")] object? Example = null
+) : ITimelineElement
 {
     [JsonPropertyName("type")]
-    public string Type { get; set; } = "stateview";
+    public string Type => "stateview";
     
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-    
-    [JsonPropertyName("tick")]
-    public int Tick { get; set; }
-    
-    [JsonPropertyName("subscribesTo")]
-    public List<string> SubscribesTo { get; set; } = new();
-    
-    [JsonPropertyName("example")]
-    public object? Example { get; set; }
+    [JsonPropertyName("sourcedFrom")]
+    public List<string> SourcedFrom { get; init; } = [];
 }

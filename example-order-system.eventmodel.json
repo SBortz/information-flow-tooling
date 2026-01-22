@@ -33,7 +33,7 @@
       "type": "stateview",
       "name": "ShoppingCart",
       "tick": 30,
-      "subscribesTo": ["ProductAddedToCart", "CartUpdated"],
+      "sourcedFrom": ["ProductAddedToCart", "CartUpdated"],
       "example": {
         "cartId": "cart-123",
         "customerId": "cust-789",
@@ -86,7 +86,7 @@
       "type": "stateview",
       "name": "OrderConfirmation",
       "tick": 70,
-      "subscribesTo": ["OrderCreated"],
+      "sourcedFrom": ["OrderCreated"],
       "example": {
         "orderId": "order-001",
         "message": "Vielen Dank für Ihre Bestellung!",
@@ -98,7 +98,7 @@
       "type": "stateview",
       "name": "PendingOrders",
       "tick": 80,
-      "subscribesTo": ["OrderCreated", "OrderPaid"],
+      "sourcedFrom": ["OrderCreated", "OrderPaid"],
       "example": {
         "orders": [
           { "orderId": "order-001", "customerId": "cust-789", "amount": 79.99, "status": "pending" }
@@ -150,7 +150,7 @@
       "type": "stateview",
       "name": "OrdersReadyToShip",
       "tick": 130,
-      "subscribesTo": ["OrderPaid", "OrderShipped"],
+      "sourcedFrom": ["OrderPaid", "OrderShipped"],
       "example": {
         "orders": [
           { "orderId": "order-001", "customerId": "cust-789", "paidAt": "2024-01-15T10:36:00Z" }
@@ -190,7 +190,7 @@
       "type": "stateview",
       "name": "CustomerOrderTracking",
       "tick": 170,
-      "subscribesTo": ["OrderCreated", "OrderPaid", "OrderShipped", "OrderDelivered"],
+      "sourcedFrom": ["OrderCreated", "OrderPaid", "OrderShipped", "OrderDelivered"],
       "example": {
         "orderId": "order-001",
         "status": "shipped",

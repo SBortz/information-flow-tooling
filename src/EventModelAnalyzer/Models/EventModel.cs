@@ -2,21 +2,16 @@ using System.Text.Json.Serialization;
 
 namespace EventModelAnalyzer.Models;
 
-public class EventModel
+public record EventModel(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("description")] string? Description = null,
+    [property: JsonPropertyName("version")] string? Version = null
+)
 {
     [JsonPropertyName("$schema")]
-    public string? Schema { get; set; }
-    
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-    
-    [JsonPropertyName("description")]
-    public string? Description { get; set; }
-    
-    [JsonPropertyName("version")]
-    public string? Version { get; set; }
+    public string? Schema { get; init; }
     
     [JsonPropertyName("timeline")]
     [JsonConverter(typeof(TimelineConverter))]
-    public Timeline Timeline { get; set; } = new();
+    public Timeline Timeline { get; init; } = new();
 }

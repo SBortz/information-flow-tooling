@@ -2,23 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace EventModelAnalyzer.Models;
 
-public class Event
+public record Event(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("tick")] int Tick,
+    [property: JsonPropertyName("producedBy")] string? ProducedBy = null,
+    [property: JsonPropertyName("externalSource")] string? ExternalSource = null,
+    [property: JsonPropertyName("example")] object? Example = null
+) : ITimelineElement
 {
     [JsonPropertyName("type")]
-    public string Type { get; set; } = "event";
-    
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-    
-    [JsonPropertyName("tick")]
-    public int Tick { get; set; }
-    
-    [JsonPropertyName("producedBy")]
-    public string? ProducedBy { get; set; }
-    
-    [JsonPropertyName("externalSource")]
-    public string? ExternalSource { get; set; }
-    
-    [JsonPropertyName("example")]
-    public object? Example { get; set; }
+    public string Type => "event";
 }

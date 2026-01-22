@@ -58,8 +58,8 @@ public class StateViewTimelineElement
     [JsonPropertyName("tick")]
     public int Tick { get; set; }
 
-    [JsonPropertyName("subscribesTo")]
-    public List<string> SubscribesTo { get; set; } = new();
+    [JsonPropertyName("sourcedFrom")]
+    public List<string> SourcedFrom { get; set; } = new();
 
     [JsonPropertyName("example")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

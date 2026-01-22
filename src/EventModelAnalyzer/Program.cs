@@ -492,19 +492,19 @@ void RenderTableView(EventModel model, bool renderHeader = true)
             .AddColumn(new TableColumn("[green bold]Name[/]"))
             .AddColumn(new TableColumn("[dim]Subscribes To[/]"));
         
-        // Group by name and merge SubscribesTo lists
+        // Group by name and merge SourcedFrom lists
         var distinctStateViews = stateViews
             .GroupBy(sv => sv.Name)
             .Select(g => new {
                 Name = g.Key,
-                SubscribesTo = g.SelectMany(sv => sv.SubscribesTo).Distinct().ToList()
+                SourcedFrom = g.SelectMany(sv => sv.SourcedFrom).Distinct().ToList()
             })
             .OrderBy(sv => sv.Name);
         
         foreach (var sv in distinctStateViews)
         {
-            var subscribes = sv.SubscribesTo.Count > 0 
-                ? string.Join(", ", sv.SubscribesTo.Select(e => $"[orange1]{Markup.Escape(e)}[/]"))
+            var subscribes = sv.SourcedFrom.Count > 0 
+                ? string.Join(", ", sv.SourcedFrom.Select(e => $"[orange1]{Markup.Escape(e)}[/]"))
                 : "[dim]-[/]";
             
             viewTable.AddRow(
@@ -616,7 +616,7 @@ void RenderTableView(EventModel model, bool renderHeader = true)
         .GroupBy(sv => sv.Name)
         .ToDictionary(
             g => g.Key,
-            g => g.SelectMany(sv => sv.SubscribesTo).Distinct().ToList()
+            g => g.SelectMany(sv => sv.SourcedFrom).Distinct().ToList()
         );
     
     // Build grouped data for Commands (all events produced by commands with same name)
@@ -646,11 +646,11 @@ void RenderTableView(EventModel model, bool renderHeader = true)
     {
         var svNode = flowTree.AddNode($"[green]◆ {Markup.Escape(svName)}[/]");
         
-        // Events this view subscribes to
-        if (stateViewData.TryGetValue(svName, out var subscribesTo) && subscribesTo.Count > 0)
+        // Events this view sourced from
+        if (stateViewData.TryGetValue(svName, out var sourcedFrom) && sourcedFrom.Count > 0)
         {
-            var subsNode = svNode.AddNode("[dim]← subscribes to[/]");
-            foreach (var eventName in subscribesTo.OrderBy(e => e))
+            var subsNode = svNode.AddNode("[dim]← sourced from[/]");
+            foreach (var eventName in sourcedFrom.OrderBy(e => e))
             {
                 subsNode.AddNode($"[orange1]● {Markup.Escape(eventName)}[/]");
             }
@@ -761,14 +761,9 @@ void RenderSliceView(EventModel model, bool renderHeader = true)
         .ToDictionary(g => g.Key, g => g.ToList());
     
     // Get slices: StateViews and Commands, sorted by tick
-    var slices = model.Timeline.StateViews.Cast<object>()
+    var slices = model.Timeline.StateViews.Cast<ITimelineElement>()
         .Concat(model.Timeline.Commands)
-        .OrderBy(e => e switch
-        {
-            State sv => sv.Tick,
-            Command c => c.Tick,
-            _ => 0
-        })
+        .OrderBy(e => e.Tick)
         .ToList();
     
     for (int i = 0; i < slices.Count; i++)
@@ -787,11 +782,11 @@ void RenderSliceView(EventModel model, bool renderHeader = true)
                 borderColor = Color.Green;
                 symbol = "[green]◆[/]";
                 
-                // Events this view subscribes to
-                if (sv.SubscribesTo.Count > 0)
+                // Events this view sourced from
+                if (sv.SourcedFrom.Count > 0)
                 {
-                    content.Add("[dim]subscribesTo:[/]");
-                    foreach (var eventName in sv.SubscribesTo)
+                    content.Add("[dim]sourcedFrom:[/]");
+                    foreach (var eventName in sv.SourcedFrom)
                     {
                         var evt = events.FirstOrDefault(e => e.Name == eventName);
                         var tickInfo = evt != null ? $" [dim]@{evt.Tick}[/]" : "";
@@ -854,12 +849,7 @@ void RenderSliceView(EventModel model, bool renderHeader = true)
                 break;
         }
         
-        int GetSliceTick(object s) => s switch
-        {
-            State sv => sv.Tick,
-            Command c => c.Tick,
-            _ => 0
-        };
+        int GetSliceTick(object s) => s is ITimelineElement e ? e.Tick : 0;
         
         // Calculate extra lines based on tick distance
         int extraLines = 0;
@@ -978,23 +968,9 @@ void RenderTimeline(EventModel model, bool showExamples = false, bool renderHead
     RenderSummaryPanel(model);
 }
 
-int GetTick(object element) => element switch
-{
-    Event e => e.Tick,
-    State s => s.Tick,
-    Actor a => a.Tick,
-    Command c => c.Tick,
-    _ => 0
-};
+int GetTick(object element) => element is ITimelineElement e ? e.Tick : 0;
 
-string GetName(object element) => element switch
-{
-    Event e => e.Name,
-    State s => s.Name,
-    Actor a => a.Name,
-    Command c => c.Name,
-    _ => ""
-};
+string GetName(object element) => element is ITimelineElement e ? e.Name : "";
 
 void RenderTimelineElement(object element, bool isLast, int extraLines = 0, bool showExamples = false)
 {
@@ -1065,10 +1041,10 @@ void RenderTimelineElement(object element, bool isLast, int extraLines = 0, bool
             break;
             
         case State sv:
-            if (sv.SubscribesTo.Count > 0)
+            if (sv.SourcedFrom.Count > 0)
             {
-                var eventNames = string.Join("[dim],[/] ", sv.SubscribesTo.Select(e => $"[orange1]{Markup.Escape(e)}[/]"));
-                AnsiConsole.MarkupLine($"{detailPrefix}[dim]subscribesTo:[/] {eventNames}");
+                var eventNames = string.Join("[dim],[/] ", sv.SourcedFrom.Select(e => $"[orange1]{Markup.Escape(e)}[/]"));
+                AnsiConsole.MarkupLine($"{detailPrefix}[dim]sourcedFrom:[/] {eventNames}");
             }
             break;
             
