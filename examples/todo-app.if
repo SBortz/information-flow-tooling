@@ -1,7 +1,7 @@
 {
   "$schema": "../information-flow.schema.json",
   "name": "Todo App",
-  "description": "Eine einfache Todo-Anwendung zum Verwalten von Aufgaben",
+  "description": "A simple todo application for managing tasks",
   "version": "1.0.0",
 
   "timeline": [
@@ -15,32 +15,32 @@
       },
       "scenarios": [
         {
-          "name": "Leere Liste ohne Events",
+          "name": "Empty list without events",
           "given": [],
           "then": {
             "todos": []
           }
         },
         {
-          "name": "Ein offenes Todo nach Erstellung",
+          "name": "One open todo after creation",
           "given": [
             {
               "event": "TodoCreated",
-              "data": { "id": "todo-1", "title": "Einkaufen", "createdAt": "2025-12-02T10:00:00Z" }
+              "data": { "id": "todo-1", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
             }
           ],
           "then": {
             "todos": [
-              { "id": "todo-1", "title": "Einkaufen", "completed": false }
+              { "id": "todo-1", "title": "Go shopping", "completed": false }
             ]
           }
         },
         {
-          "name": "Abgeschlossenes Todo wird markiert",
+          "name": "Completed todo is marked",
           "given": [
             {
               "event": "TodoCreated",
-              "data": { "id": "todo-1", "title": "Einkaufen", "createdAt": "2025-12-02T10:00:00Z" }
+              "data": { "id": "todo-1", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
             },
             {
               "event": "TodoCompleted",
@@ -49,16 +49,16 @@
           ],
           "then": {
             "todos": [
-              { "id": "todo-1", "title": "Einkaufen", "completed": true }
+              { "id": "todo-1", "title": "Go shopping", "completed": true }
             ]
           }
         },
         {
-          "name": "Gelöschtes Todo verschwindet aus Liste",
+          "name": "Deleted todo disappears from list",
           "given": [
             {
               "event": "TodoCreated",
-              "data": { "id": "todo-1", "title": "Einkaufen", "createdAt": "2025-12-02T10:00:00Z" }
+              "data": { "id": "todo-1", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
             },
             {
               "event": "TodoDeleted",
@@ -70,15 +70,15 @@
           }
         },
         {
-          "name": "Mehrere Todos mit gemischtem Status",
+          "name": "Multiple todos with mixed status",
           "given": [
             {
               "event": "TodoCreated",
-              "data": { "id": "todo-1", "title": "Einkaufen", "createdAt": "2025-12-02T10:00:00Z" }
+              "data": { "id": "todo-1", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
             },
             {
               "event": "TodoCreated",
-              "data": { "id": "todo-2", "title": "Sport machen", "createdAt": "2025-12-02T10:05:00Z" }
+              "data": { "id": "todo-2", "title": "Do exercise", "createdAt": "2025-12-02T10:05:00Z" }
             },
             {
               "event": "TodoCompleted",
@@ -87,8 +87,8 @@
           ],
           "then": {
             "todos": [
-              { "id": "todo-1", "title": "Einkaufen", "completed": true },
-              { "id": "todo-2", "title": "Sport machen", "completed": false }
+              { "id": "todo-1", "title": "Go shopping", "completed": true },
+              { "id": "todo-2", "title": "Do exercise", "completed": false }
             ]
           }
         }
@@ -106,42 +106,42 @@
       "name": "CreateTodo",
       "tick": 3,
       "example": {
-        "title": "Einkaufen gehen"
+        "title": "Go shopping"
       },
       "scenarios": [
         {
-          "name": "Erfolgreich Todo erstellen",
+          "name": "Successfully create todo",
           "given": [],
           "when": {
-            "title": "Einkaufen gehen"
+            "title": "Go shopping"
           },
           "then": {
             "produces": [
               {
                 "event": "TodoCreated",
-                "data": { "id": "generated-id", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+                "data": { "id": "generated-id", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
               }
             ]
           }
         },
         {
-          "name": "Ablehnung bei leerem Titel",
+          "name": "Reject empty title",
           "given": [],
           "when": {
             "title": ""
           },
           "then": {
-            "fails": "Titel darf nicht leer sein"
+            "fails": "Title cannot be empty"
           }
         },
         {
-          "name": "Ablehnung bei zu langem Titel",
+          "name": "Reject title that is too long",
           "given": [],
           "when": {
-            "title": "Dies ist ein viel zu langer Titel der die maximale Zeichenanzahl von 200 Zeichen überschreitet und daher vom System abgelehnt werden sollte weil er einfach nicht mehr lesbar ist und keinen Sinn macht"
+            "title": "This is a very long title that exceeds the maximum character limit of 200 characters and should therefore be rejected by the system because it is simply no longer readable and makes no sense at all"
           },
           "then": {
-            "fails": "Titel darf maximal 200 Zeichen haben"
+            "fails": "Title cannot exceed 200 characters"
           }
         }
       ]
@@ -153,7 +153,7 @@
       "producedBy": "CreateTodo-3",
       "example": {
         "id": "abc-123",
-        "title": "Einkaufen gehen",
+        "title": "Go shopping",
         "createdAt": "2025-12-02T10:00:00Z"
       }
     },
@@ -165,7 +165,7 @@
       "sourcedFrom": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
       "example": {
         "todos": [
-          { "id": "abc-123", "title": "Einkaufen gehen", "completed": false }
+          { "id": "abc-123", "title": "Go shopping", "completed": false }
         ]
       }
     },
@@ -185,11 +185,11 @@
       },
       "scenarios": [
         {
-          "name": "Erfolgreich Todo abschließen",
+          "name": "Successfully complete todo",
           "given": [
             {
               "event": "TodoCreated",
-              "data": { "id": "abc-123", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+              "data": { "id": "abc-123", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
             }
           ],
           "when": {
@@ -205,21 +205,21 @@
           }
         },
         {
-          "name": "Ablehnung wenn Todo nicht existiert",
+          "name": "Reject when todo does not exist",
           "given": [],
           "when": {
-            "todoId": "nicht-vorhanden"
+            "todoId": "non-existent"
           },
           "then": {
-            "fails": "Todo nicht gefunden"
+            "fails": "Todo not found"
           }
         },
         {
-          "name": "Ablehnung wenn Todo bereits abgeschlossen",
+          "name": "Reject when todo already completed",
           "given": [
             {
               "event": "TodoCreated",
-              "data": { "id": "abc-123", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+              "data": { "id": "abc-123", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
             },
             {
               "event": "TodoCompleted",
@@ -230,7 +230,7 @@
             "todoId": "abc-123"
           },
           "then": {
-            "fails": "Todo ist bereits abgeschlossen"
+            "fails": "Todo is already completed"
           }
         }
       ]
@@ -253,7 +253,7 @@
       "sourcedFrom": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
       "example": {
         "todos": [
-          { "id": "abc-123", "title": "Einkaufen gehen", "completed": true }
+          { "id": "abc-123", "title": "Go shopping", "completed": true }
         ]
       }
     },
@@ -273,11 +273,11 @@
       },
       "scenarios": [
         {
-          "name": "Erfolgreich Todo löschen",
+          "name": "Successfully delete todo",
           "given": [
             {
               "event": "TodoCreated",
-              "data": { "id": "abc-123", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+              "data": { "id": "abc-123", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
             }
           ],
           "when": {
@@ -293,21 +293,21 @@
           }
         },
         {
-          "name": "Ablehnung wenn Todo nicht existiert",
+          "name": "Reject when todo does not exist",
           "given": [],
           "when": {
-            "todoId": "nicht-vorhanden"
+            "todoId": "non-existent"
           },
           "then": {
-            "fails": "Todo nicht gefunden"
+            "fails": "Todo not found"
           }
         },
         {
-          "name": "Auch abgeschlossene Todos können gelöscht werden",
+          "name": "Completed todos can also be deleted",
           "given": [
             {
               "event": "TodoCreated",
-              "data": { "id": "abc-123", "title": "Einkaufen gehen", "createdAt": "2025-12-02T10:00:00Z" }
+              "data": { "id": "abc-123", "title": "Go shopping", "createdAt": "2025-12-02T10:00:00Z" }
             },
             {
               "event": "TodoCompleted",

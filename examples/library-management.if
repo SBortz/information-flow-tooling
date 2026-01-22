@@ -1,7 +1,7 @@
 {
   "$schema": "../information-flow.schema.json",
   "name": "Library Management System",
-  "description": "Ein Bibliotheksverwaltungssystem mit Ausleihe, Rückgabe, Reservierung und automatischen Mahnungen",
+  "description": "A library management system with borrowing, returns, reservations and automatic reminders",
   "version": "1.0.0",
 
   "timeline": [
@@ -243,7 +243,7 @@
             "bookId": "book-003", 
             "bookTitle": "The Pragmatic Programmer",
             "userId": "user-789", 
-            "userName": "Max Mustermann",
+            "userName": "John Doe",
             "userEmail": "max@example.com",
             "dueDate": "2026-01-15T23:59:59Z",
             "daysOverdue": 7,
@@ -284,7 +284,7 @@
         "sentAt": "2026-01-22T08:00:00Z",
         "reminderType": "email",
         "fineAmount": 3.50,
-        "message": "Bitte geben Sie das Buch 'The Pragmatic Programmer' zurück. Aktuelle Mahngebühr: 3,50 €"
+        "message": "Please return the book 'The Pragmatic Programmer'. Current fine: $3.50"
       }
     },
 
@@ -298,7 +298,7 @@
         "notifications": [
           {
             "type": "overdue_reminder",
-            "message": "Bitte geben Sie das Buch 'The Pragmatic Programmer' zurück. Aktuelle Mahngebühr: 3,50 €",
+            "message": "Please return the book 'The Pragmatic Programmer'. Current fine: $3.50",
             "receivedAt": "2026-01-22T08:00:00Z"
           }
         ]

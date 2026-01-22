@@ -1,109 +1,109 @@
 {
   "$schema": "../information-flow.schema.json",
-  "name": "Neue Todo-Listen Anwendung",
-  "description": "Eine Todo-Anwendung mit Use Cases: Todos eintragen, abhaken und Übersicht ansehen",
+  "name": "New Todo List Application",
+  "description": "A todo application with use cases: add todos, check off and view overview",
   "version": "1.0.0",
 
   "timeline": [
-    
+
     {
       "type": "state",
-      "name": "TodoÜbersicht",
+      "name": "TodoOverview",
       "tick": 10,
-      "sourcedFrom": ["TodoEingetragen", "TodoAbgehakt"],
+      "sourcedFrom": ["TodoAdded", "TodoCheckedOff"],
       "example": {
         "todos": []
       }
     },
     {
       "type": "actor",
-      "name": "Benutzer",
+      "name": "User",
       "tick": 20,
-      "readsView": "TodoÜbersicht",
-      "sendsCommand": "TodoEintragen"
+      "readsView": "TodoOverview",
+      "sendsCommand": "AddTodo"
     },
     {
       "type": "command",
-      "name": "TodoEintragen",
+      "name": "AddTodo",
       "tick": 30,
       "example": {
-        "titel": "Milch kaufen"
+        "title": "Buy milk"
       }
     },
     {
       "type": "event",
-      "name": "TodoEingetragen",
+      "name": "TodoAdded",
       "tick": 40,
-      "producedBy": "TodoEintragen-30",
+      "producedBy": "AddTodo-30",
       "example": {
         "todoId": "todo-001",
-        "titel": "Milch kaufen",
-        "eingetragenAm": "2026-01-22T09:00:00Z"
+        "title": "Buy milk",
+        "addedAt": "2026-01-22T09:00:00Z"
       }
     },
 
-    
+
     {
       "type": "state",
-      "name": "TodoÜbersicht",
+      "name": "TodoOverview",
       "tick": 50,
-      "sourcedFrom": ["TodoEingetragen", "TodoAbgehakt"],
+      "sourcedFrom": ["TodoAdded", "TodoCheckedOff"],
       "example": {
         "todos": [
-          { "id": "todo-001", "titel": "Milch kaufen", "erledigt": false }
+          { "id": "todo-001", "title": "Buy milk", "completed": false }
         ]
       }
     },
     {
       "type": "actor",
-      "name": "Benutzer",
+      "name": "User",
       "tick": 60,
-      "readsView": "TodoÜbersicht",
-      "sendsCommand": "TodoEintragen"
+      "readsView": "TodoOverview",
+      "sendsCommand": "AddTodo"
     },
     {
       "type": "command",
-      "name": "TodoEintragen",
+      "name": "AddTodo",
       "tick": 70,
       "example": {
-        "titel": "E-Mails beantworten"
+        "title": "Reply to emails"
       }
     },
     {
       "type": "event",
-      "name": "TodoEingetragen",
+      "name": "TodoAdded",
       "tick": 80,
-      "producedBy": "TodoEintragen-70",
+      "producedBy": "AddTodo-70",
       "example": {
         "todoId": "todo-002",
-        "titel": "E-Mails beantworten",
-        "eingetragenAm": "2026-01-22T09:05:00Z"
+        "title": "Reply to emails",
+        "addedAt": "2026-01-22T09:05:00Z"
       }
     },
 
-    
+
     {
       "type": "state",
-      "name": "TodoÜbersicht",
+      "name": "TodoOverview",
       "tick": 90,
-      "sourcedFrom": ["TodoEingetragen", "TodoAbgehakt"],
+      "sourcedFrom": ["TodoAdded", "TodoCheckedOff"],
       "example": {
         "todos": [
-          { "id": "todo-001", "titel": "Milch kaufen", "erledigt": false },
-          { "id": "todo-002", "titel": "E-Mails beantworten", "erledigt": false }
+          { "id": "todo-001", "title": "Buy milk", "completed": false },
+          { "id": "todo-002", "title": "Reply to emails", "completed": false }
         ]
       }
     },
     {
       "type": "actor",
-      "name": "Benutzer",
+      "name": "User",
       "tick": 100,
-      "readsView": "TodoÜbersicht",
-      "sendsCommand": "TodoAbhaken"
+      "readsView": "TodoOverview",
+      "sendsCommand": "CheckOffTodo"
     },
     {
       "type": "command",
-      "name": "TodoAbhaken",
+      "name": "CheckOffTodo",
       "tick": 110,
       "example": {
         "todoId": "todo-001"
@@ -111,34 +111,34 @@
     },
     {
       "type": "event",
-      "name": "TodoAbgehakt",
+      "name": "TodoCheckedOff",
       "tick": 120,
-      "producedBy": "TodoAbhaken-110",
+      "producedBy": "CheckOffTodo-110",
       "example": {
         "todoId": "todo-001",
-        "abgehaktAm": "2026-01-22T10:30:00Z"
+        "checkedOffAt": "2026-01-22T10:30:00Z"
       }
     },
 
-    
+
     {
       "type": "state",
-      "name": "TodoÜbersicht",
+      "name": "TodoOverview",
       "tick": 130,
-      "sourcedFrom": ["TodoEingetragen", "TodoAbgehakt"],
+      "sourcedFrom": ["TodoAdded", "TodoCheckedOff"],
       "example": {
         "todos": [
-          { "id": "todo-001", "titel": "Milch kaufen", "erledigt": true },
-          { "id": "todo-002", "titel": "E-Mails beantworten", "erledigt": false }
+          { "id": "todo-001", "title": "Buy milk", "completed": true },
+          { "id": "todo-002", "title": "Reply to emails", "completed": false }
         ]
       }
     },
     {
       "type": "actor",
-      "name": "Benutzer",
+      "name": "User",
       "tick": 140,
-      "readsView": "TodoÜbersicht",
-      "sendsCommand": "TodoEintragen"
+      "readsView": "TodoOverview",
+      "sendsCommand": "AddTodo"
     }
   ]
 }

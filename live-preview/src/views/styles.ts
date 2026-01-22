@@ -115,8 +115,8 @@ body {
   color: var(--bg-primary);
 }
 
-/* Details Toggle */
-.toggle-details {
+/* Expand All Toggle */
+.toggle-expand {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -131,22 +131,14 @@ body {
   transition: all 0.2s;
 }
 
-.toggle-details:hover {
+.toggle-expand:hover {
   color: var(--text-primary);
   border-color: var(--text-secondary);
 }
 
-.toggle-details input {
+.toggle-expand input {
   accent-color: var(--color-command);
   cursor: pointer;
-}
-
-/* Hide details when toggled off */
-.hide-details .tl-details,
-.hide-details .tl-json,
-.hide-details .slice-json,
-.hide-details .scenarios {
-  display: none;
 }
 
 /* Slice View */
@@ -429,20 +421,61 @@ details.scenario[open] > .scenario-header::before {
 
 /* Timeline Item */
 .tl-item {
-  display: flex;
-  align-items: flex-start;
-  padding: 0.75rem 1rem 0.75rem 0;
   border-bottom: 1px solid var(--border);
   position: relative;
-  gap: 0.75rem;
 }
 
 .tl-item:last-child {
   border-bottom: none;
 }
 
-.tl-item:hover {
+/* Non-expandable items (no details) */
+div.tl-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem 1rem 0.75rem 0;
+  gap: 0.75rem;
+}
+
+div.tl-item:hover {
   background: var(--bg-secondary);
+}
+
+/* Expandable items (with details) */
+details.tl-item > .tl-summary {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem 1rem 0.75rem 0;
+  gap: 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+details.tl-item > .tl-summary::-webkit-details-marker {
+  display: none;
+}
+
+details.tl-item > .tl-summary:hover {
+  background: var(--bg-secondary);
+}
+
+details.tl-item > .tl-summary .tl-name::after {
+  content: ' ▶';
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  margin-left: 0.5rem;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+details.tl-item[open] > .tl-summary .tl-name::after {
+  transform: rotate(90deg);
+}
+
+details.tl-item > .tl-details {
+  padding: 0 1rem 0.75rem 0;
+  margin-left: 80px;
+  padding-left: 4.25rem;
 }
 
 /* Symbol positioning based on element type */

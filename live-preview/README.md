@@ -1,15 +1,15 @@
 # Information Flow Live Preview
 
-Ein leichtgewichtiger Webserver, der `.if` (Information Flow) Dateien überwacht und eine automatisch aktualisierende HTML-Vorschau bereitstellt.
+A lightweight web server that watches `.if` (Information Flow) files and provides an automatically updating HTML preview.
 
 ## Features
 
-- **Live Reload**: Browser aktualisiert sich automatisch bei Dateiänderungen
-- **Drei Ansichten**: Timeline, Slices & Scenarios, Consolidated
-- **Dark Theme**: Modernes, augenfreundliches Design
-- **Scenario-Anzeige**: Zeigt Given-When-Then Szenarien für Commands und States
+- **Live Reload**: Browser automatically refreshes on file changes
+- **Three Views**: Timeline, Slices & Scenarios, Consolidated
+- **Dark Theme**: Modern, eye-friendly design
+- **Scenario Display**: Shows Given-When-Then scenarios for Commands and States
 
-## Schnellstart
+## Quick Start
 
 ```bash
 cd live-preview
@@ -18,75 +18,75 @@ npm run build
 npm start ../examples/todo-app.if --open
 ```
 
-Der Browser öffnet sich automatisch unter `http://localhost:3000`.
+The browser will automatically open at `http://localhost:3000`.
 
-## CLI-Optionen
+## CLI Options
 
-| Option | Beschreibung | Standard |
-|--------|--------------|----------|
-| `-p, --port <port>` | Server-Port | 3000 |
-| `-o, --open` | Browser automatisch öffnen | false |
-| `-h, --help` | Hilfe anzeigen | - |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-p, --port <port>` | Server port | 3000 |
+| `-o, --open` | Automatically open browser | false |
+| `-h, --help` | Show help | - |
 
-**Beispiele:**
+**Examples:**
 
 ```bash
-# Mit automatischem Browser-Start
+# With automatic browser start
 npm start ../examples/todo-app.if --open
 
-# Auf Port 8080
+# On port 8080
 npm start model.if --port 8080
 
-# Entwicklungsmodus (ohne Build)
+# Development mode (no build required)
 npm run dev -- ../examples/todo-app.if -o
 ```
 
 ---
 
-## Benutzeranleitung
+## User Guide
 
-### Ansichten (Views)
+### Views
 
-Das Tool bietet drei verschiedene Ansichten, die über die Tabs im Header gewechselt werden können:
+The tool offers three different views that can be switched via the tabs in the header:
 
-#### 1. Timeline (Standard)
+#### 1. Timeline (Default)
 
-Die Timeline zeigt den chronologischen Ablauf des Information Flows:
+The Timeline shows the chronological flow of the Information Flow:
 
 ```
 ┌─────────────────────────────────────────────────┐
 │  Events         │ Commands/States │  Actors    │
-│  (links)        │ (Mitte)         │  (rechts)  │
+│  (left)         │ (center)        │  (right)   │
 └─────────────────────────────────────────────────┘
 ```
 
-- **Events** (●): Domain Events erscheinen links der Linie
-- **Commands** (◆) & **States** (■): Befinden sich auf der mittleren Linie
-- **Actors** (○): User-Interaktionen erscheinen rechts
+- **Events** (●): Domain Events appear to the left of the line
+- **Commands** (◆) & **States** (■): Located on the center line
+- **Actors** (○): User interactions appear on the right
 
-**Show Details**: Mit der Checkbox "Show Details" können JSON-Datenmodelle ein-/ausgeblendet werden. Diese Einstellung wird im Browser gespeichert.
+**Expand All**: Use the "Expand All" checkbox to show/hide JSON data models and details. This setting is saved in the browser.
 
 #### 2. Slices & Scenarios
 
-Zeigt jeden Timeline-Eintrag als detaillierte Karte mit:
+Shows each timeline entry as a detailed card with:
 
-- JSON-Beispieldaten
-- Beziehungen zu anderen Elementen
-- **Szenarien** (falls definiert):
-  - Commands: Given-When-Then Format
-  - States/Read Models: Given-Then Format
+- JSON example data
+- Relationships to other elements
+- **Scenarios** (if defined):
+  - Commands: Given-When-Then format
+  - States/Read Models: Given-Then format
 
-**Beispiel eines Command-Szenarios:**
+**Example of a Command scenario:**
 ```
-📋 Neues Todo erfolgreich erstellen
+📋 Successfully create new todo
    Given: TodoList { "todos": [] }
-   When:  CreateTodo { "title": "Einkaufen" }
-   Then:  → TodoCreated { "id": "todo-1", "title": "Einkaufen" }
+   When:  CreateTodo { "title": "Go shopping" }
+   Then:  → TodoCreated { "id": "todo-1", "title": "Go shopping" }
 ```
 
-**Beispiel eines State-Szenarios:**
+**Example of a State scenario:**
 ```
-📋 Abgeschlossenes Todo wird markiert
+📋 Completed todo is marked
    Given: TodoCreated { ... }
           TodoCompleted { ... }
    Then:  { "todos": [{ "completed": true }] }
@@ -94,7 +94,7 @@ Zeigt jeden Timeline-Eintrag als detaillierte Karte mit:
 
 #### 3. Consolidated
 
-Eine kompakte Tabellenansicht mit allen Elementen:
+A compact table view with all elements:
 
 | Tick | Type | Name | Related |
 |------|------|------|---------|
@@ -103,40 +103,40 @@ Eine kompakte Tabellenansicht mit allen Elementen:
 
 ### Live Reload
 
-Das Tool überwacht die angegebene `.if`-Datei. Bei jeder Änderung wird der Browser automatisch aktualisiert – ideal für die iterative Entwicklung von Information Flow Modellen.
+The tool watches the specified `.if` file. On every change, the browser automatically refreshes – ideal for iterative development of Information Flow models.
 
 ---
 
-## Technische Details
+## Technical Details
 
-### Architektur
+### Architecture
 
 ```
 live-preview/
 ├── src/
-│   ├── index.ts      # CLI-Einstiegspunkt
-│   ├── server.ts     # HTTP-Server mit SSE
-│   ├── watcher.ts    # Dateiüberwachung
-│   ├── types.ts      # TypeScript-Interfaces
+│   ├── index.ts      # CLI entry point
+│   ├── server.ts     # HTTP server with SSE
+│   ├── watcher.ts    # File watching
+│   ├── types.ts      # TypeScript interfaces
 │   └── views/
-│       ├── render.ts # HTML-Rendering
-│       └── styles.ts # CSS-Styles
+│       ├── render.ts # HTML rendering
+│       └── styles.ts # CSS styles
 └── package.json
 ```
 
-### Funktionsweise
+### How It Works
 
-1. **File Watcher**: Überwacht die `.if`-Datei mit `fs.watch`
-2. **HTTP Server**: Stellt das gerenderte HTML bereit
-3. **Server-Sent Events (SSE)**: Sendet Reload-Benachrichtigungen an den Browser
-4. **Hot Reload**: Browser aktualisiert sich automatisch bei Änderungen
+1. **File Watcher**: Watches the `.if` file using `fs.watch`
+2. **HTTP Server**: Serves the rendered HTML
+3. **Server-Sent Events (SSE)**: Sends reload notifications to the browser
+4. **Hot Reload**: Browser automatically refreshes on changes
 
-### Entwicklung
+### Development
 
 ```bash
-# Entwicklungsmodus mit tsx (kein Build nötig)
+# Development mode with tsx (no build required)
 npm run dev -- ../examples/todo-app.if -o
 
-# Produktions-Build
+# Production build
 npm run build
 ```

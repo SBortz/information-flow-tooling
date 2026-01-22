@@ -1,7 +1,7 @@
 {
   "$schema": "../information-flow.schema.json",
   "name": "Order Management System",
-  "description": "Ein einfaches Bestellsystem zur Demonstration des Information Flow Formats",
+  "description": "A simple order system demonstrating the Information Flow format",
   "version": "1.0.0",
   
   "timeline": [
@@ -45,7 +45,7 @@
       },
       "scenarios": [
         {
-          "name": "Warenkorb mit einem Artikel",
+          "name": "Cart with one item",
           "given": [
             {
               "event": "ProductAddedToCart",
@@ -69,7 +69,7 @@
           }
         },
         {
-          "name": "Warenkorb mit mehreren Artikeln",
+          "name": "Cart with multiple items",
           "given": [
             {
               "event": "ProductAddedToCart",
@@ -130,7 +130,7 @@
         "cartId": "cart-123",
         "customerId": "cust-789",
         "shippingAddress": {
-          "street": "Musterstraße 42",
+          "street": "123 Main Street",
           "city": "Berlin",
           "zip": "10115"
         },
@@ -138,7 +138,7 @@
       },
       "scenarios": [
         {
-          "name": "Erfolgreiche Bestellung mit gefülltem Warenkorb",
+          "name": "Successful order with filled cart",
           "given": [
             {
               "event": "ProductAddedToCart",
@@ -165,7 +165,7 @@
             "cartId": "cart-123",
             "customerId": "cust-789",
             "shippingAddress": {
-              "street": "Musterstraße 42",
+              "street": "123 Main Street",
               "city": "Berlin",
               "zip": "10115"
             },
@@ -190,20 +190,20 @@
           }
         },
         {
-          "name": "Ablehnung bei leerem Warenkorb",
+          "name": "Reject empty cart",
           "given": [],
           "when": {
             "cartId": "cart-123",
             "customerId": "cust-789",
             "shippingAddress": {
-              "street": "Musterstraße 42",
+              "street": "123 Main Street",
               "city": "Berlin",
               "zip": "10115"
             },
             "paymentMethod": "credit_card"
           },
           "then": {
-            "fails": "Warenkorb ist leer"
+            "fails": "Cart is empty"
           }
         }
       ]
@@ -231,7 +231,7 @@
       "sourcedFrom": ["OrderCreated"],
       "example": {
         "orderId": "order-001",
-        "message": "Vielen Dank für Ihre Bestellung!",
+        "message": "Thank you for your order!",
         "estimatedDelivery": "2024-01-18",
         "totalAmount": 79.99
       }
@@ -248,7 +248,7 @@
       },
       "scenarios": [
         {
-          "name": "Liste mit einer Bestellung",
+          "name": "List with one order",
           "given": [
             {
               "event": "OrderCreated",
@@ -271,7 +271,7 @@
           }
         },
         {
-          "name": "Liste mit mehreren Bestellungen",
+          "name": "List with multiple orders",
           "given": [
             {
               "event": "OrderCreated",
@@ -308,7 +308,7 @@
           }
         },
         {
-          "name": "Bestellung wird nach Zahlung entfernt",
+          "name": "Order is removed after payment",
           "given": [
             {
               "event": "OrderCreated",
@@ -358,7 +358,7 @@
       },
       "scenarios": [
         {
-          "name": "Erfolgreiche Zahlung",
+          "name": "Successful payment",
           "given": [
             {
               "event": "OrderCreated",
@@ -395,7 +395,7 @@
           }
         },
         {
-          "name": "Fehlgeschlagene Zahlung - unzureichende Mittel",
+          "name": "Failed payment - insufficient funds",
           "given": [
             {
               "event": "OrderCreated",
@@ -431,7 +431,7 @@
           }
         },
         {
-          "name": "Fehlgeschlagene Zahlung - ungültige Karte",
+          "name": "Failed payment - invalid card",
           "given": [
             {
               "event": "OrderCreated",
@@ -503,7 +503,7 @@
       },
       "scenarios": [
         {
-          "name": "Liste mit versandbereiten Bestellungen",
+          "name": "List with orders ready to ship",
           "given": [
             {
               "event": "OrderPaid",
@@ -532,7 +532,7 @@
           }
         },
         {
-          "name": "Bestellung wird nach Versand entfernt",
+          "name": "Order is removed after shipping",
           "given": [
             {
               "event": "OrderPaid",
@@ -577,7 +577,7 @@
       },
       "scenarios": [
         {
-          "name": "Erfolgreicher Versand einer bezahlten Bestellung",
+          "name": "Successful shipment of paid order",
           "given": [
             {
               "event": "OrderPaid",
@@ -609,7 +609,7 @@
           }
         },
         {
-          "name": "Ablehnung bei nicht bezahlter Bestellung",
+          "name": "Reject unpaid order",
           "given": [
             {
               "event": "OrderCreated",
@@ -631,7 +631,7 @@
             "carrier": "DHL"
           },
           "then": {
-            "fails": "Bestellung wurde noch nicht bezahlt"
+            "fails": "Order has not been paid yet"
           }
         }
       ]
@@ -665,7 +665,7 @@
       },
       "scenarios": [
         {
-          "name": "Tracking nach Bestellungserstellung",
+          "name": "Tracking after order creation",
           "given": [
             {
               "event": "OrderCreated",
@@ -690,7 +690,7 @@
           }
         },
         {
-          "name": "Tracking nach Zahlung",
+          "name": "Tracking after payment",
           "given": [
             {
               "event": "OrderCreated",
@@ -725,7 +725,7 @@
           }
         },
         {
-          "name": "Tracking nach Versand",
+          "name": "Tracking after shipment",
           "given": [
             {
               "event": "OrderCreated",
@@ -771,7 +771,7 @@
           }
         },
         {
-          "name": "Tracking nach Lieferung",
+          "name": "Tracking after delivery",
           "given": [
             {
               "event": "OrderCreated",

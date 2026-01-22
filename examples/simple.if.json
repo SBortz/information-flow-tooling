@@ -1,7 +1,7 @@
 {
   "$schema": "../information-flow.schema.json",
   "name": "Todo App",
-  "description": "Eine einfache Todo-Anwendung zum Verwalten von Aufgaben",
+  "description": "A simple todo application for managing tasks",
   "version": "1.0.0",
   "timeline": [
     {
