@@ -7,21 +7,38 @@
     "ift": "dist/index.js"
   },
   "type": "module",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint src/**/*.ts",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "event-modeling",
     "information-flow",
     "ddd",
     "event-sourcing",
-    "cli"
+    "cqrs",
+    "cli",
+    "domain-driven-design"
   ],
-  "author": "",
+  "author": "Sebastian Bortz <sebastianbortz@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebastianbortz/event-modeling-file-format.git"
+  },
+  "homepage": "https://github.com/sebastianbortz/event-modeling-file-format#readme",
+  "bugs": {
+    "url": "https://github.com/sebastianbortz/event-modeling-file-format/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@inquirer/prompts": "^7.2.0",
     "ajv": "^8.17.1",
