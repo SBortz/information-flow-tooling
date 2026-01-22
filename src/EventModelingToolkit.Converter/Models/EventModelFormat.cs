@@ -50,7 +50,7 @@ public class EventTimelineElement
 public class StateViewTimelineElement
 {
     [JsonPropertyName("type")]
-    public string Type => "stateview";
+    public string Type => "state";
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;

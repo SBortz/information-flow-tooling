@@ -9,7 +9,7 @@ public record State(
 ) : ITimelineElement
 {
     [JsonPropertyName("type")]
-    public string Type => "stateview";
+    public string Type => "state";
     
     [JsonPropertyName("sourcedFrom")]
     public List<string> SourcedFrom { get; init; } = [];

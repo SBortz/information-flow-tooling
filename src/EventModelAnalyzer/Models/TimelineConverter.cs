@@ -26,7 +26,7 @@ public class TimelineConverter : JsonConverter<List<ITimelineElement>>
             ITimelineElement element = type switch
             {
                 "event" => JsonSerializer.Deserialize<Event>(json, options)!,
-                "stateview" => JsonSerializer.Deserialize<State>(json, options)!,
+                "state" => JsonSerializer.Deserialize<State>(json, options)!,
                 "actor" => JsonSerializer.Deserialize<Actor>(json, options)!,
                 "command" => JsonSerializer.Deserialize<Command>(json, options)!,
                 _ => throw new JsonException($"Unknown type: {type}")

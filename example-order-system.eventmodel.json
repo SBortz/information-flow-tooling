@@ -30,7 +30,7 @@
       }
     },
     {
-      "type": "stateview",
+      "type": "state",
       "name": "ShoppingCart",
       "tick": 30,
       "sourcedFrom": ["ProductAddedToCart", "CartUpdated"],
@@ -83,7 +83,7 @@
       }
     },
     {
-      "type": "stateview",
+      "type": "state",
       "name": "OrderConfirmation",
       "tick": 70,
       "sourcedFrom": ["OrderCreated"],
@@ -95,7 +95,7 @@
       }
     },
     {
-      "type": "stateview",
+      "type": "state",
       "name": "PendingOrders",
       "tick": 80,
       "sourcedFrom": ["OrderCreated", "OrderPaid"],
@@ -147,7 +147,7 @@
       }
     },
     {
-      "type": "stateview",
+      "type": "state",
       "name": "OrdersReadyToShip",
       "tick": 130,
       "sourcedFrom": ["OrderPaid", "OrderShipped"],
@@ -187,7 +187,7 @@
       }
     },
     {
-      "type": "stateview",
+      "type": "state",
       "name": "CustomerOrderTracking",
       "tick": 170,
       "sourcedFrom": ["OrderCreated", "OrderPaid", "OrderShipped", "OrderDelivered"],

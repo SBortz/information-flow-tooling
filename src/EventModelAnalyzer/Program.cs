@@ -64,30 +64,12 @@ showExamples ??= false;
 
 void ShowHelp()
 {
-    // Header with logo
     AnsiConsole.WriteLine();
     
     var figlet = new FigletText("EM Analyzer")
         .Color(Color.Cyan1);
     
-    // Try to load and display logo
-    var logoPath = Path.Combine(AppContext.BaseDirectory, "logo.png");
-    if (File.Exists(logoPath))
-    {
-        var logo = new CanvasImage(logoPath);
-        logo.MaxWidth(24);
-        
-        var headerGrid = new Grid()
-            .AddColumn(new GridColumn().Width(26).NoWrap())
-            .AddColumn(new GridColumn().NoWrap());
-        
-        headerGrid.AddRow(logo, figlet);
-        AnsiConsole.Write(Align.Center(headerGrid));
-    }
-    else
-    {
-        AnsiConsole.Write(Align.Center(figlet));
-    }
+    AnsiConsole.Write(Align.Center(figlet));
     
     AnsiConsole.Write(new Rule("[dim]Event Modeling Visualizer[/]")
     {
@@ -316,71 +298,6 @@ if (outputFile != null)
 
 return 0;
 
-Canvas CreateHourglassLogo()
-{
-    var canvas = new Canvas(26, 24);
-    var cyan = Color.Cyan1;
-    var cyanDark = Color.DarkCyan;
-    var gold = Color.Gold1;
-    var sand = Color.Yellow3;
-    var sandLight = Color.LightYellow3;
-    
-    // Top bar (thicker)
-    for (int x = 3; x <= 22; x++) { canvas.SetPixel(x, 0, cyan); canvas.SetPixel(x, 1, cyan); }
-    
-    // Upper chamber - mostly empty (sand has fallen)
-    for (int x = 4; x <= 21; x++) canvas.SetPixel(x, 2, cyanDark);
-    for (int x = 5; x <= 20; x++) canvas.SetPixel(x, 3, cyanDark);
-    for (int x = 6; x <= 19; x++) canvas.SetPixel(x, 4, cyanDark);
-    // Some sand remaining at top
-    for (int x = 7; x <= 18; x++) canvas.SetPixel(x, 5, sandLight);
-    for (int x = 8; x <= 17; x++) canvas.SetPixel(x, 6, sand);
-    for (int x = 9; x <= 16; x++) canvas.SetPixel(x, 7, sand);
-    for (int x = 10; x <= 15; x++) canvas.SetPixel(x, 8, gold);
-    for (int x = 11; x <= 14; x++) canvas.SetPixel(x, 9, gold);
-    
-    // Neck (narrow passage)
-    for (int x = 12; x <= 13; x++) { 
-        canvas.SetPixel(x, 10, cyan); 
-        canvas.SetPixel(x, 11, gold);  // Sand falling through
-        canvas.SetPixel(x, 12, gold);
-        canvas.SetPixel(x, 13, cyan); 
-    }
-    
-    // Lower chamber - filled with sand
-    for (int x = 11; x <= 14; x++) canvas.SetPixel(x, 14, gold);
-    for (int x = 10; x <= 15; x++) canvas.SetPixel(x, 15, gold);
-    for (int x = 9; x <= 16; x++) canvas.SetPixel(x, 16, gold);
-    for (int x = 8; x <= 17; x++) canvas.SetPixel(x, 17, gold);
-    for (int x = 7; x <= 18; x++) canvas.SetPixel(x, 18, gold);
-    for (int x = 6; x <= 19; x++) canvas.SetPixel(x, 19, sand);
-    for (int x = 5; x <= 20; x++) canvas.SetPixel(x, 20, sand);
-    for (int x = 4; x <= 21; x++) canvas.SetPixel(x, 21, sandLight);
-    
-    // Bottom bar (thicker)
-    for (int x = 3; x <= 22; x++) { canvas.SetPixel(x, 22, cyan); canvas.SetPixel(x, 23, cyan); }
-    
-    // Glass frame sides - left diagonal
-    canvas.SetPixel(3, 2, cyan); canvas.SetPixel(4, 3, cyan); canvas.SetPixel(5, 4, cyan);
-    canvas.SetPixel(6, 5, cyan); canvas.SetPixel(7, 6, cyan); canvas.SetPixel(8, 7, cyan);
-    canvas.SetPixel(9, 8, cyan); canvas.SetPixel(10, 9, cyan); canvas.SetPixel(11, 10, cyan);
-    canvas.SetPixel(11, 11, cyan); canvas.SetPixel(11, 12, cyan); canvas.SetPixel(11, 13, cyan);
-    canvas.SetPixel(10, 14, cyan); canvas.SetPixel(9, 15, cyan); canvas.SetPixel(8, 16, cyan);
-    canvas.SetPixel(7, 17, cyan); canvas.SetPixel(6, 18, cyan); canvas.SetPixel(5, 19, cyan);
-    canvas.SetPixel(4, 20, cyan); canvas.SetPixel(3, 21, cyan);
-    
-    // Glass frame sides - right diagonal
-    canvas.SetPixel(22, 2, cyan); canvas.SetPixel(21, 3, cyan); canvas.SetPixel(20, 4, cyan);
-    canvas.SetPixel(19, 5, cyan); canvas.SetPixel(18, 6, cyan); canvas.SetPixel(17, 7, cyan);
-    canvas.SetPixel(16, 8, cyan); canvas.SetPixel(15, 9, cyan); canvas.SetPixel(14, 10, cyan);
-    canvas.SetPixel(14, 11, cyan); canvas.SetPixel(14, 12, cyan); canvas.SetPixel(14, 13, cyan);
-    canvas.SetPixel(15, 14, cyan); canvas.SetPixel(16, 15, cyan); canvas.SetPixel(17, 16, cyan);
-    canvas.SetPixel(18, 17, cyan); canvas.SetPixel(19, 18, cyan); canvas.SetPixel(20, 19, cyan);
-    canvas.SetPixel(21, 20, cyan); canvas.SetPixel(22, 21, cyan);
-    
-    return canvas;
-}
-
 void RenderHeader(EventModel model, string? viewName = null)
 {
     AnsiConsole.WriteLine();
@@ -388,32 +305,7 @@ void RenderHeader(EventModel model, string? viewName = null)
     var figlet = new FigletText("EM Analyzer")
         .Color(Color.Cyan1);
     
-    // Try to load logo image, fallback to hourglass canvas
-    var logoPath = Path.Combine(AppContext.BaseDirectory, "logo.png");
-    IRenderable logo;
-    int logoWidth;
-    
-    if (File.Exists(logoPath))
-    {
-        var canvasImage = new CanvasImage(logoPath);
-        canvasImage.MaxWidth(24);
-        logo = canvasImage;
-        logoWidth = 26;
-    }
-    else
-    {
-        logo = CreateHourglassLogo();
-        logoWidth = 28;
-    }
-    
-    // Combine logo and figlet side by side
-    var headerGrid = new Grid()
-        .AddColumn(new GridColumn().Width(logoWidth).NoWrap())
-        .AddColumn(new GridColumn().NoWrap());
-    
-    headerGrid.AddRow(logo, figlet);
-    
-    AnsiConsole.Write(Align.Center(headerGrid));
+    AnsiConsole.Write(Align.Center(figlet));
     
     // Subtitle with model name, version and view mode
     var subtitle = new List<string>();

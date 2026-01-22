@@ -61,7 +61,7 @@ A minimal event model showing the core flow: **Event → StateView → Actor →
       }
     },
     {
-      "type": "stateview",
+      "type": "state",
       "name": "PendingOrders",
       "tick": 20,
       "sourcedFrom": ["OrderPlaced", "OrderShipped"],
@@ -108,7 +108,7 @@ A minimal event model showing the core flow: **Event → StateView → Actor →
 | Type | Symbol | Naming | Description |
 |------|--------|--------|-------------|
 | `event` | ● | Past tense (`OrderShipped`) | Something that happened |
-| `stateview` | ◆ | Noun (`PendingOrders`) | Read model built from events |
+| `state` | ◆ | Noun (`PendingOrders`) | Read model built from events |
 | `actor` | ○ | Role (`WarehouseWorker`) | Who reads views and sends commands |
 | `command` | ▶ | Imperative (`ShipOrder`) | Intent to do something |
 

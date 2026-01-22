@@ -79,7 +79,7 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "const": "stateview"
+          "const": "state"
         },
         "name": {
           "type": "string",

@@ -6,7 +6,7 @@
 
   "timeline": [
     {
-      "type": "stateview",
+      "type": "state",
       "name": "TodoList",
       "tick": 1,
       "sourcedFrom": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
@@ -42,7 +42,7 @@
     },
 
     {
-      "type": "stateview",
+      "type": "state",
       "name": "TodoList",
       "tick": 5,
       "sourcedFrom": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
@@ -79,7 +79,7 @@
     },
 
     {
-      "type": "stateview",
+      "type": "state",
       "name": "TodoList",
       "tick": 9,
       "sourcedFrom": ["TodoCreated", "TodoCompleted", "TodoDeleted"],
