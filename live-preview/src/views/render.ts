@@ -44,45 +44,51 @@ function isActor(el: TimelineElement): el is Actor {
   return el.type === 'actor';
 }
 
+function renderEventDataJson(data: unknown): string {
+  return `<pre class="scenario-json">${syntaxHighlightJson(data)}</pre>`;
+}
+
 function renderCommandScenarios(scenarios: CommandScenario[], commandName: string): string {
   return scenarios.map(scenario => {
     const icon = scenario.then.fails ? '✗' : '✓';
     const iconClass = scenario.then.fails ? 'failure' : 'success';
-    
+
     let givenHtml = '';
     if (scenario.given.length > 0) {
       givenHtml = `<div class="step-items">${scenario.given.map(ref => {
-        const data = ref.data ? ` <code>${escapeHtml(JSON.stringify(ref.data))}</code>` : '';
-        return `<div class="step-item"><span class="event">${escapeHtml(ref.event)}</span>${data}</div>`;
+        const data = ref.data ? renderEventDataJson(ref.data) : '';
+        return `<div class="step-item"><span class="event">● ${escapeHtml(ref.event)}</span>${data}</div>`;
       }).join('')}</div>`;
     } else {
       givenHtml = '<em>(keine Vorbedingungen)</em>';
     }
-    
-    const whenHtml = scenario.when 
-      ? `<span class="command">${escapeHtml(commandName)}</span> <code>${escapeHtml(JSON.stringify(scenario.when))}</code>`
+
+    const whenHtml = scenario.when
+      ? `<span class="command">▶ ${escapeHtml(commandName)}</span>${renderEventDataJson(scenario.when)}`
       : '';
-    
+
     let thenHtml = '';
     if (scenario.then.fails) {
       thenHtml = `<span class="icon failure">✗</span> ${escapeHtml(scenario.then.fails)}`;
     } else if (scenario.then.produces && scenario.then.produces.length > 0) {
       thenHtml = `<div class="step-items">${scenario.then.produces.map(ref => {
-        const data = ref.data ? ` <code>${escapeHtml(JSON.stringify(ref.data))}</code>` : '';
-        return `<div class="step-item">→ <span class="event">${escapeHtml(ref.event)}</span>${data}</div>`;
+        const data = ref.data ? renderEventDataJson(ref.data) : '';
+        return `<div class="step-item">→ <span class="event">● ${escapeHtml(ref.event)}</span>${data}</div>`;
       }).join('')}</div>`;
     }
-    
+
     return `
-      <div class="scenario">
-        <div class="scenario-header">
+      <details class="scenario">
+        <summary class="scenario-header">
           <span class="icon ${iconClass}">${icon}</span>
           <span class="name">${escapeHtml(scenario.name)}</span>
+        </summary>
+        <div class="scenario-body">
+          <div class="scenario-step"><span class="label">Given:</span> ${givenHtml}</div>
+          ${whenHtml ? `<div class="scenario-step"><span class="label">When:</span> ${whenHtml}</div>` : ''}
+          <div class="scenario-step"><span class="label">Then:</span> ${thenHtml}</div>
         </div>
-        <div class="scenario-step"><span class="label">Given:</span> ${givenHtml}</div>
-        ${whenHtml ? `<div class="scenario-step"><span class="label">When:</span> ${whenHtml}</div>` : ''}
-        <div class="scenario-step"><span class="label">Then:</span> ${thenHtml}</div>
-      </div>
+      </details>
     `;
   }).join('');
 }
@@ -92,26 +98,28 @@ function renderStateViewScenarios(scenarios: StateViewScenario[]): string {
     let givenHtml = '';
     if (scenario.given.length > 0) {
       givenHtml = `<div class="step-items">${scenario.given.map(ref => {
-        const data = ref.data ? ` <code>${escapeHtml(JSON.stringify(ref.data))}</code>` : '';
-        return `<div class="step-item"><span class="event">${escapeHtml(ref.event)}</span>${data}</div>`;
+        const data = ref.data ? renderEventDataJson(ref.data) : '';
+        return `<div class="step-item"><span class="event">● ${escapeHtml(ref.event)}</span>${data}</div>`;
       }).join('')}</div>`;
     } else {
       givenHtml = '<em>(keine Events)</em>';
     }
-    
-    const thenHtml = scenario.then 
-      ? `<code>${escapeHtml(JSON.stringify(scenario.then))}</code>`
+
+    const thenHtml = scenario.then
+      ? renderEventDataJson(scenario.then)
       : '';
-    
+
     return `
-      <div class="scenario">
-        <div class="scenario-header">
+      <details class="scenario">
+        <summary class="scenario-header">
           <span class="icon success">◇</span>
           <span class="name">${escapeHtml(scenario.name)}</span>
+        </summary>
+        <div class="scenario-body">
+          <div class="scenario-step"><span class="label">Given:</span> ${givenHtml}</div>
+          <div class="scenario-step"><span class="label">Then:</span> ${thenHtml}</div>
         </div>
-        <div class="scenario-step"><span class="label">Given:</span> ${givenHtml}</div>
-        <div class="scenario-step"><span class="label">Then:</span> ${thenHtml}</div>
-      </div>
+      </details>
     `;
   }).join('');
 }

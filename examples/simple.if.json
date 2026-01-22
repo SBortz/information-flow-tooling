@@ -5,9 +5,27 @@
   "version": "1.0.0",
   "timeline": [
     {
+      "type": "state",
+      "name": "Cart",
+      "tick": 1,
+      "sourcedFrom": ["OrderPlaced"],
+      "example": {
+        "orderId": "ord-123",
+        "customerId": "cust-456",
+        "amount": 99.99
+      }
+    },
+    {
+      "type": "actor",
+      "name": "Customer",
+      "tick": 2,
+      "readsView": "OrderPlaced",
+      "sendsCommand": "PlaceOrder"
+    },
+    {
       "type": "command",
       "name": "PlaceOrder",
-      "tick": 1,
+      "tick": 3,
       "example": {
         "orderId": "ord-123",
         "customerId": "cust-456",
@@ -17,7 +35,7 @@
     {
       "type": "event",
       "name": "OrderPlaced",
-      "producedBy": "PlaceOrder-1",
+      "producedBy": "PlaceOrder-3",
       "tick": 10,
       "example": {
         "orderId": "ord-123",
@@ -28,6 +46,7 @@
     {
       "type": "event",
       "name": "OrderPlaced",
+      "producedBy": "PlaceOrder-3",
       "tick": 11,
       "example": {
         "orderId": "ord-123",

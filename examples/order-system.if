@@ -42,7 +42,78 @@
           { "productId": "prod-457", "name": "Mouse Pad", "quantity": 1, "price": 19.99 }
         ],
         "totalAmount": 99.98
-      }
+      },
+      "scenarios": [
+        {
+          "name": "Warenkorb mit einem Artikel",
+          "given": [
+            {
+              "event": "ProductAddedToCart",
+              "data": {
+                "cartId": "cart-123",
+                "productId": "prod-456",
+                "productName": "Wireless Keyboard",
+                "quantity": 1,
+                "unitPrice": 79.99,
+                "addedAt": "2024-01-15T10:30:00Z"
+              }
+            }
+          ],
+          "then": {
+            "cartId": "cart-123",
+            "customerId": "cust-789",
+            "items": [
+              { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+            ],
+            "totalAmount": 79.99
+          }
+        },
+        {
+          "name": "Warenkorb mit mehreren Artikeln",
+          "given": [
+            {
+              "event": "ProductAddedToCart",
+              "data": {
+                "cartId": "cart-123",
+                "productId": "prod-456",
+                "productName": "Wireless Keyboard",
+                "quantity": 1,
+                "unitPrice": 79.99,
+                "addedAt": "2024-01-15T10:30:00Z"
+              }
+            },
+            {
+              "event": "ProductAddedToCart",
+              "data": {
+                "cartId": "cart-123",
+                "productId": "prod-457",
+                "productName": "Mouse Pad",
+                "quantity": 1,
+                "unitPrice": 19.99,
+                "addedAt": "2024-01-15T10:31:00Z"
+              }
+            },
+            {
+              "event": "CartUpdated",
+              "data": {
+                "cartId": "cart-123",
+                "totalItems": 2,
+                "totalAmount": 99.98,
+                "updatedAt": "2024-01-15T10:32:00Z"
+              }
+            }
+          ],
+          "then": {
+            "cartId": "cart-123",
+            "customerId": "cust-789",
+            "items": [
+              { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 },
+              { "productId": "prod-457", "name": "Mouse Pad", "quantity": 1, "price": 19.99 }
+            ],
+            "totalAmount": 99.98
+          }
+        }
+      ]
     },
     {
       "type": "actor",
@@ -64,7 +135,78 @@
           "zip": "10115"
         },
         "paymentMethod": "credit_card"
-      }
+      },
+      "scenarios": [
+        {
+          "name": "Erfolgreiche Bestellung mit gefülltem Warenkorb",
+          "given": [
+            {
+              "event": "ProductAddedToCart",
+              "data": {
+                "cartId": "cart-123",
+                "productId": "prod-456",
+                "productName": "Wireless Keyboard",
+                "quantity": 1,
+                "unitPrice": 79.99,
+                "addedAt": "2024-01-15T10:30:00Z"
+              }
+            },
+            {
+              "event": "CartUpdated",
+              "data": {
+                "cartId": "cart-123",
+                "totalItems": 1,
+                "totalAmount": 79.99,
+                "updatedAt": "2024-01-15T10:32:00Z"
+              }
+            }
+          ],
+          "when": {
+            "cartId": "cart-123",
+            "customerId": "cust-789",
+            "shippingAddress": {
+              "street": "Musterstraße 42",
+              "city": "Berlin",
+              "zip": "10115"
+            },
+            "paymentMethod": "credit_card"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "OrderCreated",
+                "data": {
+                  "orderId": "order-001",
+                  "customerId": "cust-789",
+                  "items": [
+                    { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                  ],
+                  "totalAmount": 79.99,
+                  "status": "pending",
+                  "createdAt": "2024-01-15T10:35:00Z"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Ablehnung bei leerem Warenkorb",
+          "given": [],
+          "when": {
+            "cartId": "cart-123",
+            "customerId": "cust-789",
+            "shippingAddress": {
+              "street": "Musterstraße 42",
+              "city": "Berlin",
+              "zip": "10115"
+            },
+            "paymentMethod": "credit_card"
+          },
+          "then": {
+            "fails": "Warenkorb ist leer"
+          }
+        }
+      ]
     },
     {
       "type": "event",
@@ -103,7 +245,99 @@
         "orders": [
           { "orderId": "order-001", "customerId": "cust-789", "amount": 79.99, "status": "pending" }
         ]
-      }
+      },
+      "scenarios": [
+        {
+          "name": "Liste mit einer Bestellung",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            }
+          ],
+          "then": {
+            "orders": [
+              { "orderId": "order-001", "customerId": "cust-789", "amount": 79.99, "status": "pending" }
+            ]
+          }
+        },
+        {
+          "name": "Liste mit mehreren Bestellungen",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            },
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-002",
+                "customerId": "cust-790",
+                "items": [
+                  { "productId": "prod-457", "name": "Mouse Pad", "quantity": 2, "price": 19.99 }
+                ],
+                "totalAmount": 39.98,
+                "status": "pending",
+                "createdAt": "2024-01-15T11:00:00Z"
+              }
+            }
+          ],
+          "then": {
+            "orders": [
+              { "orderId": "order-001", "customerId": "cust-789", "amount": 79.99, "status": "pending" },
+              { "orderId": "order-002", "customerId": "cust-790", "amount": 39.98, "status": "pending" }
+            ]
+          }
+        },
+        {
+          "name": "Bestellung wird nach Zahlung entfernt",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            },
+            {
+              "event": "OrderPaid",
+              "data": {
+                "orderId": "order-001",
+                "paymentId": "pay-555",
+                "amount": 79.99,
+                "paidAt": "2024-01-15T10:36:00Z"
+              }
+            }
+          ],
+          "then": {
+            "orders": []
+          }
+        }
+      ]
     },
     {
       "type": "actor",
@@ -121,7 +355,118 @@
         "amount": 79.99,
         "paymentMethod": "credit_card",
         "cardToken": "tok_visa_4242"
-      }
+      },
+      "scenarios": [
+        {
+          "name": "Erfolgreiche Zahlung",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            }
+          ],
+          "when": {
+            "orderId": "order-001",
+            "amount": 79.99,
+            "paymentMethod": "credit_card",
+            "cardToken": "tok_visa_4242"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "OrderPaid",
+                "data": {
+                  "orderId": "order-001",
+                  "paymentId": "pay-555",
+                  "amount": 79.99,
+                  "paidAt": "2024-01-15T10:36:00Z"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Fehlgeschlagene Zahlung - unzureichende Mittel",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            }
+          ],
+          "when": {
+            "orderId": "order-001",
+            "amount": 79.99,
+            "paymentMethod": "credit_card",
+            "cardToken": "tok_visa_declined"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "PaymentFailed",
+                "data": {
+                  "orderId": "order-001",
+                  "reason": "Insufficient funds",
+                  "failedAt": "2024-01-15T10:36:00Z"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Fehlgeschlagene Zahlung - ungültige Karte",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            }
+          ],
+          "when": {
+            "orderId": "order-001",
+            "amount": 79.99,
+            "paymentMethod": "credit_card",
+            "cardToken": "tok_visa_invalid"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "PaymentFailed",
+                "data": {
+                  "orderId": "order-001",
+                  "reason": "Invalid card",
+                  "failedAt": "2024-01-15T10:36:00Z"
+                }
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "type": "event",
@@ -155,7 +500,64 @@
         "orders": [
           { "orderId": "order-001", "customerId": "cust-789", "paidAt": "2024-01-15T10:36:00Z" }
         ]
-      }
+      },
+      "scenarios": [
+        {
+          "name": "Liste mit versandbereiten Bestellungen",
+          "given": [
+            {
+              "event": "OrderPaid",
+              "data": {
+                "orderId": "order-001",
+                "paymentId": "pay-555",
+                "amount": 79.99,
+                "paidAt": "2024-01-15T10:36:00Z"
+              }
+            },
+            {
+              "event": "OrderPaid",
+              "data": {
+                "orderId": "order-002",
+                "paymentId": "pay-556",
+                "amount": 39.98,
+                "paidAt": "2024-01-15T11:00:00Z"
+              }
+            }
+          ],
+          "then": {
+            "orders": [
+              { "orderId": "order-001", "customerId": "cust-789", "paidAt": "2024-01-15T10:36:00Z" },
+              { "orderId": "order-002", "customerId": "cust-790", "paidAt": "2024-01-15T11:00:00Z" }
+            ]
+          }
+        },
+        {
+          "name": "Bestellung wird nach Versand entfernt",
+          "given": [
+            {
+              "event": "OrderPaid",
+              "data": {
+                "orderId": "order-001",
+                "paymentId": "pay-555",
+                "amount": 79.99,
+                "paidAt": "2024-01-15T10:36:00Z"
+              }
+            },
+            {
+              "event": "OrderShipped",
+              "data": {
+                "orderId": "order-001",
+                "trackingNumber": "DHL-123456789",
+                "carrier": "DHL",
+                "shippedAt": "2024-01-16T14:00:00Z"
+              }
+            }
+          ],
+          "then": {
+            "orders": []
+          }
+        }
+      ]
     },
     {
       "type": "actor",
@@ -172,7 +574,67 @@
         "orderId": "order-001",
         "trackingNumber": "DHL-123456789",
         "carrier": "DHL"
-      }
+      },
+      "scenarios": [
+        {
+          "name": "Erfolgreicher Versand einer bezahlten Bestellung",
+          "given": [
+            {
+              "event": "OrderPaid",
+              "data": {
+                "orderId": "order-001",
+                "paymentId": "pay-555",
+                "amount": 79.99,
+                "paidAt": "2024-01-15T10:36:00Z"
+              }
+            }
+          ],
+          "when": {
+            "orderId": "order-001",
+            "trackingNumber": "DHL-123456789",
+            "carrier": "DHL"
+          },
+          "then": {
+            "produces": [
+              {
+                "event": "OrderShipped",
+                "data": {
+                  "orderId": "order-001",
+                  "trackingNumber": "DHL-123456789",
+                  "carrier": "DHL",
+                  "shippedAt": "2024-01-16T14:00:00Z"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Ablehnung bei nicht bezahlter Bestellung",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            }
+          ],
+          "when": {
+            "orderId": "order-001",
+            "trackingNumber": "DHL-123456789",
+            "carrier": "DHL"
+          },
+          "then": {
+            "fails": "Bestellung wurde noch nicht bezahlt"
+          }
+        }
+      ]
     },
     {
       "type": "event",
@@ -200,7 +662,170 @@
           { "status": "paid", "at": "2024-01-15T10:36:00Z" },
           { "status": "shipped", "at": "2024-01-16T14:00:00Z" }
         ]
-      }
+      },
+      "scenarios": [
+        {
+          "name": "Tracking nach Bestellungserstellung",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            }
+          ],
+          "then": {
+            "orderId": "order-001",
+            "status": "created",
+            "timeline": [
+              { "status": "created", "at": "2024-01-15T10:35:00Z" }
+            ]
+          }
+        },
+        {
+          "name": "Tracking nach Zahlung",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            },
+            {
+              "event": "OrderPaid",
+              "data": {
+                "orderId": "order-001",
+                "paymentId": "pay-555",
+                "amount": 79.99,
+                "paidAt": "2024-01-15T10:36:00Z"
+              }
+            }
+          ],
+          "then": {
+            "orderId": "order-001",
+            "status": "paid",
+            "timeline": [
+              { "status": "created", "at": "2024-01-15T10:35:00Z" },
+              { "status": "paid", "at": "2024-01-15T10:36:00Z" }
+            ]
+          }
+        },
+        {
+          "name": "Tracking nach Versand",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            },
+            {
+              "event": "OrderPaid",
+              "data": {
+                "orderId": "order-001",
+                "paymentId": "pay-555",
+                "amount": 79.99,
+                "paidAt": "2024-01-15T10:36:00Z"
+              }
+            },
+            {
+              "event": "OrderShipped",
+              "data": {
+                "orderId": "order-001",
+                "trackingNumber": "DHL-123456789",
+                "carrier": "DHL",
+                "shippedAt": "2024-01-16T14:00:00Z"
+              }
+            }
+          ],
+          "then": {
+            "orderId": "order-001",
+            "status": "shipped",
+            "trackingNumber": "DHL-123456789",
+            "timeline": [
+              { "status": "created", "at": "2024-01-15T10:35:00Z" },
+              { "status": "paid", "at": "2024-01-15T10:36:00Z" },
+              { "status": "shipped", "at": "2024-01-16T14:00:00Z" }
+            ]
+          }
+        },
+        {
+          "name": "Tracking nach Lieferung",
+          "given": [
+            {
+              "event": "OrderCreated",
+              "data": {
+                "orderId": "order-001",
+                "customerId": "cust-789",
+                "items": [
+                  { "productId": "prod-456", "name": "Wireless Keyboard", "quantity": 1, "price": 79.99 }
+                ],
+                "totalAmount": 79.99,
+                "status": "pending",
+                "createdAt": "2024-01-15T10:35:00Z"
+              }
+            },
+            {
+              "event": "OrderPaid",
+              "data": {
+                "orderId": "order-001",
+                "paymentId": "pay-555",
+                "amount": 79.99,
+                "paidAt": "2024-01-15T10:36:00Z"
+              }
+            },
+            {
+              "event": "OrderShipped",
+              "data": {
+                "orderId": "order-001",
+                "trackingNumber": "DHL-123456789",
+                "carrier": "DHL",
+                "shippedAt": "2024-01-16T14:00:00Z"
+              }
+            },
+            {
+              "event": "OrderDelivered",
+              "data": {
+                "orderId": "order-001",
+                "deliveredAt": "2024-01-18T11:23:00Z",
+                "signature": "M. Mustermann"
+              }
+            }
+          ],
+          "then": {
+            "orderId": "order-001",
+            "status": "delivered",
+            "trackingNumber": "DHL-123456789",
+            "timeline": [
+              { "status": "created", "at": "2024-01-15T10:35:00Z" },
+              { "status": "paid", "at": "2024-01-15T10:36:00Z" },
+              { "status": "shipped", "at": "2024-01-16T14:00:00Z" },
+              { "status": "delivered", "at": "2024-01-18T11:23:00Z" }
+            ]
+          }
+        }
+      ]
     },
     {
       "type": "event",

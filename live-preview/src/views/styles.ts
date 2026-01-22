@@ -281,15 +281,38 @@ body {
 .scenario {
   background: var(--bg-primary);
   border-radius: 0.5rem;
-  padding: 1rem;
   margin-bottom: 0.75rem;
+  border: 1px solid var(--border);
 }
 
 .scenario-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.scenario-header::-webkit-details-marker {
+  display: none;
+}
+
+.scenario-header::before {
+  content: '▶';
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+details.scenario[open] > .scenario-header::before {
+  transform: rotate(90deg);
+}
+
+.scenario-header:hover {
+  background: var(--bg-secondary);
 }
 
 .scenario-header .icon { font-size: 1rem; }
@@ -301,34 +324,63 @@ body {
   color: var(--color-warning);
 }
 
+.scenario-body {
+  padding: 0 1rem 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
 .scenario-step {
-  font-size: 0.8rem;
-  padding: 0.25rem 0;
-  padding-left: 1.5rem;
+  font-size: 0.85rem;
+  padding: 0.75rem 0 0.25rem 0;
 }
 
 .scenario-step .label {
   color: var(--text-secondary);
-  margin-right: 0.5rem;
-}
-
-.scenario-step code {
-  font-family: var(--font-mono);
-  background: var(--bg-secondary);
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .scenario-step .step-items {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
-  vertical-align: top;
+  gap: 0.5rem;
 }
 
 .scenario-step .step-item {
-  padding: 0.125rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
+
+.scenario-step .event {
+  color: var(--color-event);
+  font-weight: 500;
+}
+
+.scenario-step .command {
+  color: var(--color-command);
+  font-weight: 500;
+}
+
+.scenario-json {
+  background: var(--bg-secondary);
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  overflow-x: auto;
+  margin-top: 0.25rem;
+  white-space: pre;
+}
+
+.scenario-json .key { color: var(--color-command); }
+.scenario-json .string { color: var(--color-warning); }
+.scenario-json .number { color: var(--color-event); }
+.scenario-json .boolean { color: var(--color-state); }
 
 /* Timeline View - CLI Style */
 .timeline-view {
