@@ -88,23 +88,23 @@ giraflow-cli create
 
 Chronological flow with symbols (●Event ◆State ▶Command ○Actor). Use `-e` to include example data.
 
-![Timeline View](../docs/images/timeline-view.png)
+![Timeline View](https://raw.githubusercontent.com/SBortz/giraflow/main/docs/images/timeline-view.png)
 
 With example data (`-e`):
 
-![Timeline View with Data](../docs/images/timeline-view-with-data.png)
+![Timeline View with Data](https://raw.githubusercontent.com/SBortz/giraflow/main/docs/images/timeline-view-with-data.png)
 
 ### Slice
 
 Detailed panels with JSON examples and Given-When-Then scenarios.
 
-![Slice View](../docs/images/slice-view.png)
+![Slice View](https://raw.githubusercontent.com/SBortz/giraflow/main/docs/images/slice-view.png)
 
 ### Table
 
 Tabular overview per element type with data flow tree.
 
-![Table View](../docs/images/table-view.png)
+![Table View](https://raw.githubusercontent.com/SBortz/giraflow/main/docs/images/table-view.png)
 
 ## Links
 
