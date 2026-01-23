@@ -60,18 +60,9 @@ Consolidated tabular overview of all elements grouped by type.
 
 ![Table View](https://raw.githubusercontent.com/SBortz/giraflow/main/docs/images/web-consolidated.png)
 
-## Creating Models
+## See Also
 
-To create a new `.giraflow.json` file from scratch, use the interactive wizard provided by the companion CLI tool:
-
-```bash
-npm install -g giraflow-cli
-giraflow-cli create my-model.giraflow.json
-```
-
-The wizard guides you through adding events, state views, actors, and commands step by step. See the [giraflow-cli README](../giraflow-cli/README.md) for details.
-
-The CLI also offers terminal-based views (`timeline`, `slice`, `table`) and schema validation — useful for CI pipelines or when you prefer staying in the terminal.
+[**giraflow-cli**](https://www.npmjs.com/package/giraflow-cli) — Terminal-based views, schema validation, and interactive model creation wizard.
 
 ## File Format
 
@@ -96,4 +87,3 @@ See more in the [examples directory](https://github.com/SBortz/giraflow/tree/mai
 - [GitHub](https://github.com/SBortz/giraflow)
 - [JSON Schema](https://github.com/SBortz/giraflow/blob/main/information-flow.schema.json)
 - [Examples](https://github.com/SBortz/giraflow/tree/main/example-giraflows)
-- [giraflow-cli](https://www.npmjs.com/package/giraflow-cli) — Terminal views, schema validation, and interactive model creation

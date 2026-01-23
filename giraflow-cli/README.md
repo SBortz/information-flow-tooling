@@ -106,6 +106,10 @@ Tabular overview per element type with data flow tree.
 
 ![Table View](https://raw.githubusercontent.com/SBortz/giraflow/main/docs/images/table-view.png)
 
+## See Also
+
+[**giraflow**](https://www.npmjs.com/package/giraflow) — Live preview server with hot reload for viewing models in the browser.
+
 ## Links
 
 - [GitHub](https://github.com/SBortz/giraflow)
