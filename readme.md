@@ -1,5 +1,6 @@
 <img src="docs/images/Gira.png" alt="Giraflow" width="300">
 
+# Giraflow
 
 
 A human-readable JSON format for describing event-driven systems using [Event Modeling](https://eventmodeling.org/) methodology – with a live-reloading web preview and a terminal CLI to visualize and analyze models.
