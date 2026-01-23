@@ -26,6 +26,8 @@ jobs:
       - run: npm run build
       - run: npm test --if-present
       - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-giraflow:
     if: startsWith(github.ref, 'refs/tags/giraflow-v')
@@ -46,3 +48,5 @@ jobs:
       - run: npm run build
       - run: npm test --if-present
       - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
