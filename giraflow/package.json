@@ -1,25 +1,34 @@
 {
-  "name": "information-flow-live-preview",
+  "name": "giraflow",
   "version": "0.1.0",
-  "description": "Live preview server for Information Flow models with hot reload",
+  "description": "Giraflow – live preview server for .if.json models with hot reload",
   "main": "dist/server/index.js",
   "bin": {
-    "ift-live": "dist/server/index.js"
+    "giraflow": "dist/server/index.js"
   },
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "vite build && tsc -p tsconfig.server.json",
     "dev": "sh -c 'IF_FILE=\"$1\" vite --port 5173' --",
     "dev:server": "tsx watch src/server/index.ts",
     "start": "node dist/server/index.js",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
+    "giraflow",
     "event-modeling",
     "information-flow",
     "live-preview",
     "hot-reload"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SBortz/giraflow"
+  },
   "author": "Sebastian Bortz <sebastianbortz@gmail.com>",
   "license": "MIT",
   "dependencies": {

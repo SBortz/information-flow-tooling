@@ -150,7 +150,7 @@ export function createServer(options: ServerOptions): {
     start: () => {
       server.listen(port, () => {
         const fileName = path.basename(filePath);
-        console.log(`\n  🔴 Information Flow Live Preview`);
+        console.log(`\n  🦒 Giraflow`);
         console.log(`  ────────────────────────────────`);
         console.log(`  Watching: ${fileName}`);
         console.log(`  Server:   http://localhost:${port}`);

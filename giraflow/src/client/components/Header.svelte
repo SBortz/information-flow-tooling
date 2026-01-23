@@ -4,7 +4,7 @@
 
 <header class="header">
   <div class="header-left">
-    <h1>Information Flow Tooling</h1>
+    <img src="/logo.svg" alt="Giraflow" class="logo" />
   </div>
   <div class="header-right">
     <span class="status">
@@ -18,14 +18,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 0.5rem 2rem 0rem 2rem;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
   }
 
-  h1 {
-    font-size: 1.1rem;
-    font-weight: 600;
+  .logo {
+    width: 150px;
   }
 
   .header-right {

@@ -11,8 +11,8 @@ function parseArgs(): { filePath: string; port: number; openBrowser: boolean } {
   
   if (args.includes('--help') || args.includes('-h') || args.length === 0) {
     console.log(`
-  Information Flow Live Preview
-  
+  Giraflow
+
   Usage: ift-live <file.if> [options]
   
   Options:
