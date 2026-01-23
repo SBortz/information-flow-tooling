@@ -1,0 +1,23 @@
+{
+  "name": "My new strange application",
+  "timeline": [
+    {
+      "type": "event",
+      "name": "SomethingHappened",
+      "tick": 10
+    },
+    {
+      "type": "state",
+      "name": "Summary",
+      "tick": 20,
+      "sourcedFrom": [
+        "SomethingHappened"
+      ]
+    },
+    {
+      "type": "command",
+      "name": "LetsDoSomethingBasedOnIt",
+      "tick": 30
+    }
+  ]
+}

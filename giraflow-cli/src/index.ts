@@ -10,18 +10,28 @@ import { renderSlice } from './views/slice.js';
 import { renderTable } from './views/table.js';
 import { validateAgainstSchema, getBundledSchemaPath, printValidationResult } from './validation.js';
 import { colors, rule } from './views/colors.js';
+import { createCommand } from './commands/create.js';
 
 // CLI setup
 program
   .name('giraflow-cli')
   .description('Giraflow CLI - Analyze and visualize Information Flow models')
   .version('1.0.0')
-  .argument('<file>', 'Path to the .informationflow.json file to parse')
+  .argument('[file]', 'Path to the .informationflow.json file to parse')
   .option('-v, --view <mode>', 'Display mode: timeline, slice, or table')
   .option('-e, --example', 'Show example data in timeline view')
   .option('-o, --output <file>', 'Save output to a text file')
   .option('-s, --schema <path>', 'Path to JSON schema file for validation')
-  .option('--validate', 'Validate against bundled schema');
+  .option('--validate', 'Validate against bundled schema')
+  .action(async (file?: string) => {
+    if (!file) {
+      program.help();
+      return;
+    }
+    await runView(file, program.opts());
+  });
+
+program.addCommand(createCommand());
 
 program.addHelpText('after', `
 ${colors.dim('View Modes:')}
@@ -38,59 +48,46 @@ ${colors.dim('Symbol Legend:')}
   ${colors.event('● Event')}   ${colors.state('◆ State View')}   ${colors.command('▶ Command')}   ${colors.actor('○ Actor')}
 `);
 
-async function main(): Promise<number> {
-  program.parse();
-  
-  const args = program.args;
-  const options = program.opts();
-  
-  if (args.length === 0) {
-    program.help();
-    return 1;
-  }
-  
-  const filePath = args[0];
-  
+async function runView(filePath: string, options: Record<string, unknown>): Promise<void> {
   // Check if file exists
   if (!existsSync(filePath)) {
     console.error(colors.red('Error:') + ` File not found: ${filePath}`);
-    return 1;
+    process.exit(1);
   }
-  
+
   // Read the file
-  let json: string;
   let model: InformationFlowModel;
-  
+
   try {
-    json = await readFile(filePath, 'utf-8');
+    const json = await readFile(filePath, 'utf-8');
     model = JSON.parse(json) as InformationFlowModel;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(colors.red('Error parsing JSON:') + ` ${message}`);
-    return 1;
+    process.exit(1);
   }
-  
+
   // Schema validation
-  const schemaPath = options.validate ? getBundledSchemaPath() : options.schema;
-  
+  const schemaPath = options.validate ? getBundledSchemaPath() : options.schema as string | undefined;
+
   if (schemaPath) {
     if (!existsSync(schemaPath)) {
       console.error(colors.red('Error:') + ` Schema file not found: ${schemaPath}`);
-      return 1;
+      process.exit(1);
     }
-    
+
     console.log(colors.dim('Validating against schema...'));
     const result = await validateAgainstSchema(model, schemaPath);
     printValidationResult(result);
-    
+
     if (!result.valid) {
-      return 1;
+      process.exit(1);
     }
   }
-  
+
   // Interactive prompts if view mode not specified
   let viewMode: ViewMode = options.view as ViewMode;
-  
+
   if (!viewMode) {
     const answer = await select({
       message: colors.cyan('Which view would you like?'),
@@ -102,21 +99,21 @@ async function main(): Promise<number> {
     });
     viewMode = answer as ViewMode;
   }
-  
+
   // Interactive prompt for examples in timeline view
-  let showExamples = options.example ?? false;
-  
+  let showExamples = (options.example as boolean) ?? false;
+
   if (viewMode === 'timeline' && options.example === undefined) {
     showExamples = await confirm({
       message: colors.cyan('Show example data in timeline?'),
       default: false,
     });
   }
-  
+
   // Capture output if output file is specified
   let output = '';
   const originalLog = console.log;
-  
+
   if (options.output) {
     console.log = (...args: unknown[]) => {
       const line = args.map(arg => String(arg)).join(' ');
@@ -124,7 +121,7 @@ async function main(): Promise<number> {
       originalLog(...args);
     };
   }
-  
+
   // Render based on view mode
   switch (viewMode) {
     case 'slice':
@@ -138,21 +135,18 @@ async function main(): Promise<number> {
       renderTimeline(model, showExamples);
       break;
   }
-  
+
   // Save to file if output was specified
   if (options.output) {
     console.log = originalLog;
     // Strip ANSI codes for file output
     const cleanOutput = output.replace(/\x1b\[[0-9;]*m/g, '');
-    await writeFile(options.output, cleanOutput);
+    await writeFile(options.output as string, cleanOutput);
     console.log(`\n${colors.green.bold('✓ Output saved to:')} ${options.output}`);
   }
-  
-  return 0;
 }
 
-main()
-  .then(code => process.exit(code))
+program.parseAsync()
   .catch(error => {
     console.error(colors.red('Unexpected error:'), error);
     process.exit(1);
