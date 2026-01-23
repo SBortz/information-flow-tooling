@@ -1,4 +1,4 @@
-# Information Flow Live Preview
+# Giraflow Web
 
 A lightweight web server that watches `.giraflow.json` (Information Flow) files and provides an automatically updating HTML preview.
 
