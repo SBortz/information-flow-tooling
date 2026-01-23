@@ -40,9 +40,6 @@ A simple, human-readable JSON format that:
 - **Human-readable above all.**  
   The file should be human readable and be able to correct manually with a text editor if necessary. Therefore this file format keeps a clean flow of what happens sequentially in the system.
 
-- **GWTs are separate.**  
-  Given-When-Then scenarios are alternative timelines. They don't belong on the main timeline.
-
 ---
 
 ## 3. Simple Example
@@ -106,7 +103,7 @@ A minimal information flow model showing the core flow: **Event â†’ StateView â†
 
 ### The `tick` Property
 
-The `tick` determines position on the timeline. Elements display in ascending order. Gaps between ticks create visual spacing in the output.
+The `tick` determines position on the timeline. Elements display in ascending order.
 
 ### Example Files
 
