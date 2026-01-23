@@ -13,28 +13,28 @@ function parseArgs(): { filePath: string; port: number; openBrowser: boolean } {
     console.log(`
   Giraflow
 
-  Usage: ift-live <file.if> [options]
-  
+  Usage: giraflow <file.giraflow.json> [options]
+
   Options:
     -p, --port <port>    Port to run server on (default: 3000)
-    -o, --open           Open browser automatically
+    --no-open            Don't open browser automatically
     -h, --help           Show this help message
-  
+
   Examples:
-    ift-live model.if
-    ift-live model.if --port 8080
-    ift-live model.if -o
+    giraflow model.giraflow.json
+    giraflow model.giraflow.json --port 8080
+    giraflow model.giraflow.json --no-open
     `);
     process.exit(0);
   }
-  
+
   let filePath = '';
   let port = 3000;
-  let openBrowser = false;
-  
+  let openBrowser = true;
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
+
     if (arg === '-p' || arg === '--port') {
       const portStr = args[++i];
       port = parseInt(portStr, 10);
@@ -42,8 +42,8 @@ function parseArgs(): { filePath: string; port: number; openBrowser: boolean } {
         console.error(`Invalid port: ${portStr}`);
         process.exit(1);
       }
-    } else if (arg === '-o' || arg === '--open') {
-      openBrowser = true;
+    } else if (arg === '--no-open') {
+      openBrowser = false;
     } else if (!arg.startsWith('-')) {
       filePath = arg;
     }

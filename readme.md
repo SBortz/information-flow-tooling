@@ -150,7 +150,7 @@ A lightweight dev server that watches `.giraflow.json` files and provides a live
 cd giraflow
 npm install
 npm run build
-npm start ../example-giraflows/shopping.giraflow.json --open
+npm start ../example-giraflows/shopping.giraflow.json
 ```
 
 The browser opens at `http://localhost:3000`.

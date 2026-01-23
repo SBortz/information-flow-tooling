@@ -1,7 +1,7 @@
 {
   "name": "giraflow",
-  "version": "0.1.0",
-  "description": "Giraflow – live preview server for .if.json models with hot reload",
+  "version": "0.0.2",
+  "description": "Giraflow – live preview server for .giraflow.json models with hot reload",
   "main": "dist/server/index.js",
   "bin": {
     "giraflow": "dist/server/index.js"
