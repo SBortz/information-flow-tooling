@@ -120,13 +120,7 @@ See the `example-giraflows/` folder for example models:
 There are still some challenges to be solved. I will write more about them soon.
 
 - **Duplicate definitions** - How to handle elements that appear multiple times with diverging details? The current approach is to simply keep duplication.
-- **Given-When-Then scenarios** - GWTs add significant complexity and reduce readability. Options:
-  - Keep them as separate scenario files?
-  - Add a dedicated section for variations at the end of the model?
 - **Model validation** - Detecting errors and inconsistencies in the model.
-- **AI-powered implementation** - Generate application code from the model file.
-
-
 
 ---
 
