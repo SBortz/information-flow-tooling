@@ -1,4 +1,4 @@
-# Information Flow Tooling
+# Giraflow
 
 A human-readable JSON format for describing event-driven systems using [Event Modeling](https://eventmodeling.org/) methodology. It provides a very simple cli tooling to visualise and analyze a model.
 
