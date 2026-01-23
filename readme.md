@@ -142,7 +142,7 @@ There are still some challenges to be solved. I will write more about them soon.
 
 ---
 
-## 4. Giraflow CLI
+## 5. Giraflow CLI
 
 The **Giraflow CLI** (`giraflow-cli`) is a CLI tool to visualize `.informationflow.json` files.
 
@@ -154,12 +154,12 @@ Both provide identical functionality and output.
 
 ---
 
-### 4.1 Node.js / TypeScript CLI
+### 5.1 Node.js / TypeScript CLI
 
 #### Installation
 
 ```bash
-cd nodejs-cli-tooling
+cd giraflow-cli
 npm install
 npm run build
 ```
@@ -197,7 +197,7 @@ node dist/index.js model.informationflow.json -v timeline -e -o output.txt
 
 ---
 
-### 4.2 .NET CLI
+### 5.2 .NET CLI
 
 #### Installation
 
@@ -293,7 +293,7 @@ dotnet run --project InformationFlowToolingCli -- model.informationflow.json -s 
 
 ---
 
-## 5. Information Flow Toolkit Converter
+## 6. Information Flow Toolkit Converter
 
 The **IFT Converter** converts other Information Flow formats into the `.informationflow.json` format.
 
