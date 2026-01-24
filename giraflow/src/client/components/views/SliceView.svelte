@@ -1,37 +1,88 @@
 <script lang="ts">
   import { modelStore } from '../../stores/model.svelte';
-  import type { StateView, Command, Event, Actor, Attachment } from '../../lib/types';
-  import { isState, isCommand } from '../../lib/types';
+  import type { StateView, Command, Event, Actor, Attachment, CommandScenario, StateViewScenario } from '../../lib/types';
+  import { isState, isCommand, isEvent } from '../../lib/types';
   import JsonDisplay from '../shared/JsonDisplay.svelte';
   import Scenario from '../shared/Scenario.svelte';
 
-  function getScenarios(name: string, type: 'state' | 'command') {
-    return modelStore.model?.specifications
-      ?.find(s => s.name === name && s.type === type)
-      ?.scenarios ?? [];
+  interface DeduplicatedSlice {
+    name: string;
+    type: 'state' | 'command';
+    ticks: number[];
+    sourcedFrom: string[];
+    attachments: Attachment[];
+    scenarios: (CommandScenario | StateViewScenario)[];
   }
 
-  // Get slices (states and commands) sorted by tick
-  let slices = $derived(
-    modelStore.model
-      ? modelStore.model.timeline
-          .filter((el): el is StateView | Command => isState(el) || isCommand(el))
-          .sort((a, b) => a.tick - b.tick)
-      : []
-  );
+  let deduplicatedSlices = $derived(buildDeduplicatedSlices());
 
-  // Map events produced by commands
-  let eventsByCommand = $derived(() => {
-    const map = new Map<string, Event[]>();
-    for (const evt of modelStore.events) {
-      if (evt.producedBy) {
-        const existing = map.get(evt.producedBy) || [];
-        existing.push(evt);
-        map.set(evt.producedBy, existing);
+  function buildDeduplicatedSlices(): DeduplicatedSlice[] {
+    if (!modelStore.model) return [];
+    const timeline = modelStore.model.timeline;
+    const events = timeline.filter(isEvent) as Event[];
+    const elements = timeline
+      .filter((el): el is StateView | Command => isState(el) || isCommand(el))
+      .sort((a, b) => a.tick - b.tick);
+
+    const seen = new Map<string, DeduplicatedSlice>();
+    for (const el of elements) {
+      const key = `${el.type}:${el.name}`;
+      if (!seen.has(key)) {
+        seen.set(key, {
+          name: el.name,
+          type: el.type as 'state' | 'command',
+          ticks: [],
+          sourcedFrom: [],
+          attachments: [],
+          scenarios: []
+        });
+      }
+      const slice = seen.get(key)!;
+      slice.ticks.push(el.tick);
+
+      if (isState(el)) {
+        for (const s of el.sourcedFrom) {
+          if (!slice.sourcedFrom.includes(s)) slice.sourcedFrom.push(s);
+        }
+      }
+      if (el.attachments) slice.attachments.push(...el.attachments);
+
+      // Auto-scenario from each timeline occurrence
+      if (isState(el)) {
+        slice.scenarios.push({
+          name: `Example @${el.tick}`,
+          given: events
+            .filter(e => e.tick < el.tick && el.sourcedFrom.includes(e.name))
+            .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) })),
+          then: el.example
+        });
+      } else if (isCommand(el)) {
+        const producedEvents = events
+          .filter(e => e.producedBy === `${el.name}-${el.tick}`)
+          .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) }));
+        slice.scenarios.push({
+          name: `Example @${el.tick}`,
+          given: events
+            .filter(e => e.tick < el.tick)
+            .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) })),
+          when: el.example,
+          then: producedEvents.length > 0
+            ? { produces: producedEvents }
+            : { produces: [] }
+        });
       }
     }
-    return map;
-  });
+
+    // Prepend spec scenarios
+    for (const [, slice] of seen) {
+      const specScenarios = modelStore.model?.specifications
+        ?.find(s => s.name === slice.name && s.type === slice.type)
+        ?.scenarios ?? [];
+      slice.scenarios = [...specScenarios, ...slice.scenarios];
+    }
+
+    return [...seen.values()];
+  }
 
   function getReadingActors(stateName: string): Actor[] {
     return modelStore.actors.filter(a => a.readsView === stateName);
@@ -40,37 +91,24 @@
   function getTriggeringActors(commandName: string): Actor[] {
     return modelStore.actors.filter(a => a.sendsCommand === commandName);
   }
-
-  function getProducedEvents(commandName: string, tick: number): Event[] {
-    const key = `${commandName}-${tick}`;
-    return eventsByCommand().get(key) || [];
-  }
 </script>
 
 <div class="slice-view">
-  {#each slices as slice}
-    {@const isStateSlice = isState(slice)}
-    {@const type = isStateSlice ? 'state' : 'command'}
-    {@const symbol = isStateSlice ? '◆' : '▶'}
+  {#each deduplicatedSlices as slice}
+    {@const symbol = slice.type === 'state' ? '◆' : '▶'}
 
-    <details class="slice-panel {type}" open={modelStore.expandAll}>
+    <details class="slice-panel {slice.type}" open={modelStore.expandAll}>
       <summary class="slice-header">
         <div>
-          <span class="symbol {type}">{symbol}</span>
+          <span class="symbol {slice.type}">{symbol}</span>
           <span class="name">{slice.name}</span>
         </div>
-        <span class="tick">@{slice.tick}</span>
+        <span class="tick">{slice.ticks.map(t => `@${t}`).join(', ')}</span>
       </summary>
 
       <div class="slice-content">
-        {#if slice.example}
-          <div class="slice-json">
-            <JsonDisplay data={slice.example} />
-          </div>
-        {/if}
-
         <div class="slice-details">
-          {#if isState(slice)}
+          {#if slice.type === 'state'}
             {#if slice.sourcedFrom.length > 0}
               <div class="detail-section">
                 <h4>Sourced From</h4>
@@ -95,7 +133,7 @@
                 {/each}
               </div>
             {/if}
-          {:else if isCommand(slice)}
+          {:else}
             {@const triggeringActors = getTriggeringActors(slice.name)}
             {#if triggeringActors.length > 0}
               <div class="detail-section">
@@ -109,22 +147,10 @@
                 {/each}
               </div>
             {/if}
-
-            {@const producedEvents = getProducedEvents(slice.name, slice.tick)}
-            {#if producedEvents.length > 0}
-              <div class="detail-section">
-                <h4>Produces</h4>
-                {#each producedEvents as event}
-                  <div class="detail-item">
-                    <span class="event">● {event.name}</span>
-                  </div>
-                {/each}
-              </div>
-            {/if}
           {/if}
         </div>
 
-        {#if slice.attachments && slice.attachments.length > 0}
+        {#if slice.attachments.length > 0}
           <div class="attachments">
             <h3>Attachments ({slice.attachments.length})</h3>
             <div class="attachment-list">
@@ -158,12 +184,11 @@
           </div>
         {/if}
 
-        {#if getScenarios(slice.name, type as 'state' | 'command').length > 0}
-          {@const scenarios = getScenarios(slice.name, type as 'state' | 'command')}
+        {#if slice.scenarios.length > 0}
           <div class="scenarios">
-            <h3>Scenarios ({scenarios.length})</h3>
-            {#each scenarios as scenario}
-              <Scenario {scenario} {type} />
+            <h3>Scenarios ({slice.scenarios.length})</h3>
+            {#each slice.scenarios as scenario}
+              <Scenario {scenario} type={slice.type} />
             {/each}
           </div>
         {/if}

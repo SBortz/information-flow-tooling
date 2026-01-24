@@ -37,45 +37,106 @@ function smartTruncate(str: string, reservedChars: number = 10): string {
   return str.substring(0, maxLen - 3) + '...';
 }
 
+interface DeduplicatedSlice {
+  name: string;
+  type: 'state' | 'command';
+  ticks: number[];
+  sourcedFrom: string[];
+  attachments: { type: string; label: string; path?: string; url?: string; content?: string }[];
+  scenarios: (CommandScenario | StateViewScenario)[];
+}
+
+function buildDeduplicatedSlices(model: InformationFlowModel): DeduplicatedSlice[] {
+  const timeline = model.timeline;
+  const events = timeline.filter(isEvent) as Event[];
+  const elements = timeline
+    .filter(e => isStateView(e) || isCommand(e))
+    .sort((a, b) => a.tick - b.tick) as (StateView | Command)[];
+
+  const seen = new Map<string, DeduplicatedSlice>();
+  for (const el of elements) {
+    const key = `${el.type}:${el.name}`;
+    if (!seen.has(key)) {
+      seen.set(key, {
+        name: el.name,
+        type: el.type as 'state' | 'command',
+        ticks: [],
+        sourcedFrom: [],
+        attachments: [],
+        scenarios: []
+      });
+    }
+    const slice = seen.get(key)!;
+    slice.ticks.push(el.tick);
+
+    if (isStateView(el)) {
+      for (const s of el.sourcedFrom) {
+        if (!slice.sourcedFrom.includes(s)) slice.sourcedFrom.push(s);
+      }
+    }
+    if ((el as any).attachments) slice.attachments.push(...(el as any).attachments);
+
+    // Auto-scenario from each timeline occurrence
+    if (isStateView(el)) {
+      slice.scenarios.push({
+        name: `Example @${el.tick}`,
+        given: events
+          .filter(e => e.tick < el.tick && el.sourcedFrom.includes(e.name))
+          .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) })),
+        then: el.example
+      });
+    } else if (isCommand(el)) {
+      const producedEvents = events
+        .filter(e => e.producedBy === `${el.name}-${el.tick}`)
+        .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) }));
+      slice.scenarios.push({
+        name: `Example @${el.tick}`,
+        given: events
+          .filter(e => e.tick < el.tick)
+          .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) })),
+        when: el.example,
+        then: producedEvents.length > 0
+          ? { produces: producedEvents }
+          : { produces: [] }
+      });
+    }
+  }
+
+  // Prepend spec scenarios
+  for (const [, slice] of seen) {
+    const specScenarios = model.specifications
+      ?.find(s => s.name === slice.name && s.type === slice.type)
+      ?.scenarios ?? [];
+    slice.scenarios = [...specScenarios, ...slice.scenarios];
+  }
+
+  return [...seen.values()];
+}
+
 /**
  * Render the slice view - detailed panels for each slice
  */
 export function renderSlice(model: InformationFlowModel): void {
   renderHeader(model, 'Slice View');
   console.log();
-  
-  // Collect elements
+
   const events = model.timeline.filter(isEvent) as Event[];
   const actors = model.timeline.filter(isActor) as Actor[];
-  
-  // Build lookup: events by command tick
-  const eventsByCommandTick = new Map<string, Event[]>();
-  for (const evt of events) {
-    if (evt.producedBy) {
-      const existing = eventsByCommandTick.get(evt.producedBy) || [];
-      existing.push(evt);
-      eventsByCommandTick.set(evt.producedBy, existing);
-    }
+  const deduplicatedSlices = buildDeduplicatedSlices(model);
+
+  for (let i = 0; i < deduplicatedSlices.length; i++) {
+    const slice = deduplicatedSlices[i];
+    const isLast = i === deduplicatedSlices.length - 1;
+
+    renderDeduplicatedSlicePanel(slice, events, actors, isLast, deduplicatedSlices, i);
   }
-  
-  // Get slices: StateViews and Commands, sorted by tick
-  const slices = model.timeline
-    .filter(e => isStateView(e) || isCommand(e))
-    .sort((a, b) => a.tick - b.tick) as (StateView | Command)[];
-  
-  for (let i = 0; i < slices.length; i++) {
-    const slice = slices[i];
-    const isLast = i === slices.length - 1;
-    
-    renderSlicePanel(slice, events, actors, eventsByCommandTick, isLast, slices, i, model.specifications);
-  }
-  
+
   // External events section
   const externalEvents = events.filter(e => e.externalSource);
   if (externalEvents.length > 0) {
     console.log(colors.dim('─'.repeat(45)));
     console.log(colors.eventBold('● EXTERNAL EVENTS'));
-    
+
     for (const evt of externalEvents.sort((a, b) => a.tick - b.tick)) {
       console.log(`  ${colors.event(evt.name)} ${colors.dim(`@${evt.tick}`)}`);
       console.log(`    ${colors.dim('source:')} ${evt.externalSource}`);
@@ -160,41 +221,37 @@ function renderStateViewScenarios(scenarios: StateViewScenario[]): string[] {
 }
 
 /**
- * Render a single slice panel
+ * Render a deduplicated slice panel
  */
-function renderSlicePanel(
-  slice: StateView | Command,
+function renderDeduplicatedSlicePanel(
+  slice: DeduplicatedSlice,
   events: Event[],
   actors: Actor[],
-  eventsByCommandTick: Map<string, Event[]>,
   isLast: boolean,
-  slices: (StateView | Command)[],
-  index: number,
-  specifications?: Specification[]
+  slices: DeduplicatedSlice[],
+  index: number
 ): void {
   const { symbol, color } = getElementStyle(slice.type);
   const content: string[] = [];
   let scenarioLines: string[] = [];
-  
+
   // Add slice name as first line
   content.push(`${color.bold(slice.name)}`);
   content.push('');
-  
-  if (isStateView(slice)) {
-    const sv = slice as StateView;
-    
+
+  if (slice.type === 'state') {
     // Events this view sourced from
-    if (sv.sourcedFrom.length > 0) {
+    if (slice.sourcedFrom.length > 0) {
       content.push(colors.dim('sourcedFrom:'));
-      for (const eventName of sv.sourcedFrom) {
+      for (const eventName of slice.sourcedFrom) {
         const evt = events.find(e => e.name === eventName);
         const tickInfo = evt ? colors.dim(` @${evt.tick}`) : '';
         content.push(`  ${colors.event('●')} ${colors.event(eventName)}${tickInfo}`);
       }
     }
-    
+
     // Actors that read this view
-    const readingActors = actors.filter(a => a.readsView === sv.name);
+    const readingActors = actors.filter(a => a.readsView === slice.name);
     if (readingActors.length > 0) {
       if (content.length > 2) content.push('');
       content.push(colors.dim('readBy:'));
@@ -204,17 +261,9 @@ function renderSlicePanel(
         );
       }
     }
-    
-    // Scenarios (Given-Then)
-    const stateSpec = specifications?.find(s => s.name === sv.name && s.type === 'state');
-    if (stateSpec && stateSpec.scenarios.length > 0) {
-      scenarioLines = renderStateViewScenarios(stateSpec.scenarios as StateViewScenario[]);
-    }
-  } else if (isCommand(slice)) {
-    const cmd = slice as Command;
-    
+  } else {
     // Actors that trigger this command
-    const triggeringActors = actors.filter(a => a.sendsCommand === cmd.name);
+    const triggeringActors = actors.filter(a => a.sendsCommand === slice.name);
     if (triggeringActors.length > 0) {
       content.push(colors.dim('triggeredBy:'));
       for (const actor of triggeringActors) {
@@ -223,79 +272,48 @@ function renderSlicePanel(
         );
       }
     }
-    
-    // Events produced by this command
-    const cmdKey = `${cmd.name}-${cmd.tick}`;
-    const producedEvents = eventsByCommandTick.get(cmdKey) || [];
-    if (producedEvents.length > 0) {
-      if (content.length > 2) content.push('');
-      content.push(colors.dim('produces:'));
-      for (const evt of producedEvents.sort((a, b) => a.tick - b.tick)) {
-        content.push(`  ${colors.event('●')} ${colors.event(evt.name)} ${colors.dim(`@${evt.tick}`)}`);
-      }
-    }
-    
-    // Scenarios (Given-When-Then)
-    const cmdSpec = specifications?.find(s => s.name === cmd.name && s.type === 'command');
-    if (cmdSpec && cmdSpec.scenarios.length > 0) {
-      scenarioLines = renderCommandScenarios(cmdSpec.scenarios as CommandScenario[], cmd.name);
+  }
+
+  // Scenarios
+  if (slice.scenarios.length > 0) {
+    if (slice.type === 'state') {
+      scenarioLines = renderStateViewScenarios(slice.scenarios as StateViewScenario[]);
+    } else {
+      scenarioLines = renderCommandScenarios(slice.scenarios as CommandScenario[], slice.name);
     }
   }
-  
-  // Get example data
-  const exampleData = slice.example;
-  
-  // Build panel content: Name first, then example JSON, then details, then scenarios
+
+  // Build panel content
   const panelLines: string[] = [];
-  
+
   // 1. Name (bold)
   panelLines.push(color.bold(slice.name));
-  
-  // 2. Example JSON
-  if (exampleData) {
-    panelLines.push('');
-    const exampleJson = JSON.stringify(exampleData, null, 2);
-    const jsonColored = exampleJson
-      .replace(/"([^"]+)":/g, `${colors.cyan('"$1"')}:`)
-      .replace(/: "([^"]+)"/g, `: ${colors.yellow('"$1"')}`)
-      .replace(/: (\d+)/g, `: ${colors.yellow('$1')}`)
-      .replace(/: (true|false)/g, `: ${colors.yellow('$1')}`);
-    panelLines.push(jsonColored);
-  }
-  
-  // 3. Details (content without name)
+
+  // 2. Details (content without name)
   const details = content.slice(2).filter(line => line !== '');
   if (details.length > 0) {
     panelLines.push('');
     panelLines.push(...details);
   }
-  
-  // 4. Scenarios
+
+  // 3. Scenarios
   if (scenarioLines.length > 0) {
     panelLines.push('');
     panelLines.push(...scenarioLines);
   }
-  
+
   const panelContent = panelLines.join('\n') || colors.dim('(no details)');
-  
-  // Timeline prefix
-  const tickStr = `@${slice.tick}`.padStart(5);
-  console.log(`${color(symbol)} ${colors.dim(`${tickStr} │`)}`);
-  
+
+  // Timeline prefix - show all ticks
+  const tickStr = slice.ticks.map(t => `@${t}`).join(', ');
+  console.log(`${color(symbol)} ${colors.dim(`${tickStr.padStart(Math.max(5, tickStr.length))} │`)}`);
+
   // Panel
   console.log(box(panelContent, { borderColor: color }));
-  
+
   // Timeline continuation
   if (!isLast) {
     console.log(`        ${colors.dim('│')}`);
-    
-    // Extra lines based on tick distance
-    const nextSlice = slices[index + 1];
-    const tickDistance = nextSlice.tick - slice.tick;
-    const extraLines = Math.max(0, Math.floor(tickDistance / 10) - 1);
-    for (let j = 0; j < extraLines; j++) {
-      console.log(`        ${colors.dim('│')}`);
-    }
   } else {
     console.log(`        ${colors.dim('↓')}`);
   }
