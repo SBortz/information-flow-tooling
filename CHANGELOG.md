@@ -2,12 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.0] - 2025-01-27
+## [0.2.2] - 2025-01-27
 
 ### Breaking Changes
 
 - **Changed scenario data model completely**: The previous model didn't support scenarios like they are live with Event Modeling. Given-Then for States might show a state for every new event. Command-based scenarios might involve several executions of a command with different outcomes. That's now possible.
 - **Only one Timeline derived scenario**: Previously there was one scenario for every occurrence within the model. This is now merged into one bigger scenario that inherits every occurrence from the timeline with respect to its position on the timeline.
+
+### Added
+
+- **Auto-discovery of giraflow files**: Running `giraflow` without arguments now automatically searches the current directory for `.giraflow.json` files
 
 ### Changed
 
