@@ -85,7 +85,7 @@
         <span class="label">Steps</span>
         <div class="timeline-scenario">
           {#each timelineScenario.rows as row}
-            <div class="timeline-row">
+            <div class="timeline-row" class:command-execution={row.type === 'command'} class:command-failure={row.type === 'command' && row.fails}>
               <!-- Left column: Command (or empty) -->
               <div class="command-column">
                 {#if row.type === 'command' && row.command}
@@ -101,7 +101,7 @@
               <!-- Right column: Events -->
               <div class="events-column">
                 {#if row.type === 'events-only' && row.events}
-                  <!-- Context events (no border) -->
+                  <!-- Context events -->
                   {#each row.events as eventRef}
                     <div class="scenario-box scenario-box-event">
                       <span class="box-title event">● {eventRef.event}</span>
@@ -112,21 +112,17 @@
                   {/each}
                 {:else if row.type === 'command'}
                   {#if row.fails}
-                    <div class="produced-box failure">
-                      <span class="error">✗ {row.fails}</span>
-                    </div>
+                    <span class="error">✗ {row.fails}</span>
                   {:else if row.producedEvents && row.producedEvents.length > 0}
-                    <!-- Produced events (with border) -->
-                    <div class="produced-box">
-                      {#each row.producedEvents as eventRef}
-                        <div class="scenario-box scenario-box-event">
-                          <span class="box-title event">● {eventRef.event}</span>
-                          {#if eventRef.data}
-                            <JsonDisplay data={eventRef.data} class="scenario-json" />
-                          {/if}
-                        </div>
-                      {/each}
-                    </div>
+                    <!-- Produced events -->
+                    {#each row.producedEvents as eventRef}
+                      <div class="scenario-box scenario-box-event">
+                        <span class="box-title event">● {eventRef.event}</span>
+                        {#if eventRef.data}
+                          <JsonDisplay data={eventRef.data} class="scenario-json" />
+                        {/if}
+                      </div>
+                    {/each}
                   {:else}
                     <span class="muted">(no events)</span>
                   {/if}
@@ -144,7 +140,7 @@
         <span class="label">Steps</span>
         <div class="timeline-scenario">
           {#each commandStepsScenario.steps as step}
-            <div class="timeline-row">
+            <div class="timeline-row" class:command-execution={step.type === 'command'} class:command-failure={step.type === 'command' && step.fails}>
               <!-- Left column: Command with sliceName (or empty for events-only) -->
               <div class="command-column">
                 {#if step.type === 'command'}
@@ -160,7 +156,7 @@
               <!-- Right column: Events -->
               <div class="events-column">
                 {#if step.type === 'events-only' && step.events}
-                  <!-- Context events (no border) -->
+                  <!-- Context events -->
                   {#each step.events as eventRef}
                     <div class="scenario-box scenario-box-event">
                       <span class="box-title event">● {eventRef.event}</span>
@@ -171,21 +167,17 @@
                   {/each}
                 {:else if step.type === 'command'}
                   {#if step.fails}
-                    <div class="produced-box failure">
-                      <span class="error">✗ {step.fails}</span>
-                    </div>
+                    <span class="error">✗ {step.fails}</span>
                   {:else if step.produces && step.produces.length > 0}
-                    <!-- Produced events (with border) -->
-                    <div class="produced-box">
-                      {#each step.produces as eventRef}
-                        <div class="scenario-box scenario-box-event">
-                          <span class="box-title event">● {eventRef.event}</span>
-                          {#if eventRef.data}
-                            <JsonDisplay data={eventRef.data} class="scenario-json" />
-                          {/if}
-                        </div>
-                      {/each}
-                    </div>
+                    <!-- Produced events -->
+                    {#each step.produces as eventRef}
+                      <div class="scenario-box scenario-box-event">
+                        <span class="box-title event">● {eventRef.event}</span>
+                        {#if eventRef.data}
+                          <JsonDisplay data={eventRef.data} class="scenario-json" />
+                        {/if}
+                      </div>
+                    {/each}
                   {:else}
                     <span class="muted">(no events)</span>
                   {/if}
@@ -320,19 +312,19 @@
     font-weight: 500;
   }
 
-  /* Rahmen für produzierte Events */
-  .produced-box {
-    border: 2px solid var(--color-event);
-    border-radius: 0.375rem;
-    padding: 0.5rem;
-    background: var(--bg-secondary);
+  /* Command execution group - wraps command and produced events */
+  .timeline-row.command-execution {
+    border: 2px dashed var(--border);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    background: var(--bg-primary);
   }
 
-  .produced-box.failure {
+  .timeline-row.command-execution.command-failure {
     border-color: var(--color-error);
   }
 
-  .produced-box .error {
+  .error {
     color: var(--color-error);
     font-weight: 500;
   }

@@ -276,10 +276,21 @@
       "type": "command",
       "scenarios": [
         {
-          "name": "Successfully mark as done",
+          "name": "Successfully mark multiple todos as done",
           "steps": [
             { "type": "events-only", "events": [{ "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } }] },
-            { "type": "command", "when": { "todoId": "t-1" }, "produces": [{ "event": "TodoDone", "data": { "todoId": "t-1" } }] }
+            { "type": "command", "when": { "todoId": "t-1" }, "produces": [{ "event": "TodoDone", "data": { "todoId": "t-1" } }] },
+            { "type": "command", "when": { "todoId": "t-1" }, "fails": "Todo is already done" },
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "TodoAdded", "data": { "todoId": "t-2", "title": "Walk dog" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-3", "title": "Call mom" } }
+              ]
+            },
+            { "type": "command", "when": { "todoId": "t-2" }, "produces": [{ "event": "TodoDone", "data": { "todoId": "t-2" } }] },
+            { "type": "events-only", "events": [{ "event": "AllTodosReset", "data": {} }] },
+            { "type": "command", "when": { "todoId": "t-3" }, "produces": [{ "event": "TodoDone", "data": { "todoId": "t-3" } }] }
           ]
         },
         {
