@@ -1,0 +1,396 @@
+{
+  "$schema": "../giraflow.schema.json",
+  "name": "Simple Todos",
+  "description": "A minimal todo app for testing deduplication and auto-scenarios",
+  "version": "1.0.0",
+
+  "timeline": [
+    {
+      "type": "state",
+      "name": "Todos",
+      "tick": 1,
+      "sourcedFrom": ["TodoAdded", "TodoDone", "AllTodosReset", "AllTodosFinished"],
+      "example": []
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 2,
+      "readsView": "Todos",
+      "sendsCommand": "AddTodo"
+    },
+    {
+      "type": "command",
+      "name": "AddTodo",
+      "tick": 3,
+      "example": { "title": "Buy milk" }
+    },
+    {
+      "type": "event",
+      "name": "TodoAdded",
+      "tick": 4,
+      "producedBy": "AddTodo-3",
+      "example": { "todoId": "t-1", "title": "Buy milk" }
+    },
+    {
+      "type": "state",
+      "name": "Todos",
+      "tick": 5,
+      "sourcedFrom": ["TodoAdded", "TodoDone", "AllTodosReset", "AllTodosFinished"],
+      "example": [
+        { "id": "t-1", "title": "Buy milk", "done": false }
+      ]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 6,
+      "readsView": "Todos",
+      "sendsCommand": "AddTodo"
+    },
+    {
+      "type": "command",
+      "name": "AddTodo",
+      "tick": 7,
+      "example": { "title": "Walk dog" }
+    },
+    {
+      "type": "event",
+      "name": "TodoAdded",
+      "tick": 8,
+      "producedBy": "AddTodo-7",
+      "example": { "todoId": "t-2", "title": "Walk dog" }
+    },
+    {
+      "type": "state",
+      "name": "Todos",
+      "tick": 9,
+      "sourcedFrom": ["TodoAdded", "TodoDone", "AllTodosReset", "AllTodosFinished"],
+      "example": [
+        { "id": "t-1", "title": "Buy milk", "done": false },
+        { "id": "t-2", "title": "Walk dog", "done": false }
+      ]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 10,
+      "readsView": "Todos",
+      "sendsCommand": "FinishTodo"
+    },
+    {
+      "type": "command",
+      "name": "FinishTodo",
+      "tick": 11,
+      "example": { "todoId": "t-1" }
+    },
+    {
+      "type": "event",
+      "name": "TodoDone",
+      "tick": 12,
+      "producedBy": "FinishTodo-11",
+      "example": { "todoId": "t-1" }
+    },
+    {
+      "type": "state",
+      "name": "Todos",
+      "tick": 13,
+      "sourcedFrom": ["TodoAdded", "TodoDone", "AllTodosReset", "AllTodosFinished"],
+      "example": [
+        { "id": "t-1", "title": "Buy milk", "done": true },
+        { "id": "t-2", "title": "Walk dog", "done": false }
+      ]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 14,
+      "readsView": "Todos",
+      "sendsCommand": "FinishTodo"
+    },
+    {
+      "type": "command",
+      "name": "FinishTodo",
+      "tick": 15,
+      "example": { "todoId": "t-2" }
+    },
+    {
+      "type": "event",
+      "name": "TodoDone",
+      "tick": 16,
+      "producedBy": "FinishTodo-15",
+      "example": { "todoId": "t-2" }
+    },
+    {
+      "type": "command",
+      "name": "ResetAllTodos",
+      "tick": 17,
+      "example": {}
+    },
+    {
+      "type": "event",
+      "name": "AllTodosReset",
+      "tick": 18,
+      "producedBy": "ResetAllTodos-17",
+      "example": {}
+    },
+    {
+      "type": "state",
+      "name": "Todos",
+      "tick": 19,
+      "sourcedFrom": ["TodoAdded", "TodoDone", "AllTodosReset", "AllTodosFinished"],
+      "example": [
+        { "id": "t-1", "title": "Buy milk", "done": false },
+        { "id": "t-2", "title": "Walk dog", "done": false }
+      ]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 20,
+      "readsView": "Todos",
+      "sendsCommand": "FinishAllTodos"
+    },
+    {
+      "type": "command",
+      "name": "FinishAllTodos",
+      "tick": 21,
+      "example": {}
+    },
+    {
+      "type": "event",
+      "name": "AllTodosFinished",
+      "tick": 22,
+      "producedBy": "FinishAllTodos-21",
+      "example": {}
+    },
+    {
+      "type": "state",
+      "name": "Todos",
+      "tick": 23,
+      "sourcedFrom": ["TodoAdded", "TodoDone", "AllTodosReset", "AllTodosFinished"],
+      "example": [
+        { "id": "t-1", "title": "Buy milk", "done": true },
+        { "id": "t-2", "title": "Walk dog", "done": true }
+      ]
+    }
+  ],
+
+  "specifications": [
+    {
+      "name": "Todos",
+      "type": "state",
+      "scenarios": [
+        {
+          "name": "Empty state with no events",
+          "given": [],
+          "then": []
+        },
+        {
+          "name": "Added items appear as open",
+          "given": [
+            {
+              "event": "TodoAdded",
+              "data": { "todoId": "t-1", "title": "Buy milk" }
+            }
+          ],
+          "then": [
+            { "id": "t-1", "title": "Buy milk", "done": false }
+          ]
+        },
+        {
+          "name": "Done items are marked",
+          "given": [
+            {
+              "event": "TodoAdded",
+              "data": { "todoId": "t-1", "title": "Buy milk" }
+            },
+            {
+              "event": "TodoDone",
+              "data": { "todoId": "t-1" }
+            }
+          ],
+          "then": [
+            { "id": "t-1", "title": "Buy milk", "done": true }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AddTodo",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully add a valid todo",
+          "given": [],
+          "when": { "title": "Buy milk" },
+          "then": {
+            "produces": [
+              {
+                "event": "TodoAdded",
+                "data": { "todoId": "t-1", "title": "Buy milk" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Reject empty title",
+          "given": [],
+          "when": { "title": "" },
+          "then": {
+            "fails": "Title must not be empty"
+          }
+        },
+        {
+          "name": "Reject when max items reached",
+          "given": [
+            { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Item 1" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-2", "title": "Item 2" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-3", "title": "Item 3" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-4", "title": "Item 4" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-5", "title": "Item 5" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-6", "title": "Item 6" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-7", "title": "Item 7" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-8", "title": "Item 8" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-9", "title": "Item 9" } },
+            { "event": "TodoAdded", "data": { "todoId": "t-10", "title": "Item 10" } }
+          ],
+          "when": { "title": "Item 11" },
+          "then": {
+            "fails": "Cannot have more than 10 todos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "FinishTodo",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully mark as done",
+          "given": [
+            {
+              "event": "TodoAdded",
+              "data": { "todoId": "t-1", "title": "Buy milk" }
+            }
+          ],
+          "when": { "todoId": "t-1" },
+          "then": {
+            "produces": [
+              {
+                "event": "TodoDone",
+                "data": { "todoId": "t-1" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Reject when todo not found",
+          "given": [],
+          "when": { "todoId": "non-existent" },
+          "then": {
+            "fails": "Todo not found"
+          }
+        },
+        {
+          "name": "Reject when already done",
+          "given": [
+            {
+              "event": "TodoAdded",
+              "data": { "todoId": "t-1", "title": "Buy milk" }
+            },
+            {
+              "event": "TodoDone",
+              "data": { "todoId": "t-1" }
+            }
+          ],
+          "when": { "todoId": "t-1" },
+          "then": {
+            "fails": "Todo is already done"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ResetAllTodos",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully reset all todos",
+          "given": [
+            {
+              "event": "TodoAdded",
+              "data": { "todoId": "t-1", "title": "Buy milk" }
+            },
+            {
+              "event": "TodoDone",
+              "data": { "todoId": "t-1" }
+            }
+          ],
+          "when": {},
+          "then": {
+            "produces": [
+              {
+                "event": "AllTodosReset",
+                "data": {}
+              }
+            ]
+          }
+        },
+        {
+          "name": "Reject when no todos exist",
+          "given": [],
+          "when": {},
+          "then": {
+            "fails": "No todos to reset"
+          }
+        }
+      ]
+    },
+    {
+      "name": "FinishAllTodos",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully finish all todos",
+          "given": [
+            {
+              "event": "TodoAdded",
+              "data": { "todoId": "t-1", "title": "Buy milk" }
+            },
+            {
+              "event": "TodoAdded",
+              "data": { "todoId": "t-2", "title": "Walk dog" }
+            }
+          ],
+          "when": {},
+          "then": {
+            "produces": [
+              {
+                "event": "AllTodosFinished",
+                "data": {}
+              }
+            ]
+          }
+        },
+        {
+          "name": "Reject when no open todos",
+          "given": [
+            {
+              "event": "TodoAdded",
+              "data": { "todoId": "t-1", "title": "Buy milk" }
+            },
+            {
+              "event": "TodoDone",
+              "data": { "todoId": "t-1" }
+            }
+          ],
+          "when": {},
+          "then": {
+            "fails": "No open todos to finish"
+          }
+        }
+      ]
+    }
+  ]
+}

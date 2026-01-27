@@ -28,9 +28,20 @@ export function ifLivePlugin(): Plugin {
   let debounceTimeout: NodeJS.Timeout | null = null;
   const clients = new Set<ServerResponse>();
 
+  function findGiraflowFiles(): string[] {
+    const cwd = process.cwd();
+    const files = fs.readdirSync(cwd);
+    return files.filter(f => f.endsWith('.giraflow.json'));
+  }
+
   function findFileArg(): string | null {
     if (process.env.IF_FILE) {
       return path.resolve(process.env.IF_FILE);
+    }
+    // Search for giraflow files in current directory
+    const giraflowFiles = findGiraflowFiles();
+    if (giraflowFiles.length === 1) {
+      return path.resolve(giraflowFiles[0]);
     }
     return null;
   }
@@ -59,9 +70,17 @@ export function ifLivePlugin(): Plugin {
       filePath = findFileArg();
 
       if (!filePath) {
-        server.config.logger.warn(
-          '\n  No .if.json file specified. Usage: npm run dev -- <file.if.json>\n'
-        );
+        const giraflowFiles = findGiraflowFiles();
+        if (giraflowFiles.length === 0) {
+          server.config.logger.warn(
+            '\n  No *.giraflow.json files found. Usage: npm run dev -- <file.giraflow.json>\n'
+          );
+        } else {
+          server.config.logger.warn(
+            '\n  Multiple giraflow files found. Please specify one:\n' +
+            giraflowFiles.map(f => `    - npm run dev -- ${f}`).join('\n') + '\n'
+          );
+        }
         return;
       }
 

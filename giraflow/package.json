@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "vite build && tsc -p tsconfig.server.json",
-    "dev": "sh -c 'IF_FILE=\"$1\" vite --port 5173' --",
+    "dev": "tsx src/dev-cli.ts",
     "dev:server": "tsx watch src/server/index.ts",
     "start": "node dist/server/index.js",
     "check": "svelte-check --tsconfig ./tsconfig.json",

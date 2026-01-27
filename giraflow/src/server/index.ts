@@ -4,16 +4,19 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { createServer } from './server.js';
 import { createWatcher } from './watcher.js';
+import { findGiraflowFiles, promptFileSelection } from './file-selector.js';
 
 // Simple CLI argument parsing
-function parseArgs(): { filePath: string; port: number; openBrowser: boolean } {
+async function parseArgs(): Promise<{ filePath: string; port: number; openBrowser: boolean }> {
   const args = process.argv.slice(2);
-  
-  if (args.includes('--help') || args.includes('-h') || args.length === 0) {
+
+  if (args.includes('--help') || args.includes('-h')) {
     console.log(`
   Giraflow
 
-  Usage: giraflow <file.giraflow.json> [options]
+  Usage: giraflow [file.giraflow.json] [options]
+
+  If no file is specified, searches for *.giraflow.json files in the current directory.
 
   Options:
     -p, --port <port>    Port to run server on (default: 3000)
@@ -21,6 +24,7 @@ function parseArgs(): { filePath: string; port: number; openBrowser: boolean } {
     -h, --help           Show this help message
 
   Examples:
+    giraflow                          # Search for giraflow files in current directory
     giraflow model.giraflow.json
     giraflow model.giraflow.json --port 8080
     giraflow model.giraflow.json --no-open
@@ -48,25 +52,34 @@ function parseArgs(): { filePath: string; port: number; openBrowser: boolean } {
       filePath = arg;
     }
   }
-  
+
+  // If no file specified, search for giraflow files in current directory
   if (!filePath) {
-    console.error('Error: No file specified');
-    process.exit(1);
+    const giraflowFiles = findGiraflowFiles();
+
+    if (giraflowFiles.length === 0) {
+      console.error('Error: No *.giraflow.json files found in current directory');
+      process.exit(1);
+    } else if (giraflowFiles.length === 1) {
+      filePath = path.resolve(giraflowFiles[0]);
+    } else {
+      filePath = await promptFileSelection(giraflowFiles);
+    }
+  } else {
+    // Resolve to absolute path
+    filePath = path.resolve(filePath);
   }
-  
-  // Resolve to absolute path
-  filePath = path.resolve(filePath);
-  
+
   if (!fs.existsSync(filePath)) {
     console.error(`Error: File not found: ${filePath}`);
     process.exit(1);
   }
-  
+
   return { filePath, port, openBrowser };
 }
 
 async function main(): Promise<void> {
-  const { filePath, port, openBrowser } = parseArgs();
+  const { filePath, port, openBrowser } = await parseArgs();
   
   const server = createServer({ filePath, port });
   const watcher = createWatcher({
