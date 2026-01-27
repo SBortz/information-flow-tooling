@@ -7,16 +7,19 @@ export interface EventReference {
   data?: unknown;
 }
 
-export interface CommandScenarioOutcome {
+export interface CommandScenarioStep {
+  type: 'events-only' | 'command';
+  // For events-only:
+  events?: EventReference[];
+  // For command:
+  when?: unknown;
   produces?: EventReference[];
   fails?: string;
 }
 
 export interface CommandScenario {
   name: string;
-  given: EventReference[];
-  when?: unknown;
-  then: CommandScenarioOutcome;
+  steps: CommandScenarioStep[];
 }
 
 export interface ScenarioStep {
@@ -30,6 +33,21 @@ export interface ScenarioStep {
 export interface StateViewScenario {
   name: string;
   steps: ScenarioStep[];
+}
+
+export interface TimelineEvolutionRow {
+  type: 'events-only' | 'command';
+  // Für events-only Zeilen:
+  events?: EventReference[];
+  // Für command Zeilen:
+  command?: { name: string; data?: unknown };
+  producedEvents?: EventReference[];
+  fails?: string;
+}
+
+export interface CommandEvolutionScenario {
+  name: string;
+  rows: TimelineEvolutionRow[];
 }
 
 export interface Attachment {

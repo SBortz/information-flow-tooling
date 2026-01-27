@@ -238,43 +238,36 @@
       "scenarios": [
         {
           "name": "Successfully add a valid todo",
-          "given": [],
-          "when": { "title": "Buy milk" },
-          "then": {
-            "produces": [
-              {
-                "event": "TodoAdded",
-                "data": { "todoId": "t-1", "title": "Buy milk" }
-              }
-            ]
-          }
+          "steps": [
+            { "type": "command", "when": { "title": "Buy milk" }, "produces": [{ "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } }] }
+          ]
         },
         {
           "name": "Reject empty title",
-          "given": [],
-          "when": { "title": "" },
-          "then": {
-            "fails": "Title must not be empty"
-          }
+          "steps": [
+            { "type": "command", "when": { "title": "" }, "fails": "Title must not be empty" }
+          ]
         },
         {
           "name": "Reject when max items reached",
-          "given": [
-            { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Item 1" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-2", "title": "Item 2" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-3", "title": "Item 3" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-4", "title": "Item 4" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-5", "title": "Item 5" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-6", "title": "Item 6" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-7", "title": "Item 7" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-8", "title": "Item 8" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-9", "title": "Item 9" } },
-            { "event": "TodoAdded", "data": { "todoId": "t-10", "title": "Item 10" } }
-          ],
-          "when": { "title": "Item 11" },
-          "then": {
-            "fails": "Cannot have more than 10 todos"
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Item 1" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-2", "title": "Item 2" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-3", "title": "Item 3" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-4", "title": "Item 4" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-5", "title": "Item 5" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-6", "title": "Item 6" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-7", "title": "Item 7" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-8", "title": "Item 8" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-9", "title": "Item 9" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-10", "title": "Item 10" } }
+              ]
+            },
+            { "type": "command", "when": { "title": "Item 11" }, "fails": "Cannot have more than 10 todos" }
+          ]
         }
       ]
     },
@@ -284,46 +277,29 @@
       "scenarios": [
         {
           "name": "Successfully mark as done",
-          "given": [
-            {
-              "event": "TodoAdded",
-              "data": { "todoId": "t-1", "title": "Buy milk" }
-            }
-          ],
-          "when": { "todoId": "t-1" },
-          "then": {
-            "produces": [
-              {
-                "event": "TodoDone",
-                "data": { "todoId": "t-1" }
-              }
-            ]
-          }
+          "steps": [
+            { "type": "events-only", "events": [{ "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } }] },
+            { "type": "command", "when": { "todoId": "t-1" }, "produces": [{ "event": "TodoDone", "data": { "todoId": "t-1" } }] }
+          ]
         },
         {
           "name": "Reject when todo not found",
-          "given": [],
-          "when": { "todoId": "non-existent" },
-          "then": {
-            "fails": "Todo not found"
-          }
+          "steps": [
+            { "type": "command", "when": { "todoId": "non-existent" }, "fails": "Todo not found" }
+          ]
         },
         {
           "name": "Reject when already done",
-          "given": [
+          "steps": [
             {
-              "event": "TodoAdded",
-              "data": { "todoId": "t-1", "title": "Buy milk" }
+              "type": "events-only",
+              "events": [
+                { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } },
+                { "event": "TodoDone", "data": { "todoId": "t-1" } }
+              ]
             },
-            {
-              "event": "TodoDone",
-              "data": { "todoId": "t-1" }
-            }
-          ],
-          "when": { "todoId": "t-1" },
-          "then": {
-            "fails": "Todo is already done"
-          }
+            { "type": "command", "when": { "todoId": "t-1" }, "fails": "Todo is already done" }
+          ]
         }
       ]
     },
@@ -333,33 +309,22 @@
       "scenarios": [
         {
           "name": "Successfully reset all todos",
-          "given": [
+          "steps": [
             {
-              "event": "TodoAdded",
-              "data": { "todoId": "t-1", "title": "Buy milk" }
+              "type": "events-only",
+              "events": [
+                { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } },
+                { "event": "TodoDone", "data": { "todoId": "t-1" } }
+              ]
             },
-            {
-              "event": "TodoDone",
-              "data": { "todoId": "t-1" }
-            }
-          ],
-          "when": {},
-          "then": {
-            "produces": [
-              {
-                "event": "AllTodosReset",
-                "data": {}
-              }
-            ]
-          }
+            { "type": "command", "when": {}, "produces": [{ "event": "AllTodosReset", "data": {} }] }
+          ]
         },
         {
           "name": "Reject when no todos exist",
-          "given": [],
-          "when": {},
-          "then": {
-            "fails": "No todos to reset"
-          }
+          "steps": [
+            { "type": "command", "when": {}, "fails": "No todos to reset" }
+          ]
         }
       ]
     },
@@ -369,42 +334,29 @@
       "scenarios": [
         {
           "name": "Successfully finish all todos",
-          "given": [
+          "steps": [
             {
-              "event": "TodoAdded",
-              "data": { "todoId": "t-1", "title": "Buy milk" }
+              "type": "events-only",
+              "events": [
+                { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } },
+                { "event": "TodoAdded", "data": { "todoId": "t-2", "title": "Walk dog" } }
+              ]
             },
-            {
-              "event": "TodoAdded",
-              "data": { "todoId": "t-2", "title": "Walk dog" }
-            }
-          ],
-          "when": {},
-          "then": {
-            "produces": [
-              {
-                "event": "AllTodosFinished",
-                "data": {}
-              }
-            ]
-          }
+            { "type": "command", "when": {}, "produces": [{ "event": "AllTodosFinished", "data": {} }] }
+          ]
         },
         {
           "name": "Reject when no open todos",
-          "given": [
+          "steps": [
             {
-              "event": "TodoAdded",
-              "data": { "todoId": "t-1", "title": "Buy milk" }
+              "type": "events-only",
+              "events": [
+                { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } },
+                { "event": "TodoDone", "data": { "todoId": "t-1" } }
+              ]
             },
-            {
-              "event": "TodoDone",
-              "data": { "todoId": "t-1" }
-            }
-          ],
-          "when": {},
-          "then": {
-            "fails": "No open todos to finish"
-          }
+            { "type": "command", "when": {}, "fails": "No open todos to finish" }
+          ]
         }
       ]
     }

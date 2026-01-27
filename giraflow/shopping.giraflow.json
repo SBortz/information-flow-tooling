@@ -277,15 +277,11 @@
       "scenarios": [
         {
           "name": "Track inventory for multiple products",
-          "given": [
-            { "event": "InventoryChanged", "data": { "ProductId": "product-1", "Inventory": 50 } },
-            { "event": "InventoryChanged", "data": { "ProductId": "product-2", "Inventory": 25 } },
-            { "event": "InventoryChanged", "data": { "ProductId": "product-1", "Inventory": 45 } }
-          ],
-          "then": {
-            "product-1": 45,
-            "product-2": 25
-          }
+          "steps": [
+            { "given": { "event": "InventoryChanged", "data": { "ProductId": "product-1", "Inventory": 50 } }, "then": { "product-1": 50 } },
+            { "given": { "event": "InventoryChanged", "data": { "ProductId": "product-2", "Inventory": 25 } }, "then": { "product-1": 50, "product-2": 25 } },
+            { "given": { "event": "InventoryChanged", "data": { "ProductId": "product-1", "Inventory": 45 } }, "then": { "product-1": 45, "product-2": 25 } }
+          ]
         }
       ]
     },
@@ -295,60 +291,54 @@
       "scenarios": [
         {
           "name": "Create cart and add first item",
-          "given": [],
-          "when": {
-            "CartId": "cart-1",
-            "Description": "Wireless Mouse",
-            "Image": "mouse.jpg",
-            "Price": 29.99,
-            "ItemId": "item-1",
-            "ProductId": "product-1"
-          },
-          "then": {
-            "produces": [
-              { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-              { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Wireless Mouse", "Image": "mouse.jpg", "Price": 29.99, "ItemId": "item-1", "ProductId": "product-1" } }
-            ]
-          }
+          "steps": [
+            {
+              "type": "command",
+              "when": { "CartId": "cart-1", "Description": "Wireless Mouse", "Image": "mouse.jpg", "Price": 29.99, "ItemId": "item-1", "ProductId": "product-1" },
+              "produces": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Wireless Mouse", "Image": "mouse.jpg", "Price": 29.99, "ItemId": "item-1", "ProductId": "product-1" } }
+              ]
+            }
+          ]
         },
         {
           "name": "Add item to existing cart",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
-          ],
-          "when": {
-            "CartId": "cart-1",
-            "Description": "Keyboard",
-            "Image": "keyboard.jpg",
-            "Price": 49.99,
-            "ItemId": "item-2",
-            "ProductId": "product-2"
-          },
-          "then": {
-            "produces": [
-              { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Keyboard", "Image": "keyboard.jpg", "Price": 49.99, "ItemId": "item-2", "ProductId": "product-2" } }
-            ]
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
+              ]
+            },
+            {
+              "type": "command",
+              "when": { "CartId": "cart-1", "Description": "Keyboard", "Image": "keyboard.jpg", "Price": 49.99, "ItemId": "item-2", "ProductId": "product-2" },
+              "produces": [
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Keyboard", "Image": "keyboard.jpg", "Price": 49.99, "ItemId": "item-2", "ProductId": "product-2" } }
+              ]
+            }
+          ]
         },
         {
           "name": "Reject when cart has 3 items",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 10.00 } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-2", "ProductId": "product-2", "Price": 20.00 } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-3", "ProductId": "product-3", "Price": 30.00 } }
-          ],
-          "when": {
-            "CartId": "cart-1",
-            "Description": "Fourth Item",
-            "Price": 40.00,
-            "ItemId": "item-4",
-            "ProductId": "product-4"
-          },
-          "then": {
-            "fails": "TooManyItemsInCartException: Can only add 3 items to cart"
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 10.00 } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-2", "ProductId": "product-2", "Price": 20.00 } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-3", "ProductId": "product-3", "Price": 30.00 } }
+              ]
+            },
+            {
+              "type": "command",
+              "when": { "CartId": "cart-1", "Description": "Fourth Item", "Price": 40.00, "ItemId": "item-4", "ProductId": "product-4" },
+              "fails": "TooManyItemsInCartException: Can only add 3 items to cart"
+            }
+          ]
         }
       ]
     },
@@ -358,35 +348,20 @@
       "scenarios": [
         {
           "name": "Show cart with multiple items",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Mouse", "Price": 29.99, "ItemId": "item-1", "ProductId": "product-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2", "ProductId": "product-2" } }
-          ],
-          "then": {
-            "CartId": "cart-1",
-            "TotalPrice": 79.98,
-            "CartItems": [
-              { "Description": "Mouse", "Price": 29.99, "ItemId": "item-1" },
-              { "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2" }
-            ]
-          }
+          "steps": [
+            { "given": { "event": "CartCreated", "data": { "CartId": "cart-1" } }, "then": { "CartId": "cart-1", "TotalPrice": 0, "CartItems": [] } },
+            { "given": { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Mouse", "Price": 29.99, "ItemId": "item-1", "ProductId": "product-1" } }, "then": { "CartId": "cart-1", "TotalPrice": 29.99, "CartItems": [{ "Description": "Mouse", "Price": 29.99, "ItemId": "item-1" }] } },
+            { "given": { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2", "ProductId": "product-2" } }, "then": { "CartId": "cart-1", "TotalPrice": 79.98, "CartItems": [{ "Description": "Mouse", "Price": 29.99, "ItemId": "item-1" }, { "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2" }] } }
+          ]
         },
         {
           "name": "Update total when item removed",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Mouse", "Price": 29.99, "ItemId": "item-1", "ProductId": "product-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2", "ProductId": "product-2" } },
-            { "event": "ItemRemoved", "data": { "ItemId": "item-1", "CartId": "cart-1" } }
-          ],
-          "then": {
-            "CartId": "cart-1",
-            "TotalPrice": 49.99,
-            "CartItems": [
-              { "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2" }
-            ]
-          }
+          "steps": [
+            { "given": { "event": "CartCreated", "data": { "CartId": "cart-1" } }, "then": { "CartId": "cart-1", "TotalPrice": 0, "CartItems": [] } },
+            { "given": { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Mouse", "Price": 29.99, "ItemId": "item-1", "ProductId": "product-1" } }, "then": { "CartId": "cart-1", "TotalPrice": 29.99, "CartItems": [{ "Description": "Mouse", "Price": 29.99, "ItemId": "item-1" }] } },
+            { "given": { "event": "ItemAdded", "data": { "CartId": "cart-1", "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2", "ProductId": "product-2" } }, "then": { "CartId": "cart-1", "TotalPrice": 79.98, "CartItems": [{ "Description": "Mouse", "Price": 29.99, "ItemId": "item-1" }, { "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2" }] } },
+            { "given": { "event": "ItemRemoved", "data": { "ItemId": "item-1", "CartId": "cart-1" } }, "then": { "CartId": "cart-1", "TotalPrice": 49.99, "CartItems": [{ "Description": "Keyboard", "Price": 49.99, "ItemId": "item-2" }] } }
+          ]
         }
       ]
     },
@@ -396,60 +371,54 @@
       "scenarios": [
         {
           "name": "Successfully submit cart with items in stock",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
-          ],
-          "when": {
-            "CartId": "cart-1",
-            "OrderedProducts": [{ "ProductId": "product-1", "TotalPrice": 29.99 }]
-          },
-          "then": {
-            "produces": [
-              { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }
-            ]
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
+              ]
+            },
+            {
+              "type": "command",
+              "when": { "CartId": "cart-1", "OrderedProducts": [{ "ProductId": "product-1", "TotalPrice": 29.99 }] },
+              "produces": [{ "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }]
+            }
+          ]
         },
         {
           "name": "Reject empty cart submission",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } }
-          ],
-          "when": {
-            "CartId": "cart-1",
-            "OrderedProducts": []
-          },
-          "then": {
-            "fails": "CannotSubmitEmptyCartException: Empty Cart cannot be submitted"
-          }
+          "steps": [
+            { "type": "events-only", "events": [{ "event": "CartCreated", "data": { "CartId": "cart-1" } }] },
+            { "type": "command", "when": { "CartId": "cart-1", "OrderedProducts": [] }, "fails": "CannotSubmitEmptyCartException: Empty Cart cannot be submitted" }
+          ]
         },
         {
           "name": "Reject double submission",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } },
-            { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }
-          ],
-          "when": {
-            "CartId": "cart-1"
-          },
-          "then": {
-            "fails": "CartCannotBeSubmittedTwiceException: Cart cannot be submitted twice"
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } },
+                { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }
+              ]
+            },
+            { "type": "command", "when": { "CartId": "cart-1" }, "fails": "CartCannotBeSubmittedTwiceException: Cart cannot be submitted twice" }
+          ]
         },
         {
           "name": "Reject when product out of stock",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
-          ],
-          "when": {
-            "CartId": "cart-1",
-            "_note": "InventoriesSV has no inventory for product-1"
-          },
-          "then": {
-            "fails": "NotEnoughInStockException"
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
+              ]
+            },
+            { "type": "command", "when": { "CartId": "cart-1", "_note": "InventoriesSV has no inventory for product-1" }, "fails": "NotEnoughInStockException" }
+          ]
         }
       ]
     },
@@ -459,20 +428,16 @@
       "scenarios": [
         {
           "name": "Track submitted cart awaiting publication",
-          "given": [
-            { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }
-          ],
-          "then": [
-            { "CartId": "cart-1", "TotalPrice": 29.99 }
+          "steps": [
+            { "given": { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }, "then": [{ "CartId": "cart-1", "TotalPrice": 29.99 }] }
           ]
         },
         {
           "name": "Remove cart after publication",
-          "given": [
-            { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } },
-            { "event": "CartPublished", "data": { "CartId": "cart-1" } }
-          ],
-          "then": []
+          "steps": [
+            { "given": { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }, "then": [{ "CartId": "cart-1", "TotalPrice": 29.99 }] },
+            { "given": { "event": "CartPublished", "data": { "CartId": "cart-1" } }, "then": [] }
+          ]
         }
       ]
     },
@@ -482,36 +447,30 @@
       "scenarios": [
         {
           "name": "Successfully publish submitted cart",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } },
-            { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }
-          ],
-          "when": {
-            "CartId": "cart-1",
-            "TotalPrice": 29.99
-          },
-          "then": {
-            "produces": [
-              { "event": "CartPublished", "data": { "CartId": "cart-1" } }
-            ]
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } },
+                { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }
+              ]
+            },
+            { "type": "command", "when": { "CartId": "cart-1", "TotalPrice": 29.99 }, "produces": [{ "event": "CartPublished", "data": { "CartId": "cart-1" } }] }
+          ]
         },
         {
           "name": "Handle Kafka publish failure",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }
-          ],
-          "when": {
-            "CartId": "cart-1",
-            "_note": "Kafka publisher throws exception"
-          },
-          "then": {
-            "produces": [
-              { "event": "CartPublicationFailed", "data": { "CommandCartId": "cart-1" } }
-            ]
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "CartSubmitted", "data": { "CartId": "cart-1", "TotalPrice": 29.99 } }
+              ]
+            },
+            { "type": "command", "when": { "CartId": "cart-1", "_note": "Kafka publisher throws exception" }, "produces": [{ "event": "CartPublicationFailed", "data": { "CommandCartId": "cart-1" } }] }
+          ]
         }
       ]
     },
@@ -521,13 +480,10 @@
       "scenarios": [
         {
           "name": "Track latest price change per product",
-          "given": [
-            { "event": "PriceChanged", "data": { "ProductId": "product-1", "OldPrice": 29.99, "NewPrice": 24.99 } },
-            { "event": "PriceChanged", "data": { "ProductId": "product-1", "OldPrice": 24.99, "NewPrice": 19.99 } }
-          ],
-          "then": {
-            "product-1": { "OldPrice": 24.99, "NewPrice": 19.99 }
-          }
+          "steps": [
+            { "given": { "event": "PriceChanged", "data": { "ProductId": "product-1", "OldPrice": 29.99, "NewPrice": 24.99 } }, "then": { "product-1": { "OldPrice": 29.99, "NewPrice": 24.99 } } },
+            { "given": { "event": "PriceChanged", "data": { "ProductId": "product-1", "OldPrice": 24.99, "NewPrice": 19.99 } }, "then": { "product-1": { "OldPrice": 24.99, "NewPrice": 19.99 } } }
+          ]
         }
       ]
     },
@@ -537,24 +493,18 @@
       "scenarios": [
         {
           "name": "Track products across multiple carts",
-          "given": [
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-2", "ItemId": "item-2", "ProductId": "product-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-3", "ProductId": "product-2" } }
-          ],
-          "then": [
-            { "CartId": "cart-1", "ProductId": "product-1" },
-            { "CartId": "cart-2", "ProductId": "product-1" },
-            { "CartId": "cart-1", "ProductId": "product-2" }
+          "steps": [
+            { "given": { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1" } }, "then": [{ "CartId": "cart-1", "ProductId": "product-1" }] },
+            { "given": { "event": "ItemAdded", "data": { "CartId": "cart-2", "ItemId": "item-2", "ProductId": "product-1" } }, "then": [{ "CartId": "cart-1", "ProductId": "product-1" }, { "CartId": "cart-2", "ProductId": "product-1" }] },
+            { "given": { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-3", "ProductId": "product-2" } }, "then": [{ "CartId": "cart-1", "ProductId": "product-1" }, { "CartId": "cart-2", "ProductId": "product-1" }, { "CartId": "cart-1", "ProductId": "product-2" }] }
           ]
         },
         {
           "name": "Remove product when item archived",
-          "given": [
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1" } },
-            { "event": "ItemArchived", "data": { "CartId": "cart-1", "ItemId": "item-1" } }
-          ],
-          "then": []
+          "steps": [
+            { "given": { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1" } }, "then": [{ "CartId": "cart-1", "ProductId": "product-1" }] },
+            { "given": { "event": "ItemArchived", "data": { "CartId": "cart-1", "ItemId": "item-1" } }, "then": [] }
+          ]
         }
       ]
     },
@@ -564,19 +514,16 @@
       "scenarios": [
         {
           "name": "Archive item from cart due to price change",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
-          ],
-          "when": {
-            "CartId": "cart-1",
-            "ProductId": "product-1"
-          },
-          "then": {
-            "produces": [
-              { "event": "ItemArchived", "data": { "CartId": "cart-1", "ItemId": "product-1" } }
-            ]
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
+              ]
+            },
+            { "type": "command", "when": { "CartId": "cart-1", "ProductId": "product-1" }, "produces": [{ "event": "ItemArchived", "data": { "CartId": "cart-1", "ItemId": "product-1" } }] }
+          ]
         }
       ]
     },
@@ -586,32 +533,23 @@
       "scenarios": [
         {
           "name": "Successfully remove item from cart",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
-          ],
-          "when": {
-            "ItemId": "item-1",
-            "CartId": "cart-1"
-          },
-          "then": {
-            "produces": [
-              { "event": "ItemRemoved", "data": { "ItemId": "item-1", "CartId": "cart-1" } }
-            ]
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } }
+              ]
+            },
+            { "type": "command", "when": { "ItemId": "item-1", "CartId": "cart-1" }, "produces": [{ "event": "ItemRemoved", "data": { "ItemId": "item-1", "CartId": "cart-1" } }] }
+          ]
         },
         {
           "name": "Reject removal of non-existent item",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } }
-          ],
-          "when": {
-            "ItemId": "non-existent-item",
-            "CartId": "cart-1"
-          },
-          "then": {
-            "fails": "ItemCanNotBeRemovedException: Item can not be removed, since it is not part of the list"
-          }
+          "steps": [
+            { "type": "events-only", "events": [{ "event": "CartCreated", "data": { "CartId": "cart-1" } }] },
+            { "type": "command", "when": { "ItemId": "non-existent-item", "CartId": "cart-1" }, "fails": "ItemCanNotBeRemovedException: Item can not be removed, since it is not part of the list" }
+          ]
         }
       ]
     },
@@ -621,19 +559,17 @@
       "scenarios": [
         {
           "name": "Clear all items from cart",
-          "given": [
-            { "event": "CartCreated", "data": { "CartId": "cart-1" } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } },
-            { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-2", "ProductId": "product-2", "Price": 49.99 } }
-          ],
-          "when": {
-            "CartId": "cart-1"
-          },
-          "then": {
-            "produces": [
-              { "event": "CartCleared", "data": { "CartId": "cart-1" } }
-            ]
-          }
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                { "event": "CartCreated", "data": { "CartId": "cart-1" } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-1", "ProductId": "product-1", "Price": 29.99 } },
+                { "event": "ItemAdded", "data": { "CartId": "cart-1", "ItemId": "item-2", "ProductId": "product-2", "Price": 49.99 } }
+              ]
+            },
+            { "type": "command", "when": { "CartId": "cart-1" }, "produces": [{ "event": "CartCleared", "data": { "CartId": "cart-1" } }] }
+          ]
         }
       ]
     }

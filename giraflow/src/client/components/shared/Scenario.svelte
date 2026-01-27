@@ -1,41 +1,53 @@
 <script lang="ts">
-  import type { CommandScenario, StateViewScenario } from '../../lib/types';
+  import type { CommandScenario, StateViewScenario, CommandEvolutionScenario } from '../../lib/types';
   import { modelStore } from '../../stores/model.svelte';
   import JsonDisplay from './JsonDisplay.svelte';
 
   interface Props {
-    scenario: CommandScenario | StateViewScenario;
+    scenario: CommandScenario | StateViewScenario | CommandEvolutionScenario;
     type: 'command' | 'state';
-    timelineTick?: number;
     sliceName?: string;
   }
 
-  let { scenario, type, timelineTick, sliceName }: Props = $props();
+  let { scenario, type, sliceName }: Props = $props();
 
-  function isCommandScenario(s: CommandScenario | StateViewScenario): s is CommandScenario {
-    return 'then' in s && typeof s.then === 'object' && s.then !== null && ('produces' in s.then || 'fails' in s.then);
+  // Timeline evolution uses 'rows' with command.name/data and producedEvents
+  function isCommandEvolutionScenario(s: CommandScenario | StateViewScenario | CommandEvolutionScenario): s is CommandEvolutionScenario {
+    return 'rows' in s && Array.isArray(s.rows);
   }
 
-  let isCommand = $derived(isCommandScenario(scenario));
-  let commandScenario = $derived(isCommand ? scenario as CommandScenario : null);
-  let stateScenario = $derived(!isCommand ? scenario as StateViewScenario : null);
+  // Explicit command scenarios use 'steps' with type/when/produces
+  function isCommandStepsScenario(s: CommandScenario | StateViewScenario | CommandEvolutionScenario): s is CommandScenario {
+    return 'steps' in s && Array.isArray(s.steps) && s.steps.length > 0 && 'type' in s.steps[0];
+  }
 
-  let isSuccess = $derived(
-    commandScenario ? !commandScenario.then.fails : true
-  );
+  // State view scenarios use 'steps' with given/then structure
+  function isStateViewScenario(s: CommandScenario | StateViewScenario | CommandEvolutionScenario): s is StateViewScenario {
+    return 'steps' in s && Array.isArray(s.steps) && s.steps.length > 0 && 'given' in s.steps[0];
+  }
+
+  let commandEvolutionScenario = $derived(isCommandEvolutionScenario(scenario) ? scenario : null);
+  let commandStepsScenario = $derived(isCommandStepsScenario(scenario) ? scenario : null);
+  let stateScenario = $derived(isStateViewScenario(scenario) ? scenario : null);
+
+  // Check if any step has a failure
+  let isSuccess = $derived(() => {
+    if (commandStepsScenario) {
+      return !commandStepsScenario.steps.some(step => step.type === 'command' && step.fails);
+    }
+    if (commandEvolutionScenario) {
+      return !commandEvolutionScenario.rows.some(row => row.type === 'command' && row.fails);
+    }
+    return true;
+  });
 </script>
 
 <details class="scenario" open={modelStore.expandAll}>
   <summary class="scenario-header">
-    <span class="icon" class:success={isSuccess} class:failure={!isSuccess}>
-      {isSuccess ? '✓' : '✗'}
+    <span class="icon" class:success={isSuccess()} class:failure={!isSuccess()}>
+      {isSuccess() ? '✓' : '✗'}
     </span>
     <span class="name">{scenario.name}</span>
-    {#if timelineTick !== undefined}
-      <button class="nav-to-timeline" onclick={(e) => { e.preventDefault(); e.stopPropagation(); modelStore.navigateToTick(timelineTick!); }}>
-        → Timeline
-      </button>
-    {/if}
   </summary>
 
   <div class="scenario-body">
@@ -54,7 +66,6 @@
               </div>
               <div class="arrow">→</div>
               <div class="state-column">
-                <span class="state">◆ State</span>
                 <JsonDisplay data={step.then} class="scenario-json" />
               </div>
             </div>
@@ -63,56 +74,116 @@
       </div>
     {/if}
 
-    <!-- GIVEN (for commands) -->
-    {#if commandScenario && commandScenario.given.length > 0}
+    <!-- STEPS (for command evolution scenarios - chronological timeline with command.name/data) -->
+    {#if commandEvolutionScenario}
       <div class="scenario-step">
-        <span class="label">Given</span>
-        <div class="step-items">
-          {#each commandScenario.given as ref}
-            <div class="step-item">
-              <span class="event">● {ref.event}</span>
-              {#if ref.data}
-                <JsonDisplay data={ref.data} class="scenario-json" />
-              {/if}
+        <span class="label">Steps</span>
+        <div class="timeline-evolution">
+          {#each commandEvolutionScenario.rows as row}
+            <div class="timeline-row">
+              <!-- Left column: Command (or empty) -->
+              <div class="command-column">
+                {#if row.type === 'command' && row.command}
+                  <span class="command">▶ {row.command.name}</span>
+                  {#if row.command.data}
+                    <JsonDisplay data={row.command.data} class="scenario-json" />
+                  {/if}
+                {/if}
+              </div>
+
+              <!-- Right column: Events -->
+              <div class="events-column">
+                {#if row.type === 'events-only' && row.events}
+                  <!-- Context events (no border) -->
+                  {#each row.events as eventRef}
+                    <div class="event-item">
+                      <span class="event">● {eventRef.event}</span>
+                      {#if eventRef.data}
+                        <JsonDisplay data={eventRef.data} class="scenario-json" />
+                      {/if}
+                    </div>
+                  {/each}
+                {:else if row.type === 'command'}
+                  {#if row.fails}
+                    <div class="produced-box failure">
+                      <span class="error">✗ {row.fails}</span>
+                    </div>
+                  {:else if row.producedEvents && row.producedEvents.length > 0}
+                    <!-- Produced events (with border) -->
+                    <div class="produced-box">
+                      {#each row.producedEvents as eventRef}
+                        <div class="event-item">
+                          <span class="event">● {eventRef.event}</span>
+                          {#if eventRef.data}
+                            <JsonDisplay data={eventRef.data} class="scenario-json" />
+                          {/if}
+                        </div>
+                      {/each}
+                    </div>
+                  {:else}
+                    <span class="muted">(no events)</span>
+                  {/if}
+                {/if}
+              </div>
             </div>
           {/each}
         </div>
       </div>
     {/if}
 
-    <!-- WHEN (for commands) -->
-    {#if commandScenario?.when !== undefined}
+    <!-- STEPS (for explicit command scenarios - with sliceName and when/produces) -->
+    {#if commandStepsScenario}
       <div class="scenario-step">
-        <span class="label">When</span>
-        <div class="step-items">
-          <div class="step-item">
-            <span class="command">▶ {sliceName || 'Command'}</span>
-            <JsonDisplay data={commandScenario.when} class="scenario-json" />
-          </div>
-        </div>
-      </div>
-    {/if}
-
-    <!-- THEN (for commands) -->
-    {#if commandScenario}
-      <div class="scenario-step">
-        <span class="label">Then</span>
-        <div class="step-items">
-          {#if commandScenario.then.produces && commandScenario.then.produces.length > 0}
-            {#each commandScenario.then.produces as ref}
-              <div class="step-item">
-                <span class="event">● {ref.event}</span>
-                {#if ref.data}
-                  <JsonDisplay data={ref.data} class="scenario-json" />
+        <span class="label">Steps</span>
+        <div class="timeline-evolution">
+          {#each commandStepsScenario.steps as step}
+            <div class="timeline-row">
+              <!-- Left column: Command with sliceName (or empty for events-only) -->
+              <div class="command-column">
+                {#if step.type === 'command'}
+                  <span class="command">▶ {sliceName || 'Command'}</span>
+                  {#if step.when !== undefined}
+                    <JsonDisplay data={step.when} class="scenario-json" />
+                  {/if}
                 {/if}
               </div>
-            {/each}
-          {/if}
-          {#if commandScenario.then.fails}
-            <div class="step-item">
-              <span class="error">✗ Fails: {commandScenario.then.fails}</span>
+
+              <!-- Right column: Events -->
+              <div class="events-column">
+                {#if step.type === 'events-only' && step.events}
+                  <!-- Context events (no border) -->
+                  {#each step.events as eventRef}
+                    <div class="event-item">
+                      <span class="event">● {eventRef.event}</span>
+                      {#if eventRef.data}
+                        <JsonDisplay data={eventRef.data} class="scenario-json" />
+                      {/if}
+                    </div>
+                  {/each}
+                {:else if step.type === 'command'}
+                  {#if step.fails}
+                    <div class="produced-box failure">
+                      <span class="error">✗ {step.fails}</span>
+                    </div>
+                  {:else if step.produces && step.produces.length > 0}
+                    <!-- Produced events (with border) -->
+                    <div class="produced-box">
+                      {#each step.produces as eventRef}
+                        <div class="event-item">
+                          <span class="event">● {eventRef.event}</span>
+                          {#if eventRef.data}
+                            <JsonDisplay data={eventRef.data} class="scenario-json" />
+                          {/if}
+                        </div>
+                      {/each}
+                    </div>
+                  {:else}
+                    <span class="muted">(no events)</span>
+                  {/if}
+                {/if}
+              </div>
             </div>
-          {/if}
+          {/each}
         </div>
       </div>
     {/if}
@@ -174,22 +245,6 @@
     color: var(--color-warning);
   }
 
-  .scenario-header .nav-to-timeline {
-    margin-left: auto;
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 0.25rem;
-    color: var(--text-secondary);
-    font-size: 0.7rem;
-    padding: 0.15rem 0.5rem;
-    cursor: pointer;
-  }
-
-  .scenario-header .nav-to-timeline:hover {
-    color: var(--color-warning);
-    border-color: var(--color-warning);
-  }
-
   .scenario-body {
     padding: 0 1rem 1rem 1rem;
     border-top: 1px solid var(--border);
@@ -210,22 +265,73 @@
     margin-bottom: 0.5rem;
   }
 
-  .step-items {
+  .steps-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .timeline-evolution {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
   }
 
-  .step-item {
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .timeline-row:last-child {
+    border-bottom: none;
+  }
+
+  .command-column {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
   }
 
-  .steps-grid {
+  .command-column .command {
+    color: var(--color-command);
+    font-weight: 500;
+  }
+
+  .events-column {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.25rem;
+  }
+
+  .events-column .event {
+    color: var(--color-event);
+    font-weight: 500;
+  }
+
+  /* Rahmen für produzierte Events */
+  .produced-box {
+    border: 2px solid var(--color-event);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+  }
+
+  .produced-box.failure {
+    border-color: var(--color-error);
+  }
+
+  .produced-box .error {
+    color: var(--color-error);
+    font-weight: 500;
+  }
+
+  .event-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 
   .step-row {
@@ -242,6 +348,11 @@
     gap: 0.25rem;
   }
 
+  .muted {
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
   .arrow {
     color: var(--text-secondary);
     font-size: 1.25rem;
@@ -250,26 +361,6 @@
 
   .event-column .event {
     color: var(--color-event);
-    font-weight: 500;
-  }
-
-  .state-column .state {
-    color: var(--color-state);
-    font-weight: 500;
-  }
-
-  .step-item .event {
-    color: var(--color-event);
-    font-weight: 500;
-  }
-
-  .step-item .command {
-    color: var(--color-command);
-    font-weight: 500;
-  }
-
-  .step-item .error {
-    color: var(--color-error);
     font-weight: 500;
   }
 

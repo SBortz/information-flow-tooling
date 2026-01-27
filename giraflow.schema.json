@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://information-flow-tooling.org/schema/v1",
-  "title": "Information Flow Schema",
-  "description": "A human-readable format for describing event-driven systems using the Information Flow methodology.",
+  "$id": "https://github.com/SBortz/giraflow/blob/main/giraflow.schema.json",
+  "title": "Giraflow Schema",
+  "description": "A human-readable format for describing event-driven systems using Event Modeling.",
   "type": "object",
   
   "required": ["name", "timeline"],
@@ -95,49 +95,63 @@
       }
     },
 
+    "CommandScenarioStep": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Context events step",
+          "required": ["type", "events"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "events-only" },
+            "events": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/EventReference" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Command execution step (success)",
+          "required": ["type", "when", "produces"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "command" },
+            "when": { "description": "Command input/payload" },
+            "produces": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/EventReference" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Command execution step (failure)",
+          "required": ["type", "when", "fails"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "command" },
+            "when": { "description": "Command input/payload" },
+            "fails": { "type": "string" }
+          }
+        }
+      ]
+    },
+
     "CommandScenario": {
       "type": "object",
-      "description": "A Given-When-Then scenario describing command behavior",
-      "required": ["name", "given", "when", "then"],
+      "description": "A scenario describing command behavior with context events and outcomes",
+      "required": ["name", "steps"],
+      "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string",
-          "description": "Descriptive name of the scenario (e.g. 'Successfully place order', 'Reject duplicate order')"
+          "description": "Descriptive name of the scenario"
         },
-        "given": {
+        "steps": {
           "type": "array",
-          "description": "Pre-existing events that establish the preconditions",
-          "items": { "$ref": "#/$defs/EventReference" }
-        },
-        "when": {
-          "description": "The command input/payload for this scenario"
-        },
-        "then": {
-          "oneOf": [
-            {
-              "type": "object",
-              "description": "Successful outcome producing events",
-              "required": ["produces"],
-              "properties": {
-                "produces": {
-                  "type": "array",
-                  "description": "Events that should be produced",
-                  "items": { "$ref": "#/$defs/EventReference" }
-                }
-              }
-            },
-            {
-              "type": "object",
-              "description": "Failure outcome",
-              "required": ["fails"],
-              "properties": {
-                "fails": {
-                  "type": "string",
-                  "description": "Expected error or rejection reason"
-                }
-              }
-            }
-          ]
+          "description": "Sequence of context events and command executions",
+          "items": { "$ref": "#/$defs/CommandScenarioStep" }
         }
       }
     },
