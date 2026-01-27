@@ -29,24 +29,10 @@
   let timelineScenario = $derived(isTimelineScenario(scenario) ? scenario : null);
   let commandStepsScenario = $derived(isCommandStepsScenario(scenario) ? scenario : null);
   let stateScenario = $derived(isStateViewScenario(scenario) ? scenario : null);
-
-  // Check if any step has a failure
-  let isSuccess = $derived(() => {
-    if (commandStepsScenario) {
-      return !commandStepsScenario.steps.some(step => step.type === 'command' && step.fails);
-    }
-    if (timelineScenario) {
-      return !timelineScenario.rows.some(row => row.type === 'command' && row.fails);
-    }
-    return true;
-  });
 </script>
 
 <details class="scenario" open={modelStore.expandAll}>
   <summary class="scenario-header">
-    <span class="icon" class:success={isSuccess()} class:failure={!isSuccess()}>
-      {isSuccess() ? '✓' : '✗'}
-    </span>
     <span class="name">{scenario.name}</span>
   </summary>
 
@@ -227,18 +213,6 @@
 
   .scenario-header:hover {
     background: var(--bg-secondary);
-  }
-
-  .scenario-header .icon {
-    font-size: 1rem;
-  }
-
-  .scenario-header .icon.success {
-    color: var(--color-success);
-  }
-
-  .scenario-header .icon.failure {
-    color: var(--color-error);
   }
 
   .scenario-header .name {
