@@ -35,7 +35,7 @@ export interface StateViewScenario {
   steps: ScenarioStep[];
 }
 
-export interface TimelineEvolutionRow {
+export interface TimelineScenarioRow {
   type: 'events-only' | 'command';
   // Für events-only Zeilen:
   events?: EventReference[];
@@ -45,9 +45,9 @@ export interface TimelineEvolutionRow {
   fails?: string;
 }
 
-export interface CommandEvolutionScenario {
+export interface TimelineScenario {
   name: string;
-  rows: TimelineEvolutionRow[];
+  rows: TimelineScenarioRow[];
 }
 
 export interface Attachment {

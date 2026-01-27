@@ -1,32 +1,32 @@
 <script lang="ts">
-  import type { CommandScenario, StateViewScenario, CommandEvolutionScenario } from '../../lib/types';
+  import type { CommandScenario, StateViewScenario, TimelineScenario } from '../../lib/types';
   import { modelStore } from '../../stores/model.svelte';
   import JsonDisplay from './JsonDisplay.svelte';
 
   interface Props {
-    scenario: CommandScenario | StateViewScenario | CommandEvolutionScenario;
+    scenario: CommandScenario | StateViewScenario | TimelineScenario;
     type: 'command' | 'state';
     sliceName?: string;
   }
 
   let { scenario, type, sliceName }: Props = $props();
 
-  // Timeline evolution uses 'rows' with command.name/data and producedEvents
-  function isCommandEvolutionScenario(s: CommandScenario | StateViewScenario | CommandEvolutionScenario): s is CommandEvolutionScenario {
+  // Timeline scenario uses 'rows' with command.name/data and producedEvents
+  function isTimelineScenario(s: CommandScenario | StateViewScenario | TimelineScenario): s is TimelineScenario {
     return 'rows' in s && Array.isArray(s.rows);
   }
 
   // Explicit command scenarios use 'steps' with type/when/produces
-  function isCommandStepsScenario(s: CommandScenario | StateViewScenario | CommandEvolutionScenario): s is CommandScenario {
+  function isCommandStepsScenario(s: CommandScenario | StateViewScenario | TimelineScenario): s is CommandScenario {
     return 'steps' in s && Array.isArray(s.steps) && s.steps.length > 0 && 'type' in s.steps[0];
   }
 
   // State view scenarios use 'steps' with given/then structure
-  function isStateViewScenario(s: CommandScenario | StateViewScenario | CommandEvolutionScenario): s is StateViewScenario {
+  function isStateViewScenario(s: CommandScenario | StateViewScenario | TimelineScenario): s is StateViewScenario {
     return 'steps' in s && Array.isArray(s.steps) && s.steps.length > 0 && 'given' in s.steps[0];
   }
 
-  let commandEvolutionScenario = $derived(isCommandEvolutionScenario(scenario) ? scenario : null);
+  let timelineScenario = $derived(isTimelineScenario(scenario) ? scenario : null);
   let commandStepsScenario = $derived(isCommandStepsScenario(scenario) ? scenario : null);
   let stateScenario = $derived(isStateViewScenario(scenario) ? scenario : null);
 
@@ -35,8 +35,8 @@
     if (commandStepsScenario) {
       return !commandStepsScenario.steps.some(step => step.type === 'command' && step.fails);
     }
-    if (commandEvolutionScenario) {
-      return !commandEvolutionScenario.rows.some(row => row.type === 'command' && row.fails);
+    if (timelineScenario) {
+      return !timelineScenario.rows.some(row => row.type === 'command' && row.fails);
     }
     return true;
   });
@@ -74,12 +74,12 @@
       </div>
     {/if}
 
-    <!-- STEPS (for command evolution scenarios - chronological timeline with command.name/data) -->
-    {#if commandEvolutionScenario}
+    <!-- STEPS (for timeline scenarios - chronological timeline with command.name/data) -->
+    {#if timelineScenario}
       <div class="scenario-step">
         <span class="label">Steps</span>
-        <div class="timeline-evolution">
-          {#each commandEvolutionScenario.rows as row}
+        <div class="timeline-scenario">
+          {#each timelineScenario.rows as row}
             <div class="timeline-row">
               <!-- Left column: Command (or empty) -->
               <div class="command-column">
@@ -135,7 +135,7 @@
     {#if commandStepsScenario}
       <div class="scenario-step">
         <span class="label">Steps</span>
-        <div class="timeline-evolution">
+        <div class="timeline-scenario">
           {#each commandStepsScenario.steps as step}
             <div class="timeline-row">
               <!-- Left column: Command with sliceName (or empty for events-only) -->
@@ -271,7 +271,7 @@
     gap: 1rem;
   }
 
-  .timeline-evolution {
+  .timeline-scenario {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;

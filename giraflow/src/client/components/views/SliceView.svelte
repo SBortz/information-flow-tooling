@@ -1,6 +1,6 @@
 <script lang="ts">
   import { modelStore } from '../../stores/model.svelte';
-  import type { StateView, Command, Event, Actor, Attachment, CommandScenario, StateViewScenario, CommandEvolutionScenario, TimelineEvolutionRow } from '../../lib/types';
+  import type { StateView, Command, Event, Actor, Attachment, CommandScenario, StateViewScenario, TimelineScenario, TimelineScenarioRow } from '../../lib/types';
   import { isState, isCommand, isEvent } from '../../lib/types';
   import JsonDisplay from '../shared/JsonDisplay.svelte';
   import Scenario from '../shared/Scenario.svelte';
@@ -11,7 +11,7 @@
     ticks: number[];
     sourcedFrom: string[];
     attachments: Attachment[];
-    scenarios: (CommandScenario | StateViewScenario | CommandEvolutionScenario)[];
+    scenarios: (CommandScenario | StateViewScenario | TimelineScenario)[];
     specScenarioCount: number;
     stateOccurrences: { tick: number; state: StateView }[];
     commandOccurrences: { tick: number; command: Command; producedEvents: Event[] }[];
@@ -81,16 +81,16 @@
           };
         });
         slice.scenarios.push({
-          name: 'Timeline Evolution',
+          name: 'Timeline Scenario',
           steps
         });
       }
     }
 
-    // Convert command occurrences to chronological timeline evolution
+    // Convert command occurrences to chronological timeline scenario
     for (const [, slice] of seen) {
       if (slice.type === 'command' && slice.commandOccurrences.length > 0) {
-        const rows: TimelineEvolutionRow[] = [];
+        const rows: TimelineScenarioRow[] = [];
         let lastTick = 0;
 
         for (const occ of slice.commandOccurrences) {
@@ -121,17 +121,17 @@
           lastTick = maxProducedTick;
         }
 
-        slice.scenarios.push({ name: 'Timeline Evolution', rows });
+        slice.scenarios.push({ name: 'Timeline Scenario', rows });
       }
     }
 
-    // Add spec scenarios (after Timeline Evolution for both states and commands)
+    // Add spec scenarios (after Timeline Scenario for both states and commands)
     for (const [, slice] of seen) {
       const specScenarios = modelStore.model?.specifications
         ?.find(s => s.name === slice.name && s.type === slice.type)
         ?.scenarios ?? [];
       slice.specScenarioCount = specScenarios.length;
-      // Timeline Evolution first, then spec scenarios
+      // Timeline Scenario first, then spec scenarios
       slice.scenarios = [...slice.scenarios, ...specScenarios];
     }
 
