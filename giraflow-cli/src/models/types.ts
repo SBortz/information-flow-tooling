@@ -16,30 +16,38 @@ export interface EventReference {
 }
 
 /**
- * The outcome of a command scenario - either produces events or fails
+ * A step in a command scenario
  */
-export interface CommandScenarioOutcome {
+export interface CommandScenarioStep {
+  type: 'events-only' | 'command';
+  events?: EventReference[];
+  when?: unknown;
   produces?: EventReference[];
   fails?: string;
 }
 
 /**
- * A Given-When-Then scenario for a command
+ * A step in a state view scenario
  */
-export interface CommandScenario {
-  name: string;
-  given: EventReference[];
-  when?: unknown;
-  then: CommandScenarioOutcome;
+export interface ScenarioStep {
+  given: { event: string; data?: unknown };
+  then: unknown;
 }
 
 /**
- * A Given-Then scenario for a state view
+ * A scenario for a command (step-based)
+ */
+export interface CommandScenario {
+  name: string;
+  steps: CommandScenarioStep[];
+}
+
+/**
+ * A scenario for a state view (step-based)
  */
 export interface StateViewScenario {
   name: string;
-  given: EventReference[];
-  then?: unknown;
+  steps: ScenarioStep[];
 }
 
 /**

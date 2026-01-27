@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import {
   InformationFlowModel,
-  TimelineElement,
   isEvent,
   isStateView,
   isCommand,
@@ -10,32 +9,9 @@ import {
   Command,
   Actor,
   isActor,
-  CommandScenario,
-  StateViewScenario,
-  Specification,
 } from '../models/types.js';
 import { colors, getElementStyle, box } from './colors.js';
 import { renderHeader } from './timeline.js';
-
-// Get terminal width for smart truncation
-const terminalWidth = process.stdout.columns || 80;
-
-/**
- * Get visible length of string (without ANSI codes)
- */
-function visibleLength(str: string): number {
-  return str.replace(/\x1b\[[0-9;]*m/g, '').length;
-}
-
-/**
- * Truncate string only if it exceeds available width
- */
-function smartTruncate(str: string, reservedChars: number = 10): string {
-  const maxLen = Math.min(terminalWidth - reservedChars, 80); // Cap at 80 for readability
-  const visible = visibleLength(str);
-  if (visible <= maxLen) return str;
-  return str.substring(0, maxLen - 3) + '...';
-}
 
 interface DeduplicatedSlice {
   name: string;
@@ -43,12 +19,11 @@ interface DeduplicatedSlice {
   ticks: number[];
   sourcedFrom: string[];
   attachments: { type: string; label: string; path?: string; url?: string; content?: string }[];
-  scenarios: (CommandScenario | StateViewScenario)[];
+  scenarios: Array<{ name: string }>;
 }
 
 function buildDeduplicatedSlices(model: InformationFlowModel): DeduplicatedSlice[] {
   const timeline = model.timeline;
-  const events = timeline.filter(isEvent) as Event[];
   const elements = timeline
     .filter(e => isStateView(e) || isCommand(e))
     .sort((a, b) => a.tick - b.tick) as (StateView | Command)[];
@@ -75,39 +50,14 @@ function buildDeduplicatedSlices(model: InformationFlowModel): DeduplicatedSlice
       }
     }
     if ((el as any).attachments) slice.attachments.push(...(el as any).attachments);
-
-    // Auto-scenario from each timeline occurrence
-    if (isStateView(el)) {
-      slice.scenarios.push({
-        name: `Occurrence from Timeline @${el.tick}`,
-        given: events
-          .filter(e => e.tick < el.tick && el.sourcedFrom.includes(e.name))
-          .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) })),
-        then: el.example
-      });
-    } else if (isCommand(el)) {
-      const producedEvents = events
-        .filter(e => e.producedBy === `${el.name}-${el.tick}`)
-        .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) }));
-      slice.scenarios.push({
-        name: `Occurrence from Timeline @${el.tick}`,
-        given: events
-          .filter(e => e.tick < el.tick)
-          .map(e => ({ event: e.name, ...(e.example ? { data: e.example } : {}) })),
-        when: el.example,
-        then: producedEvents.length > 0
-          ? { produces: producedEvents }
-          : { produces: [] }
-      });
-    }
   }
 
-  // Prepend spec scenarios
+  // Add explicit scenarios from specifications
   for (const [, slice] of seen) {
     const specScenarios = model.specifications
       ?.find(s => s.name === slice.name && s.type === slice.type)
       ?.scenarios ?? [];
-    slice.scenarios = [...specScenarios, ...slice.scenarios];
+    slice.scenarios = specScenarios.map(s => ({ name: s.name }));
   }
 
   return [...seen.values()];
@@ -145,78 +95,17 @@ export function renderSlice(model: InformationFlowModel): void {
 }
 
 /**
- * Render command scenarios (Given-When-Then)
+ * Render scenario names (simple list)
  */
-function renderCommandScenarios(scenarios: CommandScenario[], commandName: string): string[] {
+function renderScenarioNames(scenarios: Array<{ name: string }>): string[] {
   const lines: string[] = [];
-  lines.push(`${chalk.yellow.bold('Scenarios')} ${colors.dim(`(${scenarios.length})`)}`);
-  
-  for (const scenario of scenarios) {
-    // Scenario name with outcome indicator
-    const outcomeSymbol = scenario.then.fails ? colors.red('✗') : colors.green('✓');
-    lines.push(`  ${outcomeSymbol} ${colors.yellow(scenario.name)}`);
-    
-    // Given - one line per event with data
-    if (scenario.given.length > 0) {
-      lines.push(`      ${colors.dim('Given:')}`);
-      for (const ref of scenario.given) {
-        const dataJson = ref.data ? ` ${colors.grey(smartTruncate(JSON.stringify(ref.data), 20))}` : '';
-        lines.push(`        ${colors.event(ref.event)}${dataJson}`);
-      }
-    } else {
-      lines.push(`      ${colors.dim('Given:')} ${chalk.dim.italic('(keine Vorbedingungen)')}`);
-    }
-    
-    // When - with command name
-    if (scenario.when) {
-      const whenJson = JSON.stringify(scenario.when);
-      lines.push(`      ${colors.dim('When:')} ${colors.command(commandName)} ${colors.grey(smartTruncate(whenJson, 20))}`);
-    }
-    
-    // Then - with event data
-    if (scenario.then.fails) {
-      lines.push(`      ${colors.dim('Then:')} ${colors.red('✗ ' + scenario.then.fails)}`);
-    } else if (scenario.then.produces && scenario.then.produces.length > 0) {
-      lines.push(`      ${colors.dim('Then:')}`);
-      for (const ref of scenario.then.produces) {
-        const dataJson = ref.data ? ` ${colors.grey(smartTruncate(JSON.stringify(ref.data), 20))}` : '';
-        lines.push(`        → ${colors.event(ref.event)}${dataJson}`);
-      }
-    }
-  }
-  
-  return lines;
-}
+  if (scenarios.length === 0) return lines;
 
-/**
- * Render state view scenarios (Given-Then)
- */
-function renderStateViewScenarios(scenarios: StateViewScenario[]): string[] {
-  const lines: string[] = [];
+  lines.push('');
   lines.push(`${chalk.yellow.bold('Scenarios')} ${colors.dim(`(${scenarios.length})`)}`);
-  
   for (const scenario of scenarios) {
-    // Scenario name
-    lines.push(`  ${colors.state('◇')} ${colors.yellow(scenario.name)}`);
-    
-    // Given - one line per event with data
-    if (scenario.given.length > 0) {
-      lines.push(`      ${colors.dim('Given:')}`);
-      for (const ref of scenario.given) {
-        const dataJson = ref.data ? ` ${colors.grey(smartTruncate(JSON.stringify(ref.data), 20))}` : '';
-        lines.push(`        ${colors.event(ref.event)}${dataJson}`);
-      }
-    } else {
-      lines.push(`      ${colors.dim('Given:')} ${chalk.dim.italic('(keine Events)')}`);
-    }
-    
-    // Then
-    if (scenario.then) {
-      const thenJson = JSON.stringify(scenario.then);
-      lines.push(`      ${colors.dim('Then:')} ${colors.grey(smartTruncate(thenJson, 14))}`);
-    }
+    lines.push(`  • ${colors.yellow(scenario.name)}`);
   }
-  
   return lines;
 }
 
@@ -276,11 +165,7 @@ function renderDeduplicatedSlicePanel(
 
   // Scenarios
   if (slice.scenarios.length > 0) {
-    if (slice.type === 'state') {
-      scenarioLines = renderStateViewScenarios(slice.scenarios as StateViewScenario[]);
-    } else {
-      scenarioLines = renderCommandScenarios(slice.scenarios as CommandScenario[], slice.name);
-    }
+    scenarioLines = renderScenarioNames(slice.scenarios);
   }
 
   // Build panel content
