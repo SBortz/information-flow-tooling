@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2025-01-27
+
+
+### Breaking Changes
+- **Moved cli functionality to giraflow live preview**: Instead of maintaining 2 different tools, the giraflow command was equipped with the cli functionality. The giraflow-cli package was removed from the project.
+- **copy-schema**: With the copy-schema command you can copy the schema to the directory you're in currently.
+
+
 ## [0.2.2] - 2025-01-27
 
 ### Breaking Changes
