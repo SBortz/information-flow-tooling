@@ -30,6 +30,7 @@
       command: Command;
       producedEvents: Event[];
     }[];
+    example?: any;
   }
 
   let deduplicatedSlices = $derived(buildDeduplicatedSlices());
@@ -83,6 +84,11 @@
       }
       const slice = seen.get(key)!;
       slice.ticks.push(el.tick);
+
+      // Capture example if not yet set
+      if (!slice.example && el.example) {
+        slice.example = el.example;
+      }
 
       if (isState(el)) {
         for (const s of el.sourcedFrom) {
@@ -261,163 +267,176 @@
   <section class="main-content">
     {#if selectedSlice}
       <div class="slice-detail-view">
-        <header class="detail-header {selectedSlice.type}">
-          <div class="title-group">
-            <span class="symbol {selectedSlice.type}"
-              >{selectedSlice.type === "state" ? "◆" : "▶"}</span
-            >
-            <h1>{selectedSlice.name}</h1>
-            <span class="type-badge {selectedSlice.type}"
-              >{selectedSlice.type}</span
-            >
-          </div>
-        </header>
+        <div class="slice-card {selectedSlice.type}">
+          <header class="detail-header {selectedSlice.type}">
+            <div class="title-group">
+              <span class="symbol {selectedSlice.type}"
+                >{selectedSlice.type === "state" ? "◆" : "▶"}</span
+              >
+              <h1>{selectedSlice.name}</h1>
+              <span class="type-badge {selectedSlice.type}"
+                >{selectedSlice.type}</span
+              >
+            </div>
 
-        <div class="detail-body">
-          <div class="slice-details">
-            {#if selectedSlice.type === "state"}
-              {#if selectedSlice.sourcedFrom.length > 0}
-                <div class="detail-section">
-                  <h4>Sourced From</h4>
-                  {#each selectedSlice.sourcedFrom as source}
-                    <div class="detail-item">
-                      <span class="event">● {source.name}</span>
-                      <span class="ticks-group">
-                        {#each source.ticks as tick, i}
-                          <button
-                            class="tick-ref-link"
-                            onclick={() => modelStore.navigateToTick(tick)}
+            {#if selectedSlice.example}
+              <div class="slice-example">
+                <JsonDisplay data={selectedSlice.example} />
+              </div>
+            {/if}
+          </header>
+
+          <div class="detail-body">
+            <div class="slice-details">
+              {#if selectedSlice.type === "state"}
+                {#if selectedSlice.sourcedFrom.length > 0}
+                  <div class="detail-section">
+                    <h4>Sourced From</h4>
+                    {#each selectedSlice.sourcedFrom as source}
+                      <div class="detail-item">
+                        <span class="event">● {source.name}</span>
+                        <span class="ticks-group">
+                          {#each source.ticks as tick, i}
+                            <button
+                              class="tick-ref-link"
+                              onclick={() => modelStore.navigateToTick(tick)}
+                            >
+                              @{tick}
+                            </button>
+                          {/each}
+                        </span>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+
+                {@const readingActors = getReadingActors(selectedSlice.name)}
+                {#if readingActors.length > 0}
+                  <div class="detail-section">
+                    <h4>Read By</h4>
+                    {#each readingActors as actor}
+                      <div class="detail-item">
+                        <span class="actor">○ {actor.name}</span>
+                        <button
+                          class="tick-ref-link"
+                          onclick={() => modelStore.navigateToTick(actor.tick)}
+                        >
+                          @{actor.tick}
+                        </button>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              {:else}
+                {@const triggeringActors = getTriggeringActors(
+                  selectedSlice.name,
+                )}
+                {#if triggeringActors.length > 0}
+                  <div class="detail-section">
+                    <h4>Triggered By</h4>
+                    {#each triggeringActors as actor}
+                      <div class="detail-item">
+                        <span class="actor">○ {actor.name}</span>
+                        <button
+                          class="tick-ref-link"
+                          onclick={() => modelStore.navigateToTick(actor.tick)}
+                        >
+                          @{actor.tick}
+                        </button>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+
+                {#if selectedSlice.produces.length > 0}
+                  <div class="detail-section">
+                    <h4>Produces</h4>
+                    {#each selectedSlice.produces as produced}
+                      <div class="detail-item">
+                        <span class="event">● {produced.name}</span>
+                        <span class="ticks-group">
+                          {#each produced.ticks as tick, i}
+                            <button
+                              class="tick-ref-link"
+                              onclick={() => modelStore.navigateToTick(tick)}
+                            >
+                              @{tick}
+                            </button>
+                          {/each}
+                        </span>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              {/if}
+            </div>
+
+            {#if selectedSlice.attachments.length > 0}
+              <div class="attachments">
+                <h3>Attachments ({selectedSlice.attachments.length})</h3>
+                <div class="attachment-list">
+                  {#each selectedSlice.attachments as attachment}
+                    <div class="attachment-item {attachment.type}">
+                      {#if attachment.type === "image" && attachment.path}
+                        <figure>
+                          <img
+                            src="/attachments/{attachment.path}"
+                            alt={attachment.label}
+                          />
+                          <figcaption>{attachment.label}</figcaption>
+                        </figure>
+                      {:else if attachment.type === "link" && attachment.url}
+                        <a
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <span class="attachment-icon">🔗</span>
+                          {attachment.label}
+                        </a>
+                      {:else if attachment.type === "note" && attachment.content}
+                        <div class="attachment-note">
+                          <span class="attachment-label"
+                            >{attachment.label}</span
                           >
-                            @{tick}
-                          </button>
-                        {/each}
-                      </span>
+                          <p>{attachment.content}</p>
+                        </div>
+                      {:else if attachment.type === "file" && attachment.path}
+                        <a
+                          href="/attachments/{attachment.path}"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="attachment-file"
+                        >
+                          <span class="attachment-icon">📄</span>
+                          {attachment.label}
+                          <span class="attachment-path">{attachment.path}</span>
+                        </a>
+                      {/if}
                     </div>
                   {/each}
                 </div>
-              {/if}
-
-              {@const readingActors = getReadingActors(selectedSlice.name)}
-              {#if readingActors.length > 0}
-                <div class="detail-section">
-                  <h4>Read By</h4>
-                  {#each readingActors as actor}
-                    <div class="detail-item">
-                      <span class="actor">○ {actor.name}</span>
-                      <button
-                        class="tick-ref-link"
-                        onclick={() => modelStore.navigateToTick(actor.tick)}
-                      >
-                        @{actor.tick}
-                      </button>
-                    </div>
-                  {/each}
-                </div>
-              {/if}
-            {:else}
-              {@const triggeringActors = getTriggeringActors(
-                selectedSlice.name,
-              )}
-              {#if triggeringActors.length > 0}
-                <div class="detail-section">
-                  <h4>Triggered By</h4>
-                  {#each triggeringActors as actor}
-                    <div class="detail-item">
-                      <span class="actor">○ {actor.name}</span>
-                      <button
-                        class="tick-ref-link"
-                        onclick={() => modelStore.navigateToTick(actor.tick)}
-                      >
-                        @{actor.tick}
-                      </button>
-                    </div>
-                  {/each}
-                </div>
-              {/if}
-
-              {#if selectedSlice.produces.length > 0}
-                <div class="detail-section">
-                  <h4>Produces</h4>
-                  {#each selectedSlice.produces as produced}
-                    <div class="detail-item">
-                      <span class="event">● {produced.name}</span>
-                      <span class="ticks-group">
-                        {#each produced.ticks as tick, i}
-                          <button
-                            class="tick-ref-link"
-                            onclick={() => modelStore.navigateToTick(tick)}
-                          >
-                            @{tick}
-                          </button>
-                        {/each}
-                      </span>
-                    </div>
-                  {/each}
-                </div>
-              {/if}
+              </div>
             {/if}
           </div>
-
-          {#if selectedSlice.attachments.length > 0}
-            <div class="attachments">
-              <h3>Attachments ({selectedSlice.attachments.length})</h3>
-              <div class="attachment-list">
-                {#each selectedSlice.attachments as attachment}
-                  <div class="attachment-item {attachment.type}">
-                    {#if attachment.type === "image" && attachment.path}
-                      <figure>
-                        <img
-                          src="/attachments/{attachment.path}"
-                          alt={attachment.label}
-                        />
-                        <figcaption>{attachment.label}</figcaption>
-                      </figure>
-                    {:else if attachment.type === "link" && attachment.url}
-                      <a
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <span class="attachment-icon">🔗</span>
-                        {attachment.label}
-                      </a>
-                    {:else if attachment.type === "note" && attachment.content}
-                      <div class="attachment-note">
-                        <span class="attachment-label">{attachment.label}</span>
-                        <p>{attachment.content}</p>
-                      </div>
-                    {:else if attachment.type === "file" && attachment.path}
-                      <a
-                        href="/attachments/{attachment.path}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="attachment-file"
-                      >
-                        <span class="attachment-icon">📄</span>
-                        {attachment.label}
-                        <span class="attachment-path">{attachment.path}</span>
-                      </a>
-                    {/if}
-                  </div>
-                {/each}
-              </div>
-            </div>
-          {/if}
-
-          {#if selectedSlice.scenarios.length > 0}
-            <div class="scenarios">
-              <h3>Scenarios ({selectedSlice.scenarios.length})</h3>
-              {#each selectedSlice.scenarios as scenario}
-                <Scenario
-                  {scenario}
-                  type={selectedSlice.type}
-                  sliceName={selectedSlice.name}
-                />
-              {/each}
-            </div>
-          {/if}
+          <!-- End detail-body -->
         </div>
+        <!-- End slice-card -->
+
+        {#if selectedSlice.scenarios.length > 0}
+          <div class="scenarios">
+            <h3>Scenarios ({selectedSlice.scenarios.length})</h3>
+            {#each selectedSlice.scenarios as scenario}
+              <Scenario
+                {scenario}
+                type={selectedSlice.type}
+                sliceName={selectedSlice.name}
+              />
+            {/each}
+          </div>
+        {/if}
       </div>
+      <!-- End slice-detail-view -->
     {:else}
       <div class="empty-state">
         <p>Select a slice from the sidebar to view details</p>
@@ -437,7 +456,7 @@
 
   /* Sidebar */
   .sidebar {
-    width: 300px;
+    width: 380px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -543,32 +562,40 @@
     flex: 1;
     overflow-y: auto;
     background: var(--bg-primary);
+    padding: 2rem;
   }
 
   .slice-detail-view {
     padding: 0;
-    max-width: 900px;
+    max-width: 1400px;
     margin: 0 auto;
   }
 
+  .slice-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
   .detail-header {
-    padding: 2rem 2rem 1.5rem;
+    padding: 1.5rem 2rem;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
   }
 
   .detail-header.state {
     background: linear-gradient(
       to bottom,
-      transparent,
-      rgba(59, 130, 246, 0.05)
+      var(--bg-card),
+      rgba(59, 130, 246, 0.02)
     );
   }
   .detail-header.command {
     background: linear-gradient(
       to bottom,
-      transparent,
-      rgba(239, 68, 68, 0.05)
+      var(--bg-card),
+      rgba(239, 68, 68, 0.02)
     );
   }
 
@@ -576,7 +603,16 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .slice-example {
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border-radius: 0.375rem;
+    border: 1px solid var(--border);
   }
 
   .detail-header h1 {
@@ -669,7 +705,7 @@
   }
 
   .detail-body {
-    padding: 0 2rem 4rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: 2rem;
@@ -798,8 +834,8 @@
 
   /* Scenarios */
   .scenarios {
-    border-top: 1px solid var(--border);
-    padding-top: 1.5rem;
+    margin-top: 2rem;
+    padding-top: 0;
   }
 
   .scenarios h3 {
