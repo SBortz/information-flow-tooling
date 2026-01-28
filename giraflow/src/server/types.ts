@@ -93,3 +93,32 @@ export interface InformationFlowModel {
 }
 
 export type ViewMode = 'slice' | 'timeline' | 'table';
+
+/**
+ * Type guards for timeline elements
+ */
+export function isEvent(element: TimelineElement): element is Event {
+  return element.type === 'event';
+}
+
+export function isStateView(element: TimelineElement): element is StateView {
+  return element.type === 'state';
+}
+
+export function isActor(element: TimelineElement): element is Actor {
+  return element.type === 'actor';
+}
+
+export function isCommand(element: TimelineElement): element is Command {
+  return element.type === 'command';
+}
+
+/**
+ * CLI options
+ */
+export interface CliOptions {
+  view?: ViewMode;
+  schema?: string;
+  example?: boolean;
+  output?: string;
+}

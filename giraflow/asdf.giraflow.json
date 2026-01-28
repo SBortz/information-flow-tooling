@@ -1,0 +1,18 @@
+{
+  "name": "asdf",
+  "timeline": [
+    {
+      "type": "event",
+      "name": "wentswimming",
+      "tick": 10
+    },
+    {
+      "type": "state",
+      "name": "swims",
+      "tick": 20,
+      "sourcedFrom": [
+        "wentswimming"
+      ]
+    }
+  ]
+}

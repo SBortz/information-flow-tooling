@@ -3,8 +3,26 @@
 import { spawn } from 'node:child_process';
 import { findGiraflowFiles, promptFileSelection } from './server/file-selector.js';
 
+const CLI_COMMANDS = ['view', 'create', 'copy-schema', '--help', '-h', '--version', '-V'];
+
 async function main() {
   const args = process.argv.slice(2);
+
+  // Check if this is a CLI command that should be passed to the main CLI
+  const firstArg = args[0];
+  if (firstArg && CLI_COMMANDS.includes(firstArg)) {
+    // Pass through to the main CLI
+    const cli = spawn('npx', ['tsx', 'src/server/index.ts', ...args], {
+      stdio: 'inherit',
+      shell: true,
+    });
+
+    cli.on('close', (code) => {
+      process.exit(code ?? 0);
+    });
+    return;
+  }
+
   let filePath: string | undefined;
 
   // Check if file was passed as argument

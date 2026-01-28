@@ -2,55 +2,59 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { program } from 'commander';
 import { createServer } from './server.js';
 import { createWatcher } from './watcher.js';
 import { findGiraflowFiles, promptFileSelection } from './file-selector.js';
+import { viewCommand } from './cli/commands/view.js';
+import { createCommand } from './cli/commands/create.js';
+import { copySchemaCommand } from './cli/commands/copy-schema.js';
+import { colors } from './cli/colors.js';
 
-// Simple CLI argument parsing
-async function parseArgs(): Promise<{ filePath: string; port: number; openBrowser: boolean }> {
-  const args = process.argv.slice(2);
+program
+  .name('giraflow')
+  .description('Giraflow - Live preview server and terminal visualization for .giraflow.json models')
+  .version('1.0.0');
 
-  if (args.includes('--help') || args.includes('-h')) {
-    console.log(`
-  Giraflow
+// Default command: Server (start server when no subcommand is given)
+program
+  .argument('[file]', 'Path to .giraflow.json file')
+  .option('-p, --port <port>', 'Port to run server on', '3000')
+  .option('--no-open', 'Do not open browser automatically')
+  .action(async (file?: string, options?: { port: string; open: boolean }) => {
+    await startServer(file, options);
+  });
 
-  Usage: giraflow [file.giraflow.json] [options]
+// Add subcommands
+program.addCommand(viewCommand());
+program.addCommand(createCommand());
+program.addCommand(copySchemaCommand());
 
-  If no file is specified, searches for *.giraflow.json files in the current directory.
+program.addHelpText('after', `
+${colors.dim('Commands:')}
+  ${colors.cyan('[file]')}        Start live preview server (default)
+  ${colors.cyan('view')}          Visualize model in terminal
+  ${colors.cyan('create')}        Create new model interactively
+  ${colors.cyan('copy-schema')}   Copy schema to current directory
 
-  Options:
-    -p, --port <port>    Port to run server on (default: 3000)
-    --no-open            Don't open browser automatically
-    -h, --help           Show this help message
+${colors.dim('Examples:')}
+  ${colors.white('giraflow')} ${colors.cyan('model.giraflow.json')}           ${colors.dim('# Start live preview server')}
+  ${colors.white('giraflow')} ${colors.cyan('view model.giraflow.json -v table')}   ${colors.dim('# Show table view')}
+  ${colors.white('giraflow')} ${colors.cyan('create')}                        ${colors.dim('# Interactive model wizard')}
+  ${colors.white('giraflow')} ${colors.cyan('copy-schema')}                   ${colors.dim('# Copy schema file')}
 
-  Examples:
-    giraflow                          # Search for giraflow files in current directory
-    giraflow model.giraflow.json
-    giraflow model.giraflow.json --port 8080
-    giraflow model.giraflow.json --no-open
-    `);
-    process.exit(0);
-  }
+${colors.dim('Symbol Legend:')}
+  ${colors.event('● Event')}   ${colors.state('◆ State View')}   ${colors.command('▶ Command')}   ${colors.actor('○ Actor')}
+`);
 
-  let filePath = '';
-  let port = 3000;
-  let openBrowser = true;
+async function startServer(file?: string, options?: { port: string; open: boolean }): Promise<void> {
+  let filePath = file || '';
+  const port = parseInt(options?.port || '3000', 10);
+  const openBrowser = options?.open ?? true;
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (arg === '-p' || arg === '--port') {
-      const portStr = args[++i];
-      port = parseInt(portStr, 10);
-      if (isNaN(port)) {
-        console.error(`Invalid port: ${portStr}`);
-        process.exit(1);
-      }
-    } else if (arg === '--no-open') {
-      openBrowser = false;
-    } else if (!arg.startsWith('-')) {
-      filePath = arg;
-    }
+  if (isNaN(port)) {
+    console.error(`Invalid port: ${options?.port}`);
+    process.exit(1);
   }
 
   // If no file specified, search for giraflow files in current directory
@@ -75,18 +79,12 @@ async function parseArgs(): Promise<{ filePath: string; port: number; openBrowse
     process.exit(1);
   }
 
-  return { filePath, port, openBrowser };
-}
-
-async function main(): Promise<void> {
-  const { filePath, port, openBrowser } = await parseArgs();
-  
   const server = createServer({ filePath, port });
   const watcher = createWatcher({
     filePath,
     onChange: () => server.triggerReload(),
   });
-  
+
   // Handle graceful shutdown
   const shutdown = () => {
     console.log('\n  Shutting down...\n');
@@ -94,14 +92,14 @@ async function main(): Promise<void> {
     server.stop();
     process.exit(0);
   };
-  
+
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
-  
+
   // Start services
   server.start();
   watcher.start();
-  
+
   // Open browser if requested
   if (openBrowser) {
     try {
@@ -113,4 +111,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(console.error);
+program.parseAsync().catch(error => {
+  console.error(colors.red('Unexpected error:'), error);
+  process.exit(1);
+});
