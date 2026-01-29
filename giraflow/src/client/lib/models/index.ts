@@ -12,3 +12,4 @@
 export * from './timeline-model';
 export * from './table-model';
 export * from './slice-model';
+export * from './slice-json-export';

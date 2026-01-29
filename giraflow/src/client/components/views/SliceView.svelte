@@ -7,6 +7,7 @@
     getTriggeringActors,
     getSliceExamples,
     groupActorsByName,
+    downloadSlicesJson,
     type Slice,
   } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
@@ -202,6 +203,13 @@
     <div class="sidebar-header">
       <h3>Slices</h3>
       <span class="count">{slices.length}</span>
+      <button
+        class="download-btn"
+        onclick={() => downloadSlicesJson(slices, modelStore.watchedFile)}
+        title="Download all slices as JSON"
+      >
+        ⬇ JSON
+      </button>
     </div>
     <div class="slice-list">
       {#each slices as slice}
@@ -534,6 +542,22 @@
     font-size: 0.75rem;
     color: var(--text-secondary);
     border: 1px solid var(--border);
+    margin-left: 0.5rem;
+  }
+
+  .sidebar-header .download-btn {
+    background: transparent;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    padding: 2px 6px;
+    cursor: pointer;
+    opacity: 0.6;
+    font-size: 0.8em;
+    margin-left: auto;
+  }
+
+  .sidebar-header .download-btn:hover {
+    opacity: 1;
   }
 
   .slice-list {

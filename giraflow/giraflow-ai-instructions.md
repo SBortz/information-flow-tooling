@@ -160,25 +160,42 @@ Use realistic but simple data (e.g., "ord-123", "user-456").
 ### Core Principles
 
 1. **Slice-by-Slice Implementation**
-   - Use the giraflow-slices.json to understand what the distinct slices to be implemented are
    - Implement one complete vertical slice at a time
+   - Each slice = one Command → Event → State View projection path
    - Finish and verify one slice before starting the next
-   - Respect the exact models from the giraflow model.
 
-2. **No Shared Components | Isolation Over DRY**
+2. **No Shared Components**
    - Do NOT create reusable utilities, helpers, or shared abstractions
    - Each slice owns its own code, even if similar to other slices
    - Duplication is acceptable and preferred over premature abstraction
+
+3. **Isolation Over DRY**
    - Slices should be independently understandable
    - Changes to one slice must not affect other slices
    - Copy-paste is better than coupling
 
-3. **Default Implementation stack**
-   - Use Event Sourcing
-   - Use Emmett in-memory as the default database.
-   - Use Nodes.js for backend
-   - Use svelte & vite for frontend
+### Implementation Order
 
+1. Start with the **first event** in the timeline
+2. Implement the command that produces it
+3. Implement the state view that reads from it
+4. Implement the UI (actor wireframe) that displays the state and sends commands
+5. Verify the slice works end-to-end
+6. Move to the next slice
+
+### Prompt Template
+
+```
+Implement slice [N]: [Command] → [Event] → [State View]
+
+Requirements:
+- Keep all code for this slice isolated
+- Do not extract shared utilities or components
+- Only definitions for events are allowed to share between slices and put into a shared resource
+- Do not refactor existing slices
+- Verify this slice works before proceeding
+- Respect the exact models from the giraflow model.
+```
 
 ---
 
