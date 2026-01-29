@@ -178,6 +178,13 @@
         { "id": "t-1", "title": "Buy milk", "done": true },
         { "id": "t-2", "title": "Walk dog", "done": true }
       ]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 24,
+      "readsView": "Todos",
+      "wireframes": ["user-24.html"]
     }
   ],
 
