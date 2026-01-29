@@ -827,7 +827,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.375rem 0.5rem;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 0.25rem;
     background: transparent;
     cursor: pointer;
@@ -846,8 +846,8 @@
     background: var(--bg-card);
     color: var(--text-primary);
     font-weight: 500;
-    border-left: 2px solid var(--text-secondary);
-    padding-left: calc(0.5rem - 2px);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
   }
 
   .scenario-icon {

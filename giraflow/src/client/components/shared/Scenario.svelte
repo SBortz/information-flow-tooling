@@ -351,15 +351,6 @@
     grid-template-columns: auto 1fr;
     gap: 0.5rem;
     padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .timeline-row-wrapper:last-child {
-    border-bottom: none;
-  }
-
-  .timeline-row-wrapper.events-only {
-    border-bottom: none;
   }
 
   .timeline-row {
