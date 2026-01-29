@@ -1,12 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script>
-    // Patch to ignore duplicate custom element registrations
-    const origDefine = customElements.define.bind(customElements);
-    customElements.define = (name, cl, opts) => { if (!customElements.get(name)) origDefine(name, cl, opts); };
-  </script>
-  <script type="module" src="https://unpkg.com/wired-elements?module"></script>
+  <script type="module" src="/lib/wired-elements.js"></script>
   <style>
     body { font-family: sans-serif; padding: 1rem; }
     wired-checkbox { display: block; margin: 0.5rem 0; }
