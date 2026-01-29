@@ -179,10 +179,10 @@ export function ifLivePlugin(): Plugin {
           return;
         }
 
-        if (req.url?.startsWith('/assets/')) {
+        if (req.url?.startsWith('/wireframes/')) {
           // Remove query string before extracting asset name
           const urlWithoutQuery = req.url.split('?')[0];
-          const assetName = decodeURIComponent(urlWithoutQuery.slice('/assets/'.length));
+          const assetName = decodeURIComponent(urlWithoutQuery.slice('/wireframes/'.length));
           // Asset folder is the giraflow file path without .json extension
           const giraflowDir = filePath!.replace(/\.json$/, '');
           const absolutePath = path.resolve(giraflowDir, assetName);

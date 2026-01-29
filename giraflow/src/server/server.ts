@@ -107,10 +107,10 @@ export function createServer(options: ServerOptions): {
       return;
     }
 
-    // Asset endpoint for wireframes and other files
-    if (url.pathname.startsWith('/assets/')) {
+    // Wireframe assets endpoint (renamed to avoid conflict with Vite's /assets/)
+    if (url.pathname.startsWith('/wireframes/')) {
       // pathname already excludes query string
-      const assetName = decodeURIComponent(url.pathname.slice('/assets/'.length));
+      const assetName = decodeURIComponent(url.pathname.slice('/wireframes/'.length));
       // Compute asset folder from giraflow file path (remove .json extension)
       const giraflowDir = filePath.replace(/\.json$/, '');
       const assetPath = path.join(giraflowDir, assetName);

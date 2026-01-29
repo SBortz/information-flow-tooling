@@ -84,7 +84,7 @@
               {#if el.wireframes && el.wireframes.length > 0}
                 <div class="tl-wireframes">
                   {#each el.wireframes as wireframe}
-                    <WireframeViewer src="/assets/{wireframe}" title="{el.name} - {wireframe}" />
+                    <WireframeViewer src="/wireframes/{wireframe}" title="{el.name} - {wireframe}" />
                   {/each}
                 </div>
               {/if}
