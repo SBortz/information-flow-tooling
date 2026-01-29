@@ -420,6 +420,12 @@
           <span class="tl-symbol {el.type}">{symbols[el.type]}</span>
           <span class="tl-tick">@{el.tick}</span>
           <span class="tl-name {el.type}">{el.name}</span>
+          {#if isEvent(el) && el.system}
+            <span class="tl-lane-badge event">{el.system}</span>
+          {/if}
+          {#if isActor(el) && el.role}
+            <span class="tl-lane-badge actor">{el.role}</span>
+          {/if}
         </div>
         <div class="tl-detail-content">
           {#if isEvent(el)}
@@ -431,11 +437,6 @@
             {#if el.externalSource}
               <div class="tl-detail-row">
                 externalSource: {el.externalSource}
-              </div>
-            {/if}
-            {#if el.system}
-              <div class="tl-detail-row">
-                system: {el.system}
               </div>
             {/if}
             {#if el.example}
@@ -457,11 +458,6 @@
               reads <span class="state">{el.readsView}</span> → triggers
               <span class="command">{el.sendsCommand}</span>
             </div>
-            {#if el.role}
-              <div class="tl-detail-row">
-                role: {el.role}
-              </div>
-            {/if}
             {#if el.wireframes && el.wireframes.length > 0}
               <div class="tl-wireframes">
                 {#each el.wireframes as wireframe}
@@ -713,6 +709,26 @@
   .tl-detail-header .tl-name {
     font-weight: 600;
     font-size: 0.95rem;
+  }
+
+  .tl-lane-badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.75rem;
+    margin-left: auto;
+  }
+
+  .tl-lane-badge.event {
+    background: rgba(249, 115, 22, 0.15);
+    color: var(--color-event);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+  }
+
+  .tl-lane-badge.actor {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--color-actor);
+    border: 1px solid rgba(34, 197, 94, 0.3);
   }
 
   .tl-detail-content {

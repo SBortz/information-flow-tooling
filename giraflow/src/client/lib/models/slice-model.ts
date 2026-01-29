@@ -26,6 +26,7 @@ import { isState, isCommand, isEvent } from '../types';
 export interface EventRef {
   name: string;
   ticks: number[];
+  system?: string;
 }
 
 export interface StateOccurrence {
@@ -62,6 +63,7 @@ export interface Slice {
 export interface GroupedActor {
   name: string;
   ticks: number[];
+  role?: string;
 }
 
 export interface SliceExample {
@@ -163,6 +165,7 @@ export function buildSliceViewModel(model: InformationFlowModel): SliceViewModel
         slice.sourcedFrom.push({
           name: sourceName,
           ticks: sourceEvents.map((e) => e.tick),
+          system: sourceEvents[0]?.system,
         });
       }
     } else if (slice.type === 'command') {
@@ -176,10 +179,14 @@ export function buildSliceViewModel(model: InformationFlowModel): SliceViewModel
           producedMap.get(evt.name)!.push(evt.tick);
         }
       }
-      slice.produces = Array.from(producedMap.entries()).map(([name, ticks]) => ({
-        name,
-        ticks: ticks.sort((a, b) => a - b),
-      }));
+      slice.produces = Array.from(producedMap.entries()).map(([name, ticks]) => {
+        const firstEvent = events.find((e) => e.name === name);
+        return {
+          name,
+          ticks: ticks.sort((a, b) => a - b),
+          system: firstEvent?.system,
+        };
+      });
     }
   }
 
@@ -337,17 +344,21 @@ export function getSliceExamples(slice: Slice): SliceExample[] {
 }
 
 /**
- * Group actors by name, collecting all their ticks.
+ * Group actors by name, collecting all their ticks and role.
  */
 export function groupActorsByName(actors: Actor[]): GroupedActor[] {
-  const grouped = new Map<string, number[]>();
+  const grouped = new Map<string, { ticks: number[]; role?: string }>();
 
   for (const actor of actors) {
     if (!grouped.has(actor.name)) {
-      grouped.set(actor.name, []);
+      grouped.set(actor.name, { ticks: [], role: actor.role });
     }
-    grouped.get(actor.name)!.push(actor.tick);
+    grouped.get(actor.name)!.ticks.push(actor.tick);
   }
 
-  return Array.from(grouped.entries()).map(([name, ticks]) => ({ name, ticks }));
+  return Array.from(grouped.entries()).map(([name, data]) => ({
+    name,
+    ticks: data.ticks,
+    role: data.role,
+  }));
 }

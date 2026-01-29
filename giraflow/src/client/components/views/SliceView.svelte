@@ -291,6 +291,9 @@
                             {#each slice.sourcedFrom as source}
                               <div class="detail-item">
                                 <span class="event">● {source.name}</span>
+                                {#if source.system}
+                                  <span class="lane-badge event">{source.system}</span>
+                                {/if}
                                 <span class="ticks-group">
                                   {#each source.ticks as tick}
                                     <a
@@ -318,6 +321,9 @@
                             {#each groupedActors as actor}
                               <div class="detail-item">
                                 <span class="actor">○ {actor.name}</span>
+                                {#if actor.role}
+                                  <span class="lane-badge actor">{actor.role}</span>
+                                {/if}
                                 <span class="ticks-group">
                                   {#each actor.ticks as tick}
                                     <a
@@ -349,6 +355,9 @@
                             {#each groupedTriggers as actor}
                               <div class="detail-item">
                                 <span class="actor">○ {actor.name}</span>
+                                {#if actor.role}
+                                  <span class="lane-badge actor">{actor.role}</span>
+                                {/if}
                                 <span class="ticks-group">
                                   {#each actor.ticks as tick}
                                     <a
@@ -375,6 +384,9 @@
                             {#each slice.produces as produced}
                               <div class="detail-item">
                                 <span class="event">● {produced.name}</span>
+                                {#if produced.system}
+                                  <span class="lane-badge event">{produced.system}</span>
+                                {/if}
                                 <span class="ticks-group">
                                   {#each produced.ticks as tick}
                                     <a
@@ -832,6 +844,26 @@
   }
   .detail-item .actor {
     color: var(--color-actor);
+  }
+
+  .lane-badge {
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.75rem;
+    margin-left: 0.25rem;
+  }
+
+  .lane-badge.event {
+    background: rgba(249, 115, 22, 0.15);
+    color: var(--color-event);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+  }
+
+  .lane-badge.actor {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--color-actor);
+    border: 1px solid rgba(34, 197, 94, 0.3);
   }
 
   /* Attachments - Reused */
