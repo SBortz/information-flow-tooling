@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Your Wish - Coloring Picture Wishlist</title>
+  <script type="module" src="/lib/wired-elements.js"></script>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: #fffef0;
+      padding: 20px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #ff6b6b;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #444;
+      font-weight: bold;
+    }
+    .hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+    wired-input, wired-textarea {
+      width: 100%;
+      --wired-input-font-family: 'Comic Sans MS', cursive;
+    }
+    wired-textarea {
+      min-height: 100px;
+    }
+    .button-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    wired-button {
+      font-size: 16px;
+    }
+    .examples {
+      background: #f0f8ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .examples h3 {
+      margin-top: 0;
+      color: #4a90d9;
+    }
+    .examples ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>What do you want to color?</h1>
+  <p class="subtitle">Tell us your wish and we'll create it for you!</p>
+
+  <wired-card elevation="2">
+    <div class="examples">
+      <h3>Ideas:</h3>
+      <ul>
+        <li>A friendly dragon playing with butterflies</li>
+        <li>A princess in a magical forest</li>
+        <li>A rocket ship flying to the moon</li>
+        <li>Cute animals having a picnic</li>
+      </ul>
+    </div>
+
+    <div class="form-group">
+      <label for="wish">Your Wish:</label>
+      <wired-textarea id="wish" placeholder="Describe the coloring picture you want..."></wired-textarea>
+      <p class="hint">Be as creative as you want! Describe what you'd like to see.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Your Email (optional):</label>
+      <wired-input id="email" type="email" placeholder="your@email.com"></wired-input>
+      <p class="hint">We'll let you know when your picture is ready!</p>
+    </div>
+
+    <div class="button-row">
+      <wired-button elevation="2">Send My Wish!</wired-button>
+      <wired-button>Browse Pictures</wired-button>
+    </div>
+  </wired-card>
+</body>
+</html>

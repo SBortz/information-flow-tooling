@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coloring Picture - Friendly Dinosaur Party</title>
+  <script type="module" src="/lib/wired-elements.js"></script>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: #fffef0;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 15px;
+      color: #4a90d9;
+      cursor: pointer;
+    }
+    h1 {
+      color: #ff6b6b;
+      margin-bottom: 10px;
+    }
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 30px;
+    }
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+    .image-container {
+      padding: 20px;
+    }
+    .coloring-image {
+      width: 100%;
+      min-height: 400px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed #ddd;
+      color: #999;
+      font-size: 18px;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    .print-btn {
+      --wired-button-bg: #4caf50;
+      font-size: 18px;
+    }
+    .download-btn {
+      --wired-button-bg: #2196f3;
+      font-size: 18px;
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .info-card {
+      padding: 15px;
+    }
+    .info-card h3 {
+      margin-top: 0;
+      color: #444;
+      border-bottom: 2px solid #ff6b6b;
+      padding-bottom: 8px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      text-align: center;
+    }
+    .stat-item {
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff6b6b;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #888;
+    }
+    .tag-list {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      background: #e0e0e0;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+    }
+    .tag:hover {
+      background: #ff6b6b;
+      color: white;
+    }
+    .original-prompt {
+      font-style: italic;
+      color: #666;
+      line-height: 1.5;
+    }
+    .meta-info {
+      font-size: 13px;
+      color: #888;
+    }
+    .related-section h3 {
+      color: #444;
+      margin-bottom: 15px;
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .related-thumb {
+      aspect-ratio: 1;
+      background: #f0f0f0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .related-thumb:hover {
+      background: #e0e0e0;
+    }
+    .print-instructions {
+      background: #e8f5e9;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-link">← Back to Library</div>
+
+  <h1>Friendly Dinosaur Party</h1>
+
+  <div class="main-content">
+    <wired-card class="image-container" elevation="2">
+      <div class="coloring-image">
+        [Full-size Coloring Picture]
+      </div>
+      <div class="action-buttons">
+        <wired-button elevation="2" class="print-btn">🖨️ Print Now</wired-button>
+        <wired-button elevation="2" class="download-btn">⬇️ Download</wired-button>
+      </div>
+      <div class="print-instructions">
+        <strong>Tip:</strong> For best results, use white paper and print in "Fit to Page" mode!
+      </div>
+    </wired-card>
+
+    <div class="sidebar">
+      <wired-card class="info-card" elevation="1">
+        <h3>Stats</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">234</div>
+            <div class="stat-label">Views</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">89</div>
+            <div class="stat-label">Downloads</div>
+          </div>
+        </div>
+      </wired-card>
+
+      <wired-card class="info-card" elevation="1">
+        <h3>Categories</h3>
+        <div class="tag-list">
+          <span class="tag">Animals</span>
+          <span class="tag">Party</span>
+          <span class="tag">Dinosaurs</span>
+          <span class="tag">Birthday</span>
+        </div>
+      </wired-card>
+
+      <wired-card class="info-card" elevation="1">
+        <h3>Original Wish</h3>
+        <p class="original-prompt">
+          "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake"
+        </p>
+        <p class="meta-info">Added 2 hours ago</p>
+      </wired-card>
+
+      <div class="related-section">
+        <h3>Similar Pictures</h3>
+        <div class="related-grid">
+          <div class="related-thumb">[Thumb]</div>
+          <div class="related-thumb">[Thumb]</div>
+          <div class="related-thumb">[Thumb]</div>
+          <div class="related-thumb">[Thumb]</div>
+          <div class="related-thumb">[Thumb]</div>
+          <div class="related-thumb">[Thumb]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

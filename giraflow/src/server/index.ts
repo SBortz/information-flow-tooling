@@ -10,6 +10,7 @@ import { viewCommand } from './cli/commands/view.js';
 import { createCommand } from './cli/commands/create.js';
 import { copySchemaCommand } from './cli/commands/copy-schema.js';
 import { copyAiInstructionsCommand } from './cli/commands/copy-ai-instructions.js';
+import { generateSlicesCommand } from './cli/commands/generate-slices.js';
 import { colors } from './cli/colors.js';
 
 program
@@ -31,6 +32,7 @@ program.addCommand(viewCommand());
 program.addCommand(createCommand());
 program.addCommand(copySchemaCommand());
 program.addCommand(copyAiInstructionsCommand());
+program.addCommand(generateSlicesCommand());
 
 program.addHelpText('after', `
 ${colors.dim('Commands:')}
@@ -39,6 +41,7 @@ ${colors.dim('Commands:')}
   ${colors.cyan('create')}                  Create new model interactively
   ${colors.cyan('copy-schema')}             Copy schema to current directory
   ${colors.cyan('copy-ai-instructions')}    Copy AI design guide to current directory
+  ${colors.cyan('generate-slices')}         Generate slices.json from model
 
 ${colors.dim('Examples:')}
   ${colors.white('giraflow')} ${colors.cyan('model.giraflow.json')}           ${colors.dim('# Start live preview server')}

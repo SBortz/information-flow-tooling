@@ -383,6 +383,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    min-width: 0;
   }
 
   .command-column .command {
@@ -394,6 +395,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    min-width: 0;
   }
 
   .events-column .event {
@@ -424,6 +426,7 @@
     border-radius: 0.375rem;
     padding: 0.5rem 0.75rem;
     border-left: 3px solid var(--border);
+    overflow: hidden;
   }
 
   .scenario-box-event {
@@ -518,6 +521,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    min-width: 0;
   }
 
   .muted {

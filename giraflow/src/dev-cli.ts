@@ -3,7 +3,7 @@
 import { spawn } from 'node:child_process';
 import { findGiraflowFiles, promptFileSelection } from './server/file-selector.js';
 
-const CLI_COMMANDS = ['view', 'create', 'copy-schema', 'copy-ai-instructions', '--help', '-h', '--version', '-V'];
+const CLI_COMMANDS = ['view', 'create', 'copy-schema', 'copy-ai-instructions', 'generate-slices', '--help', '-h', '--version', '-V'];
 
 async function main() {
   const args = process.argv.slice(2);

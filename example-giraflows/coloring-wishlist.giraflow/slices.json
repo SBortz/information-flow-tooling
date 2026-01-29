@@ -1,0 +1,4361 @@
+[
+  {
+    "name": "WishSubmissionForm",
+    "type": "state",
+    "ticks": [
+      10
+    ],
+    "sourcedFrom": [],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [],
+        "initialState": {
+          "placeholder": "Describe the coloring picture you want...",
+          "examples": [
+            "A friendly dragon playing with butterflies",
+            "A princess in a magical forest",
+            "A rocket ship flying to the moon"
+          ]
+        }
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [
+      {
+        "tick": 10,
+        "state": {
+          "type": "state",
+          "name": "WishSubmissionForm",
+          "tick": 10,
+          "sourcedFrom": [],
+          "example": {
+            "placeholder": "Describe the coloring picture you want...",
+            "examples": [
+              "A friendly dragon playing with butterflies",
+              "A princess in a magical forest",
+              "A rocket ship flying to the moon"
+            ]
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "placeholder": "Describe the coloring picture you want...",
+      "examples": [
+        "A friendly dragon playing with butterflies",
+        "A princess in a magical forest",
+        "A rocket ship flying to the moon"
+      ]
+    }
+  },
+  {
+    "name": "SubmitWish",
+    "type": "command",
+    "ticks": [
+      30
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "WishSubmitted",
+        "ticks": [
+          40
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "command",
+            "command": {
+              "name": "SubmitWish",
+              "data": {
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "email": "timmy@example.com"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Submit wish with email",
+        "steps": [
+          {
+            "type": "command",
+            "when": {
+              "prompt": "A friendly dragon playing with butterflies",
+              "email": "kid@example.com"
+            },
+            "produces": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-101",
+                  "prompt": "A friendly dragon playing with butterflies",
+                  "email": "kid@example.com",
+                  "submittedAt": "2026-01-29T12:00:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Submit wish without email (anonymous)",
+        "steps": [
+          {
+            "type": "command",
+            "when": {
+              "prompt": "A rocket ship flying to the moon",
+              "email": null
+            },
+            "produces": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-102",
+                  "prompt": "A rocket ship flying to the moon",
+                  "email": null,
+                  "submittedAt": "2026-01-29T12:05:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Reject empty prompt",
+        "steps": [
+          {
+            "type": "command",
+            "when": {
+              "prompt": "",
+              "email": null
+            },
+            "fails": "Prompt cannot be empty"
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 3,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 30,
+        "command": {
+          "type": "command",
+          "name": "SubmitWish",
+          "tick": 30,
+          "example": {
+            "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+            "email": "timmy@example.com"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "WishSubmitted",
+            "tick": 40,
+            "producedBy": "SubmitWish-30",
+            "example": {
+              "wishId": "wish-001",
+              "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+              "email": "timmy@example.com",
+              "submittedAt": "2026-01-29T10:15:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+      "email": "timmy@example.com"
+    }
+  },
+  {
+    "name": "PendingWishes",
+    "type": "state",
+    "ticks": [
+      50
+    ],
+    "sourcedFrom": [
+      {
+        "name": "WishSubmitted",
+        "ticks": [
+          40
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "WishSubmitted",
+              "data": {
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "email": "timmy@example.com",
+                "submittedAt": "2026-01-29T10:15:00Z"
+              }
+            },
+            "then": {
+              "wishes": [
+                {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                },
+                {
+                  "wishId": "wish-002",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "email": null,
+                  "submittedAt": "2026-01-29T10:12:00Z"
+                }
+              ],
+              "totalCount": 12
+            }
+          }
+        ]
+      },
+      {
+        "name": "New wish appears in pending list",
+        "initialState": {
+          "wishes": [],
+          "totalCount": 0
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "WishSubmitted",
+              "data": {
+                "wishId": "wish-901",
+                "prompt": "A rainbow butterfly",
+                "email": "butterfly@example.com",
+                "submittedAt": "2026-01-29T10:00:00Z"
+              }
+            },
+            "then": {
+              "wishes": [
+                {
+                  "wishId": "wish-901",
+                  "prompt": "A rainbow butterfly",
+                  "email": "butterfly@example.com",
+                  "submittedAt": "2026-01-29T10:00:00Z"
+                }
+              ],
+              "totalCount": 1
+            }
+          }
+        ]
+      },
+      {
+        "name": "Approved wish removed from pending list",
+        "initialState": {
+          "wishes": [
+            {
+              "wishId": "wish-902",
+              "prompt": "A smiling cloud",
+              "email": null,
+              "submittedAt": "2026-01-29T10:00:00Z"
+            }
+          ],
+          "totalCount": 1
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "WishApproved",
+              "data": {
+                "wishId": "wish-902",
+                "prompt": "A smiling cloud",
+                "email": null,
+                "approvedBy": "admin-01",
+                "approvedAt": "2026-01-29T10:05:00Z"
+              }
+            },
+            "then": {
+              "wishes": [],
+              "totalCount": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "Rejected wish removed from pending list",
+        "initialState": {
+          "wishes": [
+            {
+              "wishId": "wish-903",
+              "prompt": "bad content",
+              "email": "bad@example.com",
+              "submittedAt": "2026-01-29T10:00:00Z"
+            }
+          ],
+          "totalCount": 1
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "WishRejected",
+              "data": {
+                "wishId": "wish-903",
+                "prompt": "bad content",
+                "email": "bad@example.com",
+                "reason": "Inappropriate",
+                "rejectedBy": "admin-01",
+                "rejectedAt": "2026-01-29T10:05:00Z"
+              }
+            },
+            "then": {
+              "wishes": [],
+              "totalCount": 0
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 3,
+    "stateOccurrences": [
+      {
+        "tick": 50,
+        "state": {
+          "type": "state",
+          "name": "PendingWishes",
+          "tick": 50,
+          "sourcedFrom": [
+            "WishSubmitted"
+          ],
+          "example": {
+            "wishes": [
+              {
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "email": "timmy@example.com",
+                "submittedAt": "2026-01-29T10:15:00Z"
+              },
+              {
+                "wishId": "wish-002",
+                "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                "email": null,
+                "submittedAt": "2026-01-29T10:12:00Z"
+              }
+            ],
+            "totalCount": 12
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "wishes": [
+        {
+          "wishId": "wish-001",
+          "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+          "email": "timmy@example.com",
+          "submittedAt": "2026-01-29T10:15:00Z"
+        },
+        {
+          "wishId": "wish-002",
+          "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+          "email": null,
+          "submittedAt": "2026-01-29T10:12:00Z"
+        }
+      ],
+      "totalCount": 12
+    }
+  },
+  {
+    "name": "ApproveWish",
+    "type": "command",
+    "ticks": [
+      70
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "WishApproved",
+        "ticks": [
+          80
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "ApproveWish",
+              "data": {
+                "wishId": "wish-001"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Approve pending wish",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-201",
+                  "prompt": "A princess in a magical forest",
+                  "email": "princess@example.com",
+                  "submittedAt": "2026-01-29T10:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "wishId": "wish-201"
+            },
+            "produces": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-201",
+                  "prompt": "A princess in a magical forest",
+                  "email": "princess@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:10:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Cannot approve non-existent wish",
+        "steps": [
+          {
+            "type": "command",
+            "when": {
+              "wishId": "wish-999"
+            },
+            "fails": "Wish not found"
+          }
+        ]
+      },
+      {
+        "name": "Cannot approve already processed wish",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-202",
+                  "prompt": "A cat astronaut",
+                  "email": null,
+                  "submittedAt": "2026-01-29T10:00:00Z"
+                }
+              },
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-202",
+                  "prompt": "A cat astronaut",
+                  "email": null,
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:05:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "wishId": "wish-202"
+            },
+            "fails": "Wish already processed"
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 3,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 70,
+        "command": {
+          "type": "command",
+          "name": "ApproveWish",
+          "tick": 70,
+          "example": {
+            "wishId": "wish-001"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "WishApproved",
+            "tick": 80,
+            "producedBy": "ApproveWish-70",
+            "example": {
+              "wishId": "wish-001",
+              "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+              "email": "timmy@example.com",
+              "approvedBy": "admin-01",
+              "approvedAt": "2026-01-29T10:20:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "wishId": "wish-001"
+    }
+  },
+  {
+    "name": "RejectWish",
+    "type": "command",
+    "ticks": [
+      100
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "WishRejected",
+        "ticks": [
+          110
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "RejectWish",
+              "data": {
+                "wishId": "wish-003",
+                "reason": "Inappropriate content"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Reject wish with reason",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-301",
+                  "prompt": "inappropriate content",
+                  "email": "someone@example.com",
+                  "submittedAt": "2026-01-29T10:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "wishId": "wish-301",
+              "reason": "Inappropriate content"
+            },
+            "produces": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-301",
+                  "prompt": "inappropriate content",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:10:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Reject wish without reason",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-302",
+                  "prompt": "something unclear",
+                  "email": null,
+                  "submittedAt": "2026-01-29T10:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "wishId": "wish-302",
+              "reason": null
+            },
+            "produces": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-302",
+                  "prompt": "something unclear",
+                  "email": null,
+                  "reason": null,
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:10:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 2,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 100,
+        "command": {
+          "type": "command",
+          "name": "RejectWish",
+          "tick": 100,
+          "example": {
+            "wishId": "wish-003",
+            "reason": "Inappropriate content"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "WishRejected",
+            "tick": 110,
+            "producedBy": "RejectWish-100",
+            "example": {
+              "wishId": "wish-003",
+              "prompt": "bad words",
+              "email": "someone@example.com",
+              "reason": "Inappropriate content",
+              "rejectedBy": "admin-01",
+              "rejectedAt": "2026-01-29T10:22:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "wishId": "wish-003",
+      "reason": "Inappropriate content"
+    }
+  },
+  {
+    "name": "PendingWishRejectionNotifications",
+    "type": "state",
+    "ticks": [
+      120
+    ],
+    "sourcedFrom": [
+      {
+        "name": "WishRejected",
+        "ticks": [
+          110
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "WishRejected",
+              "data": {
+                "wishId": "wish-003",
+                "prompt": "bad words",
+                "email": "someone@example.com",
+                "reason": "Inappropriate content",
+                "rejectedBy": "admin-01",
+                "rejectedAt": "2026-01-29T10:22:00Z"
+              }
+            },
+            "then": {
+              "notifications": [
+                {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [
+      {
+        "tick": 120,
+        "state": {
+          "type": "state",
+          "name": "PendingWishRejectionNotifications",
+          "tick": 120,
+          "sourcedFrom": [
+            "WishRejected"
+          ],
+          "example": {
+            "notifications": [
+              {
+                "wishId": "wish-003",
+                "email": "someone@example.com",
+                "reason": "Inappropriate content",
+                "rejectedAt": "2026-01-29T10:22:00Z"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "notifications": [
+        {
+          "wishId": "wish-003",
+          "email": "someone@example.com",
+          "reason": "Inappropriate content",
+          "rejectedAt": "2026-01-29T10:22:00Z"
+        }
+      ]
+    }
+  },
+  {
+    "name": "SendWishRejectionNotification",
+    "type": "command",
+    "ticks": [
+      140
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "WishRejectionNotificationSent",
+        "ticks": [
+          150
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "SendWishRejectionNotification",
+              "data": {
+                "wishId": "wish-003",
+                "email": "someone@example.com",
+                "reason": "Inappropriate content"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 140,
+        "command": {
+          "type": "command",
+          "name": "SendWishRejectionNotification",
+          "tick": 140,
+          "example": {
+            "wishId": "wish-003",
+            "email": "someone@example.com",
+            "reason": "Inappropriate content"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "WishRejectionNotificationSent",
+            "tick": 150,
+            "producedBy": "SendWishRejectionNotification-140",
+            "example": {
+              "wishId": "wish-003",
+              "email": "someone@example.com",
+              "sentAt": "2026-01-29T10:23:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "wishId": "wish-003",
+      "email": "someone@example.com",
+      "reason": "Inappropriate content"
+    }
+  },
+  {
+    "name": "GenerationQueue",
+    "type": "state",
+    "ticks": [
+      160
+    ],
+    "sourcedFrom": [
+      {
+        "name": "WishApproved",
+        "ticks": [
+          80
+        ]
+      },
+      {
+        "name": "RegenerationRequested",
+        "ticks": [
+          260
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "WishApproved",
+              "data": {
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "email": "timmy@example.com",
+                "approvedBy": "admin-01",
+                "approvedAt": "2026-01-29T10:20:00Z"
+              }
+            },
+            "then": {
+              "queue": [
+                {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "attempt": 1,
+                  "queuedAt": "2026-01-29T10:20:00Z"
+                },
+                {
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "attempt": 3,
+                  "queuedAt": "2026-01-29T10:18:00Z"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Approved wish added to generation queue",
+        "initialState": {
+          "queue": []
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "WishApproved",
+              "data": {
+                "wishId": "wish-1001",
+                "prompt": "A pirate ship",
+                "email": "pirate@example.com",
+                "approvedBy": "admin-01",
+                "approvedAt": "2026-01-29T10:00:00Z"
+              }
+            },
+            "then": {
+              "queue": [
+                {
+                  "wishId": "wish-1001",
+                  "prompt": "A pirate ship",
+                  "attempt": 1,
+                  "queuedAt": "2026-01-29T10:00:00Z"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Regeneration request adds to queue with incremented attempt",
+        "initialState": {
+          "queue": []
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "RegenerationRequested",
+              "data": {
+                "imageId": "img-1002",
+                "wishId": "wish-1002",
+                "prompt": "A ninja turtle",
+                "previousAttempt": 2,
+                "requestedBy": "admin-01",
+                "requestedAt": "2026-01-29T10:00:00Z"
+              }
+            },
+            "then": {
+              "queue": [
+                {
+                  "wishId": "wish-1002",
+                  "prompt": "A ninja turtle",
+                  "attempt": 3,
+                  "queuedAt": "2026-01-29T10:00:00Z"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 2,
+    "stateOccurrences": [
+      {
+        "tick": 160,
+        "state": {
+          "type": "state",
+          "name": "GenerationQueue",
+          "tick": 160,
+          "sourcedFrom": [
+            "WishApproved",
+            "RegenerationRequested"
+          ],
+          "example": {
+            "queue": [
+              {
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "attempt": 1,
+                "queuedAt": "2026-01-29T10:20:00Z"
+              },
+              {
+                "wishId": "wish-015",
+                "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                "attempt": 3,
+                "queuedAt": "2026-01-29T10:18:00Z"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "queue": [
+        {
+          "wishId": "wish-001",
+          "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+          "attempt": 1,
+          "queuedAt": "2026-01-29T10:20:00Z"
+        },
+        {
+          "wishId": "wish-015",
+          "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+          "attempt": 3,
+          "queuedAt": "2026-01-29T10:18:00Z"
+        }
+      ]
+    }
+  },
+  {
+    "name": "GenerateImage",
+    "type": "command",
+    "ticks": [
+      180
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "ImageGenerated",
+        "ticks": [
+          190
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "GenerateImage",
+              "data": {
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "attempt": 1
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 180,
+        "command": {
+          "type": "command",
+          "name": "GenerateImage",
+          "tick": 180,
+          "example": {
+            "wishId": "wish-001",
+            "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+            "attempt": 1
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "ImageGenerated",
+            "tick": 190,
+            "producedBy": "GenerateImage-180",
+            "example": {
+              "imageId": "img-047",
+              "wishId": "wish-001",
+              "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+              "imageUrl": "/images/img-047.png",
+              "attempt": 1,
+              "generatedAt": "2026-01-29T10:21:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "wishId": "wish-001",
+      "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+      "attempt": 1
+    }
+  },
+  {
+    "name": "PendingImages",
+    "type": "state",
+    "ticks": [
+      200
+    ],
+    "sourcedFrom": [
+      {
+        "name": "ImageGenerated",
+        "ticks": [
+          190
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "ImageGenerated",
+              "data": {
+                "imageId": "img-047",
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "imageUrl": "/images/img-047.png",
+                "attempt": 1,
+                "generatedAt": "2026-01-29T10:21:00Z"
+              }
+            },
+            "then": {
+              "images": [
+                {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                },
+                {
+                  "imageId": "img-048",
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "imageUrl": "/images/img-048.png",
+                  "attempt": 3,
+                  "generatedAt": "2026-01-29T10:19:00Z"
+                }
+              ],
+              "totalCount": 3
+            }
+          }
+        ]
+      },
+      {
+        "name": "Generated image appears in pending list",
+        "initialState": {
+          "images": [],
+          "totalCount": 0
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "ImageGenerated",
+              "data": {
+                "imageId": "img-1201",
+                "wishId": "wish-1201",
+                "prompt": "A wizard cat",
+                "imageUrl": "/images/img-1201.png",
+                "attempt": 1,
+                "generatedAt": "2026-01-29T10:00:00Z"
+              }
+            },
+            "then": {
+              "images": [
+                {
+                  "imageId": "img-1201",
+                  "wishId": "wish-1201",
+                  "prompt": "A wizard cat",
+                  "imageUrl": "/images/img-1201.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:00:00Z"
+                }
+              ],
+              "totalCount": 1
+            }
+          }
+        ]
+      },
+      {
+        "name": "Approved image removed from pending list",
+        "initialState": {
+          "images": [
+            {
+              "imageId": "img-1202",
+              "wishId": "wish-1202",
+              "prompt": "A friendly ghost",
+              "imageUrl": "/images/img-1202.png",
+              "attempt": 1,
+              "generatedAt": "2026-01-29T10:00:00Z"
+            }
+          ],
+          "totalCount": 1
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "ImageApproved",
+              "data": {
+                "imageId": "img-1202",
+                "wishId": "wish-1202",
+                "prompt": "A friendly ghost",
+                "email": null,
+                "imageUrl": "/images/img-1202.png",
+                "approvedBy": "admin-01",
+                "approvedAt": "2026-01-29T10:05:00Z"
+              }
+            },
+            "then": {
+              "images": [],
+              "totalCount": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "Regeneration request removes image from pending list",
+        "initialState": {
+          "images": [
+            {
+              "imageId": "img-1203",
+              "wishId": "wish-1203",
+              "prompt": "A dancing robot",
+              "imageUrl": "/images/img-1203.png",
+              "attempt": 2,
+              "generatedAt": "2026-01-29T10:00:00Z"
+            }
+          ],
+          "totalCount": 1
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "RegenerationRequested",
+              "data": {
+                "imageId": "img-1203",
+                "wishId": "wish-1203",
+                "prompt": "A dancing robot",
+                "previousAttempt": 2,
+                "requestedBy": "admin-01",
+                "requestedAt": "2026-01-29T10:05:00Z"
+              }
+            },
+            "then": {
+              "images": [],
+              "totalCount": 0
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 3,
+    "stateOccurrences": [
+      {
+        "tick": 200,
+        "state": {
+          "type": "state",
+          "name": "PendingImages",
+          "tick": 200,
+          "sourcedFrom": [
+            "ImageGenerated"
+          ],
+          "example": {
+            "images": [
+              {
+                "imageId": "img-047",
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "imageUrl": "/images/img-047.png",
+                "attempt": 1,
+                "generatedAt": "2026-01-29T10:21:00Z"
+              },
+              {
+                "imageId": "img-048",
+                "wishId": "wish-015",
+                "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                "imageUrl": "/images/img-048.png",
+                "attempt": 3,
+                "generatedAt": "2026-01-29T10:19:00Z"
+              }
+            ],
+            "totalCount": 3
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "images": [
+        {
+          "imageId": "img-047",
+          "wishId": "wish-001",
+          "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+          "imageUrl": "/images/img-047.png",
+          "attempt": 1,
+          "generatedAt": "2026-01-29T10:21:00Z"
+        },
+        {
+          "imageId": "img-048",
+          "wishId": "wish-015",
+          "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+          "imageUrl": "/images/img-048.png",
+          "attempt": 3,
+          "generatedAt": "2026-01-29T10:19:00Z"
+        }
+      ],
+      "totalCount": 3
+    }
+  },
+  {
+    "name": "ApproveImage",
+    "type": "command",
+    "ticks": [
+      220
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "ImageApproved",
+        "ticks": [
+          230
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "ApproveImage",
+              "data": {
+                "imageId": "img-047"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Approve generated image",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-401",
+                  "prompt": "A happy sun with sunglasses",
+                  "email": "sunny@example.com",
+                  "submittedAt": "2026-01-29T10:00:00Z"
+                }
+              },
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-401",
+                  "prompt": "A happy sun with sunglasses",
+                  "email": "sunny@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:05:00Z"
+                }
+              },
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-401",
+                  "wishId": "wish-401",
+                  "prompt": "A happy sun with sunglasses",
+                  "imageUrl": "/images/img-401.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:06:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "imageId": "img-401"
+            },
+            "produces": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-401",
+                  "wishId": "wish-401",
+                  "prompt": "A happy sun with sunglasses",
+                  "email": "sunny@example.com",
+                  "imageUrl": "/images/img-401.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:10:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 1,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 220,
+        "command": {
+          "type": "command",
+          "name": "ApproveImage",
+          "tick": 220,
+          "example": {
+            "imageId": "img-047"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "ImageApproved",
+            "tick": 230,
+            "producedBy": "ApproveImage-220",
+            "example": {
+              "imageId": "img-047",
+              "wishId": "wish-001",
+              "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+              "email": "timmy@example.com",
+              "imageUrl": "/images/img-047.png",
+              "approvedBy": "admin-01",
+              "approvedAt": "2026-01-29T10:25:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "imageId": "img-047"
+    }
+  },
+  {
+    "name": "RequestRegeneration",
+    "type": "command",
+    "ticks": [
+      250
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "RegenerationRequested",
+        "ticks": [
+          260
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "RequestRegeneration",
+              "data": {
+                "imageId": "img-048"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-048",
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "previousAttempt": 3,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:24:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Request regeneration of poor quality image",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-501",
+                  "wishId": "wish-501",
+                  "prompt": "A dancing elephant",
+                  "imageUrl": "/images/img-501.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "imageId": "img-501"
+            },
+            "produces": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-501",
+                  "wishId": "wish-501",
+                  "prompt": "A dancing elephant",
+                  "previousAttempt": 1,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:05:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Regeneration after multiple attempts",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-502",
+                  "wishId": "wish-502",
+                  "prompt": "A flying fish",
+                  "imageUrl": "/images/img-502.png",
+                  "attempt": 3,
+                  "generatedAt": "2026-01-29T10:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "imageId": "img-502"
+            },
+            "produces": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-502",
+                  "wishId": "wish-502",
+                  "prompt": "A flying fish",
+                  "previousAttempt": 3,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:05:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 2,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 250,
+        "command": {
+          "type": "command",
+          "name": "RequestRegeneration",
+          "tick": 250,
+          "example": {
+            "imageId": "img-048"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "RegenerationRequested",
+            "tick": 260,
+            "producedBy": "RequestRegeneration-250",
+            "example": {
+              "imageId": "img-048",
+              "wishId": "wish-015",
+              "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+              "previousAttempt": 3,
+              "requestedBy": "admin-01",
+              "requestedAt": "2026-01-29T10:24:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "imageId": "img-048"
+    }
+  },
+  {
+    "name": "RejectImagePermanently",
+    "type": "command",
+    "ticks": [
+      280
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "ImagePermanentlyRejected",
+        "ticks": [
+          290
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-048",
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "previousAttempt": 3,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:24:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "RejectImagePermanently",
+              "data": {
+                "imageId": "img-049",
+                "reason": "Image quality too poor after multiple attempts"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "ImagePermanentlyRejected",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "reason": "Image quality too poor after multiple attempts",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Permanently reject image after failed attempts",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-601",
+                  "prompt": "Abstract concept that cannot be drawn",
+                  "email": "user@example.com",
+                  "submittedAt": "2026-01-29T10:00:00Z"
+                }
+              },
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-601",
+                  "wishId": "wish-601",
+                  "prompt": "Abstract concept that cannot be drawn",
+                  "imageUrl": "/images/img-601.png",
+                  "attempt": 5,
+                  "generatedAt": "2026-01-29T10:30:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "imageId": "img-601",
+              "reason": "Unable to generate suitable image after multiple attempts"
+            },
+            "produces": [
+              {
+                "event": "ImagePermanentlyRejected",
+                "data": {
+                  "imageId": "img-601",
+                  "wishId": "wish-601",
+                  "email": "user@example.com",
+                  "reason": "Unable to generate suitable image after multiple attempts",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:35:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 1,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 280,
+        "command": {
+          "type": "command",
+          "name": "RejectImagePermanently",
+          "tick": 280,
+          "example": {
+            "imageId": "img-049",
+            "reason": "Image quality too poor after multiple attempts"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "ImagePermanentlyRejected",
+            "tick": 290,
+            "producedBy": "RejectImagePermanently-280",
+            "example": {
+              "imageId": "img-049",
+              "wishId": "wish-022",
+              "email": "anna@example.com",
+              "reason": "Image quality too poor after multiple attempts",
+              "rejectedBy": "admin-01",
+              "rejectedAt": "2026-01-29T10:26:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "imageId": "img-049",
+      "reason": "Image quality too poor after multiple attempts"
+    }
+  },
+  {
+    "name": "PendingImageRejectionNotifications",
+    "type": "state",
+    "ticks": [
+      300
+    ],
+    "sourcedFrom": [
+      {
+        "name": "ImagePermanentlyRejected",
+        "ticks": [
+          290
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "ImagePermanentlyRejected",
+              "data": {
+                "imageId": "img-049",
+                "wishId": "wish-022",
+                "email": "anna@example.com",
+                "reason": "Image quality too poor after multiple attempts",
+                "rejectedBy": "admin-01",
+                "rejectedAt": "2026-01-29T10:26:00Z"
+              }
+            },
+            "then": {
+              "notifications": [
+                {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "reason": "Image quality too poor after multiple attempts",
+                  "rejectedAt": "2026-01-29T10:26:00Z"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [
+      {
+        "tick": 300,
+        "state": {
+          "type": "state",
+          "name": "PendingImageRejectionNotifications",
+          "tick": 300,
+          "sourcedFrom": [
+            "ImagePermanentlyRejected"
+          ],
+          "example": {
+            "notifications": [
+              {
+                "imageId": "img-049",
+                "wishId": "wish-022",
+                "email": "anna@example.com",
+                "reason": "Image quality too poor after multiple attempts",
+                "rejectedAt": "2026-01-29T10:26:00Z"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "notifications": [
+        {
+          "imageId": "img-049",
+          "wishId": "wish-022",
+          "email": "anna@example.com",
+          "reason": "Image quality too poor after multiple attempts",
+          "rejectedAt": "2026-01-29T10:26:00Z"
+        }
+      ]
+    }
+  },
+  {
+    "name": "SendImageRejectionNotification",
+    "type": "command",
+    "ticks": [
+      320
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "ImageRejectionNotificationSent",
+        "ticks": [
+          330
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-048",
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "previousAttempt": 3,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:24:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImagePermanentlyRejected",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "reason": "Image quality too poor after multiple attempts",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "SendImageRejectionNotification",
+              "data": {
+                "imageId": "img-049",
+                "wishId": "wish-022",
+                "email": "anna@example.com",
+                "reason": "Image quality too poor after multiple attempts"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "ImageRejectionNotificationSent",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "sentAt": "2026-01-29T10:27:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 320,
+        "command": {
+          "type": "command",
+          "name": "SendImageRejectionNotification",
+          "tick": 320,
+          "example": {
+            "imageId": "img-049",
+            "wishId": "wish-022",
+            "email": "anna@example.com",
+            "reason": "Image quality too poor after multiple attempts"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "ImageRejectionNotificationSent",
+            "tick": 330,
+            "producedBy": "SendImageRejectionNotification-320",
+            "example": {
+              "imageId": "img-049",
+              "wishId": "wish-022",
+              "email": "anna@example.com",
+              "sentAt": "2026-01-29T10:27:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "imageId": "img-049",
+      "wishId": "wish-022",
+      "email": "anna@example.com",
+      "reason": "Image quality too poor after multiple attempts"
+    }
+  },
+  {
+    "name": "PendingCategorization",
+    "type": "state",
+    "ticks": [
+      340
+    ],
+    "sourcedFrom": [
+      {
+        "name": "ImageApproved",
+        "ticks": [
+          230
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "ImageApproved",
+              "data": {
+                "imageId": "img-047",
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "email": "timmy@example.com",
+                "imageUrl": "/images/img-047.png",
+                "approvedBy": "admin-01",
+                "approvedAt": "2026-01-29T10:25:00Z"
+              }
+            },
+            "then": {
+              "images": [
+                {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [
+      {
+        "tick": 340,
+        "state": {
+          "type": "state",
+          "name": "PendingCategorization",
+          "tick": 340,
+          "sourcedFrom": [
+            "ImageApproved"
+          ],
+          "example": {
+            "images": [
+              {
+                "imageId": "img-047",
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "imageUrl": "/images/img-047.png",
+                "approvedAt": "2026-01-29T10:25:00Z"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "images": [
+        {
+          "imageId": "img-047",
+          "wishId": "wish-001",
+          "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+          "imageUrl": "/images/img-047.png",
+          "approvedAt": "2026-01-29T10:25:00Z"
+        }
+      ]
+    }
+  },
+  {
+    "name": "CategorizeImage",
+    "type": "command",
+    "ticks": [
+      360
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "ImageCategorized",
+        "ticks": [
+          370
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-048",
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "previousAttempt": 3,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:24:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImagePermanentlyRejected",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "reason": "Image quality too poor after multiple attempts",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageRejectionNotificationSent",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "sentAt": "2026-01-29T10:27:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "CategorizeImage",
+              "data": {
+                "imageId": "img-047",
+                "imageUrl": "/images/img-047.png",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "ImageCategorized",
+                "data": {
+                  "imageId": "img-047",
+                  "title": "Friendly Dinosaur Party",
+                  "tags": [
+                    "Animals",
+                    "Dinosaurs",
+                    "Party",
+                    "Birthday"
+                  ],
+                  "categorizedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Categorize image with multiple tags",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-701",
+                  "wishId": "wish-701",
+                  "prompt": "A dinosaur astronaut on Mars",
+                  "email": "space@example.com",
+                  "imageUrl": "/images/img-701.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "imageId": "img-701",
+              "imageUrl": "/images/img-701.png",
+              "prompt": "A dinosaur astronaut on Mars"
+            },
+            "produces": [
+              {
+                "event": "ImageCategorized",
+                "data": {
+                  "imageId": "img-701",
+                  "title": "Dinosaur Astronaut on Mars",
+                  "tags": [
+                    "Animals",
+                    "Dinosaurs",
+                    "Space",
+                    "Planets"
+                  ],
+                  "categorizedAt": "2026-01-29T10:01:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 1,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 360,
+        "command": {
+          "type": "command",
+          "name": "CategorizeImage",
+          "tick": 360,
+          "example": {
+            "imageId": "img-047",
+            "imageUrl": "/images/img-047.png",
+            "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "ImageCategorized",
+            "tick": 370,
+            "producedBy": "CategorizeImage-360",
+            "example": {
+              "imageId": "img-047",
+              "title": "Friendly Dinosaur Party",
+              "tags": [
+                "Animals",
+                "Dinosaurs",
+                "Party",
+                "Birthday"
+              ],
+              "categorizedAt": "2026-01-29T10:26:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "imageId": "img-047",
+      "imageUrl": "/images/img-047.png",
+      "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake"
+    }
+  },
+  {
+    "name": "PendingSuccessNotifications",
+    "type": "state",
+    "ticks": [
+      380
+    ],
+    "sourcedFrom": [
+      {
+        "name": "ImageCategorized",
+        "ticks": [
+          370
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "ImageCategorized",
+              "data": {
+                "imageId": "img-047",
+                "title": "Friendly Dinosaur Party",
+                "tags": [
+                  "Animals",
+                  "Dinosaurs",
+                  "Party",
+                  "Birthday"
+                ],
+                "categorizedAt": "2026-01-29T10:26:00Z"
+              }
+            },
+            "then": {
+              "notifications": [
+                {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "email": "timmy@example.com",
+                  "title": "Friendly Dinosaur Party",
+                  "imageUrl": "/images/img-047.png"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [
+      {
+        "tick": 380,
+        "state": {
+          "type": "state",
+          "name": "PendingSuccessNotifications",
+          "tick": 380,
+          "sourcedFrom": [
+            "ImageCategorized"
+          ],
+          "example": {
+            "notifications": [
+              {
+                "imageId": "img-047",
+                "wishId": "wish-001",
+                "email": "timmy@example.com",
+                "title": "Friendly Dinosaur Party",
+                "imageUrl": "/images/img-047.png"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "notifications": [
+        {
+          "imageId": "img-047",
+          "wishId": "wish-001",
+          "email": "timmy@example.com",
+          "title": "Friendly Dinosaur Party",
+          "imageUrl": "/images/img-047.png"
+        }
+      ]
+    }
+  },
+  {
+    "name": "SendSuccessNotification",
+    "type": "command",
+    "ticks": [
+      400
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "SuccessNotificationSent",
+        "ticks": [
+          410
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-048",
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "previousAttempt": 3,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:24:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImagePermanentlyRejected",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "reason": "Image quality too poor after multiple attempts",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageRejectionNotificationSent",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "sentAt": "2026-01-29T10:27:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageCategorized",
+                "data": {
+                  "imageId": "img-047",
+                  "title": "Friendly Dinosaur Party",
+                  "tags": [
+                    "Animals",
+                    "Dinosaurs",
+                    "Party",
+                    "Birthday"
+                  ],
+                  "categorizedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "SendSuccessNotification",
+              "data": {
+                "imageId": "img-047",
+                "email": "timmy@example.com",
+                "title": "Friendly Dinosaur Party",
+                "imageUrl": "/library/img-047"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "SuccessNotificationSent",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "email": "timmy@example.com",
+                  "sentAt": "2026-01-29T10:27:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Send notification when email provided",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageCategorized",
+                "data": {
+                  "imageId": "img-801",
+                  "title": "Happy Puppy",
+                  "tags": [
+                    "Animals",
+                    "Dogs"
+                  ],
+                  "categorizedAt": "2026-01-29T10:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "imageId": "img-801",
+              "email": "dogfan@example.com",
+              "title": "Happy Puppy",
+              "imageUrl": "/library/img-801"
+            },
+            "produces": [
+              {
+                "event": "SuccessNotificationSent",
+                "data": {
+                  "imageId": "img-801",
+                  "wishId": "wish-801",
+                  "email": "dogfan@example.com",
+                  "sentAt": "2026-01-29T10:01:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Skip notification when no email provided",
+        "steps": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageCategorized",
+                "data": {
+                  "imageId": "img-802",
+                  "title": "Sleepy Cat",
+                  "tags": [
+                    "Animals",
+                    "Cats"
+                  ],
+                  "categorizedAt": "2026-01-29T10:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "when": {
+              "imageId": "img-802",
+              "email": null,
+              "title": "Sleepy Cat",
+              "imageUrl": "/library/img-802"
+            },
+            "fails": "No email provided - notification skipped"
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 2,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 400,
+        "command": {
+          "type": "command",
+          "name": "SendSuccessNotification",
+          "tick": 400,
+          "example": {
+            "imageId": "img-047",
+            "email": "timmy@example.com",
+            "title": "Friendly Dinosaur Party",
+            "imageUrl": "/library/img-047"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "SuccessNotificationSent",
+            "tick": 410,
+            "producedBy": "SendSuccessNotification-400",
+            "example": {
+              "imageId": "img-047",
+              "wishId": "wish-001",
+              "email": "timmy@example.com",
+              "sentAt": "2026-01-29T10:27:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "imageId": "img-047",
+      "email": "timmy@example.com",
+      "title": "Friendly Dinosaur Party",
+      "imageUrl": "/library/img-047"
+    }
+  },
+  {
+    "name": "ColoringPictureLibrary",
+    "type": "state",
+    "ticks": [
+      420
+    ],
+    "sourcedFrom": [
+      {
+        "name": "ImageApproved",
+        "ticks": [
+          230
+        ]
+      },
+      {
+        "name": "ImageCategorized",
+        "ticks": [
+          370
+        ]
+      },
+      {
+        "name": "ImageViewed",
+        "ticks": [
+          450
+        ]
+      },
+      {
+        "name": "ImageDownloaded",
+        "ticks": [
+          490
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "ImageApproved",
+              "data": {
+                "imageId": "img-047",
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "email": "timmy@example.com",
+                "imageUrl": "/images/img-047.png",
+                "approvedBy": "admin-01",
+                "approvedAt": "2026-01-29T10:25:00Z"
+              }
+            },
+            "then": {
+              "images": [
+                {
+                  "imageId": "img-047",
+                  "title": "Friendly Dinosaur Party",
+                  "imageUrl": "/images/img-047.png",
+                  "thumbnailUrl": "/images/img-047-thumb.png",
+                  "tags": [
+                    "Animals",
+                    "Dinosaurs",
+                    "Party",
+                    "Birthday"
+                  ],
+                  "viewCount": 234,
+                  "downloadCount": 89,
+                  "publishedAt": "2026-01-29T10:26:00Z"
+                },
+                {
+                  "imageId": "img-042",
+                  "title": "Magical Rainbow Unicorn",
+                  "imageUrl": "/images/img-042.png",
+                  "thumbnailUrl": "/images/img-042-thumb.png",
+                  "tags": [
+                    "Fantasy",
+                    "Animals",
+                    "Unicorn",
+                    "Rainbow"
+                  ],
+                  "viewCount": 567,
+                  "downloadCount": 312,
+                  "publishedAt": "2026-01-29T05:00:00Z"
+                },
+                {
+                  "imageId": "img-038",
+                  "title": "Princess Castle",
+                  "imageUrl": "/images/img-038.png",
+                  "thumbnailUrl": "/images/img-038-thumb.png",
+                  "tags": [
+                    "Fantasy",
+                    "Castle",
+                    "Princess"
+                  ],
+                  "viewCount": 678,
+                  "downloadCount": 423,
+                  "publishedAt": "2026-01-26T14:00:00Z"
+                }
+              ],
+              "totalCount": 156,
+              "availableTags": [
+                "Animals",
+                "Fantasy",
+                "Space",
+                "Nature",
+                "Vehicles",
+                "Food",
+                "Sports",
+                "Dinosaurs",
+                "Unicorn",
+                "Party"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Image appears in library after categorization",
+        "initialState": {
+          "images": [],
+          "totalCount": 0,
+          "availableTags": []
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "ImageApproved",
+              "data": {
+                "imageId": "img-1101",
+                "wishId": "wish-1101",
+                "prompt": "A superhero dog",
+                "email": "hero@example.com",
+                "imageUrl": "/images/img-1101.png",
+                "approvedBy": "admin-01",
+                "approvedAt": "2026-01-29T10:00:00Z"
+              }
+            },
+            "then": {
+              "images": [
+                {
+                  "imageId": "img-1101",
+                  "title": null,
+                  "imageUrl": "/images/img-1101.png",
+                  "tags": [],
+                  "viewCount": 0,
+                  "downloadCount": 0,
+                  "publishedAt": "2026-01-29T10:00:00Z"
+                }
+              ],
+              "totalCount": 1,
+              "availableTags": []
+            }
+          },
+          {
+            "given": {
+              "event": "ImageCategorized",
+              "data": {
+                "imageId": "img-1101",
+                "title": "Superhero Dog",
+                "tags": [
+                  "Animals",
+                  "Dogs",
+                  "Superheroes"
+                ],
+                "categorizedAt": "2026-01-29T10:01:00Z"
+              }
+            },
+            "then": {
+              "images": [
+                {
+                  "imageId": "img-1101",
+                  "title": "Superhero Dog",
+                  "imageUrl": "/images/img-1101.png",
+                  "tags": [
+                    "Animals",
+                    "Dogs",
+                    "Superheroes"
+                  ],
+                  "viewCount": 0,
+                  "downloadCount": 0,
+                  "publishedAt": "2026-01-29T10:00:00Z"
+                }
+              ],
+              "totalCount": 1,
+              "availableTags": [
+                "Animals",
+                "Dogs",
+                "Superheroes"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "View count increases when image viewed",
+        "initialState": {
+          "images": [
+            {
+              "imageId": "img-1102",
+              "title": "Racing Car",
+              "imageUrl": "/images/img-1102.png",
+              "tags": [
+                "Vehicles",
+                "Cars"
+              ],
+              "viewCount": 10,
+              "downloadCount": 5,
+              "publishedAt": "2026-01-28T10:00:00Z"
+            }
+          ],
+          "totalCount": 1,
+          "availableTags": [
+            "Vehicles",
+            "Cars"
+          ]
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "ImageViewed",
+              "data": {
+                "imageId": "img-1102",
+                "viewedAt": "2026-01-29T10:00:00Z"
+              }
+            },
+            "then": {
+              "images": [
+                {
+                  "imageId": "img-1102",
+                  "title": "Racing Car",
+                  "imageUrl": "/images/img-1102.png",
+                  "tags": [
+                    "Vehicles",
+                    "Cars"
+                  ],
+                  "viewCount": 11,
+                  "downloadCount": 5,
+                  "publishedAt": "2026-01-28T10:00:00Z"
+                }
+              ],
+              "totalCount": 1,
+              "availableTags": [
+                "Vehicles",
+                "Cars"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Download count increases when image downloaded",
+        "initialState": {
+          "images": [
+            {
+              "imageId": "img-1103",
+              "title": "Space Rocket",
+              "imageUrl": "/images/img-1103.png",
+              "tags": [
+                "Space",
+                "Vehicles"
+              ],
+              "viewCount": 50,
+              "downloadCount": 20,
+              "publishedAt": "2026-01-27T10:00:00Z"
+            }
+          ],
+          "totalCount": 1,
+          "availableTags": [
+            "Space",
+            "Vehicles"
+          ]
+        },
+        "steps": [
+          {
+            "given": {
+              "event": "ImageDownloaded",
+              "data": {
+                "imageId": "img-1103",
+                "downloadedAt": "2026-01-29T10:00:00Z"
+              }
+            },
+            "then": {
+              "images": [
+                {
+                  "imageId": "img-1103",
+                  "title": "Space Rocket",
+                  "imageUrl": "/images/img-1103.png",
+                  "tags": [
+                    "Space",
+                    "Vehicles"
+                  ],
+                  "viewCount": 50,
+                  "downloadCount": 21,
+                  "publishedAt": "2026-01-27T10:00:00Z"
+                }
+              ],
+              "totalCount": 1,
+              "availableTags": [
+                "Space",
+                "Vehicles"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 3,
+    "stateOccurrences": [
+      {
+        "tick": 420,
+        "state": {
+          "type": "state",
+          "name": "ColoringPictureLibrary",
+          "tick": 420,
+          "sourcedFrom": [
+            "ImageApproved",
+            "ImageCategorized",
+            "ImageViewed",
+            "ImageDownloaded"
+          ],
+          "example": {
+            "images": [
+              {
+                "imageId": "img-047",
+                "title": "Friendly Dinosaur Party",
+                "imageUrl": "/images/img-047.png",
+                "thumbnailUrl": "/images/img-047-thumb.png",
+                "tags": [
+                  "Animals",
+                  "Dinosaurs",
+                  "Party",
+                  "Birthday"
+                ],
+                "viewCount": 234,
+                "downloadCount": 89,
+                "publishedAt": "2026-01-29T10:26:00Z"
+              },
+              {
+                "imageId": "img-042",
+                "title": "Magical Rainbow Unicorn",
+                "imageUrl": "/images/img-042.png",
+                "thumbnailUrl": "/images/img-042-thumb.png",
+                "tags": [
+                  "Fantasy",
+                  "Animals",
+                  "Unicorn",
+                  "Rainbow"
+                ],
+                "viewCount": 567,
+                "downloadCount": 312,
+                "publishedAt": "2026-01-29T05:00:00Z"
+              },
+              {
+                "imageId": "img-038",
+                "title": "Princess Castle",
+                "imageUrl": "/images/img-038.png",
+                "thumbnailUrl": "/images/img-038-thumb.png",
+                "tags": [
+                  "Fantasy",
+                  "Castle",
+                  "Princess"
+                ],
+                "viewCount": 678,
+                "downloadCount": 423,
+                "publishedAt": "2026-01-26T14:00:00Z"
+              }
+            ],
+            "totalCount": 156,
+            "availableTags": [
+              "Animals",
+              "Fantasy",
+              "Space",
+              "Nature",
+              "Vehicles",
+              "Food",
+              "Sports",
+              "Dinosaurs",
+              "Unicorn",
+              "Party"
+            ]
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "images": [
+        {
+          "imageId": "img-047",
+          "title": "Friendly Dinosaur Party",
+          "imageUrl": "/images/img-047.png",
+          "thumbnailUrl": "/images/img-047-thumb.png",
+          "tags": [
+            "Animals",
+            "Dinosaurs",
+            "Party",
+            "Birthday"
+          ],
+          "viewCount": 234,
+          "downloadCount": 89,
+          "publishedAt": "2026-01-29T10:26:00Z"
+        },
+        {
+          "imageId": "img-042",
+          "title": "Magical Rainbow Unicorn",
+          "imageUrl": "/images/img-042.png",
+          "thumbnailUrl": "/images/img-042-thumb.png",
+          "tags": [
+            "Fantasy",
+            "Animals",
+            "Unicorn",
+            "Rainbow"
+          ],
+          "viewCount": 567,
+          "downloadCount": 312,
+          "publishedAt": "2026-01-29T05:00:00Z"
+        },
+        {
+          "imageId": "img-038",
+          "title": "Princess Castle",
+          "imageUrl": "/images/img-038.png",
+          "thumbnailUrl": "/images/img-038-thumb.png",
+          "tags": [
+            "Fantasy",
+            "Castle",
+            "Princess"
+          ],
+          "viewCount": 678,
+          "downloadCount": 423,
+          "publishedAt": "2026-01-26T14:00:00Z"
+        }
+      ],
+      "totalCount": 156,
+      "availableTags": [
+        "Animals",
+        "Fantasy",
+        "Space",
+        "Nature",
+        "Vehicles",
+        "Food",
+        "Sports",
+        "Dinosaurs",
+        "Unicorn",
+        "Party"
+      ]
+    }
+  },
+  {
+    "name": "ViewImage",
+    "type": "command",
+    "ticks": [
+      440
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "ImageViewed",
+        "ticks": [
+          450
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-048",
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "previousAttempt": 3,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:24:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImagePermanentlyRejected",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "reason": "Image quality too poor after multiple attempts",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageRejectionNotificationSent",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "sentAt": "2026-01-29T10:27:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageCategorized",
+                "data": {
+                  "imageId": "img-047",
+                  "title": "Friendly Dinosaur Party",
+                  "tags": [
+                    "Animals",
+                    "Dinosaurs",
+                    "Party",
+                    "Birthday"
+                  ],
+                  "categorizedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "SuccessNotificationSent",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "email": "timmy@example.com",
+                  "sentAt": "2026-01-29T10:27:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "ViewImage",
+              "data": {
+                "imageId": "img-047"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "ImageViewed",
+                "data": {
+                  "imageId": "img-047",
+                  "viewedAt": "2026-01-29T11:00:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 440,
+        "command": {
+          "type": "command",
+          "name": "ViewImage",
+          "tick": 440,
+          "example": {
+            "imageId": "img-047"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "ImageViewed",
+            "tick": 450,
+            "producedBy": "ViewImage-440",
+            "example": {
+              "imageId": "img-047",
+              "viewedAt": "2026-01-29T11:00:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "imageId": "img-047"
+    }
+  },
+  {
+    "name": "ImageDetail",
+    "type": "state",
+    "ticks": [
+      460
+    ],
+    "sourcedFrom": [
+      {
+        "name": "ImageApproved",
+        "ticks": [
+          230
+        ]
+      },
+      {
+        "name": "ImageCategorized",
+        "ticks": [
+          370
+        ]
+      }
+    ],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [
+          {
+            "given": {
+              "event": "ImageApproved",
+              "data": {
+                "imageId": "img-047",
+                "wishId": "wish-001",
+                "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                "email": "timmy@example.com",
+                "imageUrl": "/images/img-047.png",
+                "approvedBy": "admin-01",
+                "approvedAt": "2026-01-29T10:25:00Z"
+              }
+            },
+            "then": {
+              "imageId": "img-047",
+              "title": "Friendly Dinosaur Party",
+              "imageUrl": "/images/img-047.png",
+              "printUrl": "/images/img-047-print.png",
+              "tags": [
+                "Animals",
+                "Dinosaurs",
+                "Party",
+                "Birthday"
+              ],
+              "originalPrompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+              "viewCount": 234,
+              "downloadCount": 89,
+              "publishedAt": "2026-01-29T10:26:00Z",
+              "relatedImages": [
+                {
+                  "imageId": "img-031",
+                  "title": "Dinosaur Adventure",
+                  "thumbnailUrl": "/images/img-031-thumb.png"
+                },
+                {
+                  "imageId": "img-025",
+                  "title": "Birthday Cake Party",
+                  "thumbnailUrl": "/images/img-025-thumb.png"
+                },
+                {
+                  "imageId": "img-019",
+                  "title": "Friendly T-Rex",
+                  "thumbnailUrl": "/images/img-019-thumb.png"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [
+      {
+        "tick": 460,
+        "state": {
+          "type": "state",
+          "name": "ImageDetail",
+          "tick": 460,
+          "sourcedFrom": [
+            "ImageApproved",
+            "ImageCategorized"
+          ],
+          "example": {
+            "imageId": "img-047",
+            "title": "Friendly Dinosaur Party",
+            "imageUrl": "/images/img-047.png",
+            "printUrl": "/images/img-047-print.png",
+            "tags": [
+              "Animals",
+              "Dinosaurs",
+              "Party",
+              "Birthday"
+            ],
+            "originalPrompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+            "viewCount": 234,
+            "downloadCount": 89,
+            "publishedAt": "2026-01-29T10:26:00Z",
+            "relatedImages": [
+              {
+                "imageId": "img-031",
+                "title": "Dinosaur Adventure",
+                "thumbnailUrl": "/images/img-031-thumb.png"
+              },
+              {
+                "imageId": "img-025",
+                "title": "Birthday Cake Party",
+                "thumbnailUrl": "/images/img-025-thumb.png"
+              },
+              {
+                "imageId": "img-019",
+                "title": "Friendly T-Rex",
+                "thumbnailUrl": "/images/img-019-thumb.png"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {
+      "imageId": "img-047",
+      "title": "Friendly Dinosaur Party",
+      "imageUrl": "/images/img-047.png",
+      "printUrl": "/images/img-047-print.png",
+      "tags": [
+        "Animals",
+        "Dinosaurs",
+        "Party",
+        "Birthday"
+      ],
+      "originalPrompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+      "viewCount": 234,
+      "downloadCount": 89,
+      "publishedAt": "2026-01-29T10:26:00Z",
+      "relatedImages": [
+        {
+          "imageId": "img-031",
+          "title": "Dinosaur Adventure",
+          "thumbnailUrl": "/images/img-031-thumb.png"
+        },
+        {
+          "imageId": "img-025",
+          "title": "Birthday Cake Party",
+          "thumbnailUrl": "/images/img-025-thumb.png"
+        },
+        {
+          "imageId": "img-019",
+          "title": "Friendly T-Rex",
+          "thumbnailUrl": "/images/img-019-thumb.png"
+        }
+      ]
+    }
+  },
+  {
+    "name": "DownloadImage",
+    "type": "command",
+    "ticks": [
+      480
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "ImageDownloaded",
+        "ticks": [
+          490
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishSubmitted",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "submittedAt": "2026-01-29T10:15:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishApproved",
+                "data": {
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:20:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejected",
+                "data": {
+                  "wishId": "wish-003",
+                  "prompt": "bad words",
+                  "email": "someone@example.com",
+                  "reason": "Inappropriate content",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:22:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "WishRejectionNotificationSent",
+                "data": {
+                  "wishId": "wish-003",
+                  "email": "someone@example.com",
+                  "sentAt": "2026-01-29T10:23:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "imageUrl": "/images/img-047.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:21:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageApproved",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+                  "email": "timmy@example.com",
+                  "imageUrl": "/images/img-047.png",
+                  "approvedBy": "admin-01",
+                  "approvedAt": "2026-01-29T10:25:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "RegenerationRequested",
+                "data": {
+                  "imageId": "img-048",
+                  "wishId": "wish-015",
+                  "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+                  "previousAttempt": 3,
+                  "requestedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:24:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImagePermanentlyRejected",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "reason": "Image quality too poor after multiple attempts",
+                  "rejectedBy": "admin-01",
+                  "rejectedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageRejectionNotificationSent",
+                "data": {
+                  "imageId": "img-049",
+                  "wishId": "wish-022",
+                  "email": "anna@example.com",
+                  "sentAt": "2026-01-29T10:27:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageCategorized",
+                "data": {
+                  "imageId": "img-047",
+                  "title": "Friendly Dinosaur Party",
+                  "tags": [
+                    "Animals",
+                    "Dinosaurs",
+                    "Party",
+                    "Birthday"
+                  ],
+                  "categorizedAt": "2026-01-29T10:26:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "SuccessNotificationSent",
+                "data": {
+                  "imageId": "img-047",
+                  "wishId": "wish-001",
+                  "email": "timmy@example.com",
+                  "sentAt": "2026-01-29T10:27:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "events-only",
+            "events": [
+              {
+                "event": "ImageViewed",
+                "data": {
+                  "imageId": "img-047",
+                  "viewedAt": "2026-01-29T11:00:00Z"
+                }
+              }
+            ]
+          },
+          {
+            "type": "command",
+            "command": {
+              "name": "DownloadImage",
+              "data": {
+                "imageId": "img-047"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "ImageDownloaded",
+                "data": {
+                  "imageId": "img-047",
+                  "downloadedAt": "2026-01-29T11:01:00Z"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 480,
+        "command": {
+          "type": "command",
+          "name": "DownloadImage",
+          "tick": 480,
+          "example": {
+            "imageId": "img-047"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "ImageDownloaded",
+            "tick": 490,
+            "producedBy": "DownloadImage-480",
+            "example": {
+              "imageId": "img-047",
+              "downloadedAt": "2026-01-29T11:01:00Z"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "imageId": "img-047"
+    }
+  }
+]

@@ -21,6 +21,8 @@
     font-family: var(--font-mono);
     font-size: 0.8rem;
     overflow-x: auto;
-    white-space: pre;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 100%;
   }
 </style>
