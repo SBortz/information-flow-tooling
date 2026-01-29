@@ -307,21 +307,19 @@
               class="tl-lane-label event"
               style="left: {i * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
             >
-              <span class="tl-lane-label-text">{system || 'Default'}</span>
+              {#if system}<span class="tl-lane-label-text">{system}</span>{/if}
             </div>
           {/each}
           <div
             class="tl-lane-label center"
             style="left: {filteredLaneConfig().eventLaneCount * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
-          >
-            <span class="tl-lane-label-text">Cmds/States</span>
-          </div>
+          ></div>
           {#each filteredLaneConfig().actorRoles as role, i}
             <div
               class="tl-lane-label actor"
               style="left: {(filteredLaneConfig().eventLaneCount + 1 + i) * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
             >
-              <span class="tl-lane-label-text">{role || 'Default'}</span>
+              {#if role}<span class="tl-lane-label-text">{role}</span>{/if}
             </div>
           {/each}
         </div>
