@@ -419,7 +419,11 @@
         <div class="tl-detail-header">
           <span class="tl-symbol {el.type}">{symbols[el.type]}</span>
           <span class="tl-tick">@{el.tick}</span>
-          <span class="tl-name {el.type}">{el.name}</span>
+          {#if isState(el) || isCommand(el)}
+            <a class="tl-name tl-name-link {el.type}" href="#slice/{encodeURIComponent(el.name)}">{el.name}</a>
+          {:else}
+            <span class="tl-name {el.type}">{el.name}</span>
+          {/if}
           {#if isEvent(el) && el.system}
             <span class="tl-lane-badge event">{el.system}</span>
           {/if}
@@ -709,6 +713,17 @@
   .tl-detail-header .tl-name {
     font-weight: 600;
     font-size: 0.95rem;
+  }
+
+  .tl-detail-header .tl-name-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .tl-detail-header .tl-name-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
   }
 
   .tl-lane-badge {

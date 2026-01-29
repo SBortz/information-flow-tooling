@@ -208,6 +208,49 @@
       "role": "System"
     },
     {
+      "type": "event",
+      "name": "ImageGenerationStarted",
+      "tick": 175,
+      "producedBy": "GenerateImage-180",
+      "example": {
+        "wishId": "wish-001",
+        "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+        "attempt": 1,
+        "startedAt": "2026-01-29T10:20:30Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "ImagesCurrentlyGenerating",
+      "tick": 176,
+      "sourcedFrom": ["ImageGenerationStarted", "ImageGenerated"],
+      "example": {
+        "images": [
+          {
+            "wishId": "wish-001",
+            "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
+            "attempt": 1,
+            "startedAt": "2026-01-29T10:20:30Z"
+          },
+          {
+            "wishId": "wish-015",
+            "prompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+            "attempt": 3,
+            "startedAt": "2026-01-29T10:19:00Z"
+          }
+        ],
+        "totalCount": 2
+      }
+    },
+    {
+      "type": "actor",
+      "name": "Admin",
+      "tick": 177,
+      "readsView": "ImagesCurrentlyGenerating",
+      "sendsCommand": null,
+      "role": "Admin"
+    },
+    {
       "type": "command",
       "name": "GenerateImage",
       "tick": 180,
@@ -1629,6 +1672,121 @@
               "then": {
                 "images": [],
                 "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "ImagesCurrentlyGenerating",
+      "type": "state",
+      "scenarios": [
+        {
+          "name": "Image appears when generation starts",
+          "initialState": {
+            "images": [],
+            "totalCount": 0
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "ImageGenerationStarted",
+                "data": {
+                  "wishId": "wish-1301",
+                  "prompt": "A magical forest with glowing mushrooms",
+                  "attempt": 1,
+                  "startedAt": "2026-01-29T10:00:00Z"
+                }
+              },
+              "then": {
+                "images": [
+                  {
+                    "wishId": "wish-1301",
+                    "prompt": "A magical forest with glowing mushrooms",
+                    "attempt": 1,
+                    "startedAt": "2026-01-29T10:00:00Z"
+                  }
+                ],
+                "totalCount": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Image disappears when generation completes",
+          "initialState": {
+            "images": [
+              {
+                "wishId": "wish-1302",
+                "prompt": "A friendly robot helping in the kitchen",
+                "attempt": 1,
+                "startedAt": "2026-01-29T10:00:00Z"
+              }
+            ],
+            "totalCount": 1
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "ImageGenerated",
+                "data": {
+                  "imageId": "img-1302",
+                  "wishId": "wish-1302",
+                  "prompt": "A friendly robot helping in the kitchen",
+                  "imageUrl": "/images/img-1302.png",
+                  "attempt": 1,
+                  "generatedAt": "2026-01-29T10:01:00Z"
+                }
+              },
+              "then": {
+                "images": [],
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Multiple images can be generating simultaneously",
+          "initialState": {
+            "images": [
+              {
+                "wishId": "wish-1303",
+                "prompt": "A sleeping dragon on a mountain",
+                "attempt": 2,
+                "startedAt": "2026-01-29T10:00:00Z"
+              }
+            ],
+            "totalCount": 1
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "ImageGenerationStarted",
+                "data": {
+                  "wishId": "wish-1304",
+                  "prompt": "A pirate parrot with a treasure map",
+                  "attempt": 1,
+                  "startedAt": "2026-01-29T10:00:30Z"
+                }
+              },
+              "then": {
+                "images": [
+                  {
+                    "wishId": "wish-1303",
+                    "prompt": "A sleeping dragon on a mountain",
+                    "attempt": 2,
+                    "startedAt": "2026-01-29T10:00:00Z"
+                  },
+                  {
+                    "wishId": "wish-1304",
+                    "prompt": "A pirate parrot with a treasure map",
+                    "attempt": 1,
+                    "startedAt": "2026-01-29T10:00:30Z"
+                  }
+                ],
+                "totalCount": 2
               }
             }
           ]
