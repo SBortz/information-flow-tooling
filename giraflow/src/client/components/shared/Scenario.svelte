@@ -100,15 +100,15 @@
       <div class="scenario-step">
         <div class="timeline-scenario">
           {#each timelineScenario.rows as row, index}
-            <div
-              class="timeline-row"
-              class:events-only={row.type === "events-only"}
-              class:command-execution={row.type === "command"}
-              class:command-failure={row.type === "command" && row.fails}
-            >
+            <div class="timeline-row-wrapper" class:events-only={row.type === "events-only"}>
               <div class="step-number">{index + 1}.</div>
-              <!-- Left column: Command (or empty) -->
-              <div class="command-column">
+              <div
+                class="timeline-row"
+                class:command-execution={row.type === "command"}
+                class:command-failure={row.type === "command" && row.fails}
+              >
+                <!-- Left column: Command (or empty) -->
+                <div class="command-column">
                 {#if row.type === "command" && row.command}
                   <div class="scenario-box scenario-box-command">
                     <span class="box-title command">▶ {row.command.name}</span>
@@ -159,6 +159,7 @@
                 {/if}
               </div>
             </div>
+          </div>
           {/each}
         </div>
       </div>
@@ -169,15 +170,15 @@
       <div class="scenario-step">
         <div class="timeline-scenario">
           {#each flattenedCommandSteps as step, index}
-            <div
-              class="timeline-row"
-              class:events-only={step.type === "events-only"}
-              class:command-execution={step.type === "command"}
-              class:command-failure={step.type === "command" && step.fails}
-            >
+            <div class="timeline-row-wrapper" class:events-only={step.type === "events-only"}>
               <div class="step-number">{index + 1}.</div>
-              <!-- Left column: Command with sliceName (or empty for events-only) -->
-              <div class="command-column">
+              <div
+                class="timeline-row"
+                class:command-execution={step.type === "command"}
+                class:command-failure={step.type === "command" && step.fails}
+              >
+                <!-- Left column: Command with sliceName (or empty for events-only) -->
+                <div class="command-column">
                 {#if step.type === "command"}
                   <div class="scenario-box scenario-box-command">
                     <span class="box-title command"
@@ -227,6 +228,7 @@
                 {/if}
               </div>
             </div>
+          </div>
           {/each}
         </div>
       </div>
@@ -320,20 +322,26 @@
     gap: 0.5rem;
   }
 
-  .timeline-row {
+  .timeline-row-wrapper {
     display: grid;
-    grid-template-columns: auto 1fr 1fr;
-    gap: 1rem;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem;
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border);
   }
 
-  .timeline-row:last-child {
+  .timeline-row-wrapper:last-child {
     border-bottom: none;
   }
 
-  .timeline-row.events-only {
+  .timeline-row-wrapper.events-only {
     border-bottom: none;
+  }
+
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
   }
 
   .command-column {
