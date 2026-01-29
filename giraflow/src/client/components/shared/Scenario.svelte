@@ -61,10 +61,10 @@
     <!-- STEPS (for state scenarios) -->
     {#if stateScenario}
       <div class="scenario-step">
-        <span class="label">Steps</span>
         <div class="steps-grid">
-          {#each stateScenario.steps as step}
+          {#each stateScenario.steps as step, index}
             <div class="step-row">
+              <div class="step-number">{index + 1}.</div>
               <div class="event-column">
                 <div class="scenario-box scenario-box-event">
                   <span class="box-title event">● {step.given.event}</span>
@@ -89,14 +89,14 @@
     <!-- STEPS (for timeline scenarios - chronological timeline with command.name/data) -->
     {#if timelineScenario}
       <div class="scenario-step">
-        <span class="label">Steps</span>
         <div class="timeline-scenario">
-          {#each timelineScenario.rows as row}
+          {#each timelineScenario.rows as row, index}
             <div
               class="timeline-row"
               class:command-execution={row.type === "command"}
               class:command-failure={row.type === "command" && row.fails}
             >
+              <div class="step-number">{index + 1}.</div>
               <!-- Left column: Command (or empty) -->
               <div class="command-column">
                 {#if row.type === "command" && row.command}
@@ -157,14 +157,14 @@
     <!-- STEPS (for explicit command scenarios - with sliceName and when/produces) -->
     {#if commandStepsScenario}
       <div class="scenario-step">
-        <span class="label">Steps</span>
         <div class="timeline-scenario">
-          {#each commandStepsScenario.steps as step}
+          {#each commandStepsScenario.steps as step, index}
             <div
               class="timeline-row"
               class:command-execution={step.type === "command"}
               class:command-failure={step.type === "command" && step.fails}
             >
+              <div class="step-number">{index + 1}.</div>
               <!-- Left column: Command with sliceName (or empty for events-only) -->
               <div class="command-column">
                 {#if step.type === "command"}
@@ -284,7 +284,7 @@
   .scenario-header .name,
   .scenario-header-static .name {
     font-weight: 500;
-    color: var(--color-warning);
+    color: var(--text-primary);
   }
 
   .scenario-body {
@@ -321,7 +321,7 @@
 
   .timeline-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: auto 1fr 1fr;
     gap: 1rem;
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border);
@@ -410,9 +410,18 @@
 
   .step-row {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: auto 1fr auto 1fr;
     gap: 1rem;
     align-items: stretch;
+  }
+
+  .step-number {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    min-width: 1.5rem;
+    text-align: right;
+    padding-top: 0.5rem;
   }
 
   .event-column,
