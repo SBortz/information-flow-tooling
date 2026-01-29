@@ -62,56 +62,54 @@
     };
   }
 
-  // IntersectionObserver for scroll-based highlighting
+  // Scroll-based highlighting - finds the topmost visible element on each scroll
   $effect(() => {
     if (!detailContainer || detailElements.size === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Find the topmost visible element
-        const visibleEntries = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    function updateActiveFromScroll() {
+      const headerOffset = 120; // Sticky header height
+      let closestTick: number | null = null;
+      let closestDistance = Infinity;
 
-        if (visibleEntries.length > 0) {
-          const id = visibleEntries[0].target.id;
-          if (id.startsWith("tick-")) {
-            const tick = parseInt(id.replace("tick-", ""), 10);
-            if (!isNaN(tick) && tick !== activeTick) {
-              activeTick = tick;
-              // Update URL without adding history entry
-              history.replaceState(
-                { view: "timeline", tick },
-                "",
-                `#timeline/tick-${tick}`,
-              );
+      for (const [tick, el] of detailElements) {
+        const rect = el.getBoundingClientRect();
+        const distanceFromTop = rect.top - headerOffset;
 
-              // Scroll master item into view if needed
-              const masterItem = document.querySelector(
-                `.tl-master-item[data-tick="${tick}"]`,
-              );
-              if (masterItem) {
-                masterItem.scrollIntoView({
-                  behavior: "smooth",
-                  block: "nearest",
-                });
-              }
-            }
+        // Element is visible (below header, above viewport end)
+        if (distanceFromTop < 100 && rect.bottom > headerOffset) {
+          if (Math.abs(distanceFromTop) < closestDistance) {
+            closestDistance = Math.abs(distanceFromTop);
+            closestTick = tick;
           }
         }
-      },
-      {
-        root: null, // viewport
-        rootMargin: "-20% 0px -60% 0px",
-        threshold: 0,
-      },
-    );
+      }
 
-    for (const el of detailElements.values()) {
-      observer.observe(el);
+      if (closestTick !== null && closestTick !== activeTick) {
+        activeTick = closestTick;
+        // Update URL without adding history entry
+        history.replaceState(
+          { view: "timeline", tick: closestTick },
+          "",
+          `#timeline/tick-${closestTick}`,
+        );
+
+        // Scroll master item into view if needed
+        const masterItem = document.querySelector(
+          `.tl-master-item[data-tick="${closestTick}"]`,
+        );
+        if (masterItem) {
+          masterItem.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }
+      }
     }
 
-    return () => observer.disconnect();
+    window.addEventListener("scroll", updateActiveFromScroll, { passive: true });
+    updateActiveFromScroll(); // Initial call
+
+    return () => window.removeEventListener("scroll", updateActiveFromScroll);
   });
 
   // Handle initial hash on mount
