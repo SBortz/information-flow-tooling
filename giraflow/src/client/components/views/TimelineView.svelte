@@ -25,7 +25,9 @@
   let filterDropdownOpen = $state(false);
 
   // Check if any filters are active
-  let hasActiveFilters = $derived(hiddenSystems.size > 0 || hiddenRoles.size > 0);
+  let hasActiveFilters = $derived(
+    hiddenSystems.size > 0 || hiddenRoles.size > 0,
+  );
 
   // Toggle functions - clicking toggles visibility (visible by default)
   function toggleSystem(system: string) {
@@ -54,7 +56,7 @@
   // Close dropdown when clicking outside
   function handleClickOutside(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.tl-filter-dropdown')) {
+    if (!target.closest(".tl-filter-dropdown")) {
       filterDropdownOpen = false;
     }
   }
@@ -66,8 +68,12 @@
 
   // Filtered lane config - excludes hidden systems/roles
   let filteredLaneConfig = $derived(() => {
-    const visibleSystems = laneConfig.eventSystems.filter(s => !hiddenSystems.has(s));
-    const visibleRoles = laneConfig.actorRoles.filter(r => !hiddenRoles.has(r));
+    const visibleSystems = laneConfig.eventSystems.filter(
+      (s) => !hiddenSystems.has(s),
+    );
+    const visibleRoles = laneConfig.actorRoles.filter(
+      (r) => !hiddenRoles.has(r),
+    );
     const eventLaneCount = Math.max(1, visibleSystems.length);
     const actorLaneCount = Math.max(1, visibleRoles.length);
     return {
@@ -83,48 +89,51 @@
   // Filtered items with recalculated lane indices
   let filteredItems = $derived(
     timelineItems
-      .filter(item => {
-        if (item.element.type === 'event') {
+      .filter((item) => {
+        if (item.element.type === "event") {
           const event = item.element as Event;
-          return !hiddenSystems.has(event.system || '');
+          return !hiddenSystems.has(event.system || "");
         }
-        if (item.element.type === 'actor') {
+        if (item.element.type === "actor") {
           const actor = item.element as Actor;
-          return !hiddenRoles.has(actor.role || '');
+          return !hiddenRoles.has(actor.role || "");
         }
         return true; // Always show commands and states
       })
-      .map(item => {
+      .map((item) => {
         // Recalculate laneIndex based on filtered lane config
-        if (item.element.type === 'event') {
+        if (item.element.type === "event") {
           const event = item.element as Event;
-          const system = event.system || '';
-          const newLaneIndex = filteredLaneConfig().eventSystems.indexOf(system);
+          const system = event.system || "";
+          const newLaneIndex =
+            filteredLaneConfig().eventSystems.indexOf(system);
           return { ...item, laneIndex: newLaneIndex >= 0 ? newLaneIndex : 0 };
         }
-        if (item.element.type === 'actor') {
+        if (item.element.type === "actor") {
           const actor = item.element as Actor;
-          const role = actor.role || '';
+          const role = actor.role || "";
           const newLaneIndex = filteredLaneConfig().actorRoles.indexOf(role);
           return { ...item, laneIndex: newLaneIndex >= 0 ? newLaneIndex : 0 };
         }
         return item;
-      })
+      }),
   );
 
   let filteredCount = $derived(filteredItems.length);
 
   // Calculate total width for the lane area (using filtered config)
-  let totalLaneWidth = $derived(filteredLaneConfig().totalLanes * filteredLaneConfig().laneWidth);
+  let totalLaneWidth = $derived(
+    filteredLaneConfig().totalLanes * filteredLaneConfig().laneWidth,
+  );
 
   // Calculate symbol padding based on position and lane index (using filtered config)
   function getSymbolPadding(position: string, laneIndex: number): number {
     const config = filteredLaneConfig();
     const laneWidth = config.laneWidth;
-    if (position === 'left') {
+    if (position === "left") {
       // Events: lane 0 is outermost (leftmost), higher lanes are more to the right
       return laneIndex * laneWidth + 8;
-    } else if (position === 'center') {
+    } else if (position === "center") {
       // Commands/States: always in the center lane
       return config.eventLaneCount * laneWidth + 8;
     } else {
@@ -160,22 +169,26 @@
 
     // Tint for all lanes
     for (let i = 0; i < totalLanes; i++) {
-      layers.push(`linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05))`);
+      layers.push(
+        `linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05))`,
+      );
       positions.push(`${i * laneWidth}px 0`);
       sizes.push(`${laneWidth}px 100%`);
     }
 
     // Vertical lines (one at each lane boundary + rightmost edge)
     for (let i = 0; i <= totalLanes; i++) {
-      layers.push(`linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4))`);
+      layers.push(
+        `linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4))`,
+      );
       positions.push(`${i * laneWidth - 1}px 0`);
       sizes.push(`2px 100%`);
     }
 
     return `
-      background-image: ${layers.join(',\n      ')};
-      background-position: ${positions.join(',\n      ')};
-      background-size: ${sizes.join(',\n      ')};
+      background-image: ${layers.join(",\n      ")};
+      background-position: ${positions.join(",\n      ")};
+      background-size: ${sizes.join(",\n      ")};
       background-repeat: no-repeat;
     `;
   }
@@ -254,9 +267,15 @@
           const containerRect = masterContainer.getBoundingClientRect();
           const itemRect = masterItem.getBoundingClientRect();
           // Only scroll if item is outside visible area of master
-          if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
+          if (
+            itemRect.top < containerRect.top ||
+            itemRect.bottom > containerRect.bottom
+          ) {
             masterContainer.scrollTo({
-              top: masterItem.offsetTop - masterContainer.clientHeight / 2 + masterItem.clientHeight / 2,
+              top:
+                masterItem.offsetTop -
+                masterContainer.clientHeight / 2 +
+                masterItem.clientHeight / 2,
               behavior: "smooth",
             });
           }
@@ -264,7 +283,9 @@
       }
     }
 
-    window.addEventListener("scroll", updateActiveFromScroll, { passive: true });
+    window.addEventListener("scroll", updateActiveFromScroll, {
+      passive: true,
+    });
     // No initial call - hash effect handles initialization
 
     return () => window.removeEventListener("scroll", updateActiveFromScroll);
@@ -295,55 +316,62 @@
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
+<div
+  class="timeline-master-detail"
+  role="presentation"
+  onclick={handleClickOutside}
+>
   <!-- Master: Compact timeline on the left -->
   <aside class="timeline-master">
     <div class="tl-master-content">
       <div class="tl-lane-header">
-        <div class="tl-lane-labels-wrapper" style="padding-left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);">
-        <div class="tl-lane-labels" style="width: {totalLaneWidth}px;">
-          {#each filteredLaneConfig().eventSystems as system, i}
-            <div
-              class="tl-lane-label event"
-              style="left: {i * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
-            >
-              <span class="tl-lane-label-text">{system || 'Default'}</span>
-            </div>
-          {/each}
-          <div
-            class="tl-lane-label center"
-            style="left: {filteredLaneConfig().eventLaneCount * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
-          >
-            <span class="tl-lane-label-text">Cmds/States</span>
+        <div
+          class="tl-lane-labels-wrapper"
+          style="padding-left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);"
+        >
+          <div class="tl-lane-labels" style="width: {totalLaneWidth}px;">
+            {#each filteredLaneConfig().eventSystems as system, i}
+              <div
+                class="tl-lane-label event"
+                style="left: {(i + 0.75) *
+                  filteredLaneConfig()
+                    .laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+              >
+                <span class="tl-lane-label-text">{system || "Default"}</span>
+              </div>
+            {/each}
+            {#each filteredLaneConfig().actorRoles as role, i}
+              <div
+                class="tl-lane-label actor"
+                style="left: {(filteredLaneConfig().eventLaneCount + 1.75 + i) *
+                  filteredLaneConfig()
+                    .laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+              >
+                <span class="tl-lane-label-text">{role || "Default"}</span>
+              </div>
+            {/each}
           </div>
-          {#each filteredLaneConfig().actorRoles as role, i}
-            <div
-              class="tl-lane-label actor"
-              style="left: {(filteredLaneConfig().eventLaneCount + 1 + i) * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
-            >
-              <span class="tl-lane-label-text">{role || 'Default'}</span>
-            </div>
-          {/each}
         </div>
-        </div>
-        {#if laneConfig.eventSystems.some(s => s !== '') || laneConfig.actorRoles.some(r => r !== '')}
+        {#if laneConfig.eventSystems.some((s) => s !== "") || laneConfig.actorRoles.some((r) => r !== "")}
           <div class="tl-filter-dropdown">
             <button
               class="tl-filter-trigger"
               class:has-filters={hasActiveFilters}
-              onclick={() => filterDropdownOpen = !filterDropdownOpen}
+              onclick={() => (filterDropdownOpen = !filterDropdownOpen)}
             >
               <span>⚙</span>
               {#if hasActiveFilters}
-                <span class="tl-filter-badge">{hiddenSystems.size + hiddenRoles.size}</span>
+                <span class="tl-filter-badge"
+                  >{hiddenSystems.size + hiddenRoles.size}</span
+                >
               {/if}
             </button>
             {#if filterDropdownOpen}
               <div class="tl-filter-panel">
-                {#if laneConfig.eventSystems.some(s => s !== '')}
+                {#if laneConfig.eventSystems.some((s) => s !== "")}
                   <div class="tl-filter-group">
                     <span class="tl-filter-label">Systems</span>
-                    {#each laneConfig.eventSystems.filter(s => s !== '') as system}
+                    {#each laneConfig.eventSystems.filter((s) => s !== "") as system}
                       <label class="tl-filter-item">
                         <input
                           type="checkbox"
@@ -355,10 +383,10 @@
                     {/each}
                   </div>
                 {/if}
-                {#if laneConfig.actorRoles.some(r => r !== '')}
+                {#if laneConfig.actorRoles.some((r) => r !== "")}
                   <div class="tl-filter-group">
                     <span class="tl-filter-label">Roles</span>
-                    {#each laneConfig.actorRoles.filter(r => r !== '') as role}
+                    {#each laneConfig.actorRoles.filter((r) => r !== "") as role}
                       <label class="tl-filter-item">
                         <input
                           type="checkbox"
@@ -394,8 +422,11 @@
           <span class="tl-tick">@{el.tick}</span>
           <span
             class="tl-symbol {el.type}"
-            style="width: {totalLaneWidth}px; padding-left: {getSymbolPadding(position, laneIndex)}px;"
-          >{symbols[el.type]}</span>
+            style="width: {totalLaneWidth}px; padding-left: {getSymbolPadding(
+              position,
+              laneIndex,
+            )}px;">{symbols[el.type]}</span
+          >
           <span class="tl-name {el.type}">{el.name}</span>
         </button>
       {/each}
@@ -407,8 +438,10 @@
     <header class="tl-detail-title">
       <h2>Timeline</h2>
       <span class="tl-detail-count">
-          {filteredCount}{filteredCount !== viewModel.count ? ` of ${viewModel.count}` : ''} items
-        </span>
+        {filteredCount}{filteredCount !== viewModel.count
+          ? ` of ${viewModel.count}`
+          : ""} items
+      </span>
     </header>
     {#each filteredItems as { element: el, position }}
       <section
@@ -548,29 +581,20 @@
 
   .tl-lane-label-text {
     transform-origin: bottom left;
-    transform: rotate(-45deg) translateX(-0.5rem);
+    transform: rotate(-45deg);
     font-size: 0.65rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    color: var(--text-secondary);
     white-space: nowrap;
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.2rem;
+    padding: 0.1rem 0;
   }
 
   .tl-lane-label.event .tl-lane-label-text {
-    background: rgba(249, 115, 22, 0.15);
     color: var(--color-event);
   }
 
-  .tl-lane-label.center .tl-lane-label-text {
-    background: rgba(107, 114, 128, 0.15);
-    color: var(--text-secondary);
-  }
-
   .tl-lane-label.actor .tl-lane-label-text {
-    background: rgba(34, 197, 94, 0.15);
     color: var(--color-actor);
   }
 
