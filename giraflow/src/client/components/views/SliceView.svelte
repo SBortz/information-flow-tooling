@@ -304,29 +304,41 @@
     // Convert state occurrences to single timeline scenario
     for (const [, slice] of seen) {
       if (slice.type === "state" && slice.stateOccurrences.length > 0) {
-        const steps = slice.stateOccurrences.map((occ, index) => {
-          const prevTick =
-            index > 0 ? slice.stateOccurrences[index - 1].tick : 0;
+        let initialState: unknown = undefined;
+        const steps: { given: { event: string; data?: unknown }; then: unknown }[] = [];
+
+        for (let index = 0; index < slice.stateOccurrences.length; index++) {
+          const occ = slice.stateOccurrences[index];
+          const prevTick = index > 0 ? slice.stateOccurrences[index - 1].tick : 0;
           const precedingEvent = events.find(
             (e) =>
               e.tick > prevTick &&
               e.tick < occ.tick &&
               occ.state.sourcedFrom.includes(e.name),
           );
-          return {
-            given: {
-              event: precedingEvent?.name ?? "(initial)",
-              ...(precedingEvent?.example
-                ? { data: precedingEvent.example }
-                : {}),
-            },
-            then: occ.state.example,
-          };
-        });
-        slice.scenarios.push({
+
+          if (!precedingEvent && index === 0) {
+            // First occurrence without preceding event -> set as initialState
+            initialState = occ.state.example;
+          } else if (precedingEvent) {
+            steps.push({
+              given: {
+                event: precedingEvent.name,
+                ...(precedingEvent.example ? { data: precedingEvent.example } : {}),
+              },
+              then: occ.state.example,
+            });
+          }
+        }
+
+        const scenario: StateViewScenario = {
           name: "Timeline Scenario",
           steps,
-        });
+        };
+        if (initialState !== undefined) {
+          scenario.initialState = initialState;
+        }
+        slice.scenarios.push(scenario);
       }
     }
 
