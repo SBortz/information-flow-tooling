@@ -1,18 +1,28 @@
 <script lang="ts">
+  import { wireframeReloadSignal } from '../../stores/model.svelte';
+
   interface Props {
     src: string;
     title?: string;
   }
   let { src, title = 'Wireframe' }: Props = $props();
+
+  // Add cache-buster query param to force fresh load
+  let cacheBustedSrc = $derived(
+    wireframeReloadSignal.value > 0
+      ? `${src}${src.includes('?') ? '&' : '?'}_t=${wireframeReloadSignal.value}`
+      : src
+  );
 </script>
 
 <div class="wireframe-container">
-  <iframe
-    {title}
-    src={src}
-    sandbox="allow-scripts"
-    class="wireframe-iframe"
-  ></iframe>
+  {#key cacheBustedSrc}
+    <iframe
+      {title}
+      src={cacheBustedSrc}
+      class="wireframe-iframe"
+    ></iframe>
+  {/key}
 </div>
 
 <style>

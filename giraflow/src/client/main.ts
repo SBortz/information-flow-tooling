@@ -1,6 +1,6 @@
 import { mount } from 'svelte';
 import App from './App.svelte';
-import { modelStore } from './stores/model.svelte';
+import { modelStore, triggerWireframeReload } from './stores/model.svelte';
 import './styles/global.css';
 
 // Fetch model data from API
@@ -25,6 +25,9 @@ function connectSSE() {
   events.onmessage = (event) => {
     if (event.data === 'reload' || event.data === 'update') {
       fetchModel();
+    } else if (event.data === 'wireframe-reload') {
+      // Only reload iframes, not the whole model
+      triggerWireframeReload();
     }
   };
 

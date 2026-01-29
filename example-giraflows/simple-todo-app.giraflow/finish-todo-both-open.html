@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+    // Patch to ignore duplicate custom element registrations
+    const origDefine = customElements.define.bind(customElements);
+    customElements.define = (name, cl, opts) => { if (!customElements.get(name)) origDefine(name, cl, opts); };
+  </script>
+  <script type="module" src="https://unpkg.com/wired-elements?module"></script>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    wired-checkbox { display: block; margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <wired-card>
+    <h3>Todos</h3>
+    <wired-checkbox>Buy milk</wired-checkbox>
+    <wired-checkbox>Walk dog</wired-checkbox>
+  </wired-card>
+</body>
+</html>

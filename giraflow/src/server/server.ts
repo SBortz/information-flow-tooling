@@ -28,6 +28,7 @@ export function createServer(options: ServerOptions): {
   start: () => void;
   stop: () => void;
   triggerReload: () => void;
+  triggerWireframeReload: () => void;
 } {
   const { filePath, port } = options;
   const clients = new Set<http.ServerResponse>();
@@ -57,6 +58,12 @@ export function createServer(options: ServerOptions): {
     loadModel();
     for (const client of clients) {
       client.write('data: reload\n\n');
+    }
+  }
+
+  function triggerWireframeReload(): void {
+    for (const client of clients) {
+      client.write('data: wireframe-reload\n\n');
     }
   }
 
@@ -102,7 +109,8 @@ export function createServer(options: ServerOptions): {
 
     // Asset endpoint for wireframes and other files
     if (url.pathname.startsWith('/assets/')) {
-      const assetName = url.pathname.slice('/assets/'.length);
+      // pathname already excludes query string
+      const assetName = decodeURIComponent(url.pathname.slice('/assets/'.length));
       // Compute asset folder from giraflow file path (remove .json extension)
       const giraflowDir = filePath.replace(/\.json$/, '');
       const assetPath = path.join(giraflowDir, assetName);
@@ -190,5 +198,6 @@ export function createServer(options: ServerOptions): {
       server.close();
     },
     triggerReload,
+    triggerWireframeReload,
   };
 }

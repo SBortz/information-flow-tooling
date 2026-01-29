@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+    // Patch to ignore duplicate custom element registrations
+    const origDefine = customElements.define.bind(customElements);
+    customElements.define = (name, cl, opts) => { if (!customElements.get(name)) origDefine(name, cl, opts); };
+  </script>
+  <script type="module" src="https://unpkg.com/wired-elements?module"></script>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    .todo-item { margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <wired-card>
+    <h3>Add Todo</h3>
+    <div class="todo-item">Buy milk</div>
+    <wired-input placeholder="Enter task..."></wired-input>
+    <wired-button>Add</wired-button>
+  </wired-card>
+</body>
+</html>

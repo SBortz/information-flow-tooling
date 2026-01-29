@@ -129,3 +129,10 @@ class ModelStore {
 }
 
 export const modelStore = new ModelStore();
+
+// Signal for wireframe-only reloads (increments on each wireframe change)
+export const wireframeReloadSignal = $state({ value: 0 });
+
+export function triggerWireframeReload() {
+  wireframeReloadSignal.value++;
+}

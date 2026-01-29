@@ -82,7 +82,8 @@ async function startServer(file?: string, options?: { port: string; open: boolea
   const server = createServer({ filePath, port });
   const watcher = createWatcher({
     filePath,
-    onChange: () => server.triggerReload(),
+    onModelChange: () => server.triggerReload(),
+    onWireframeChange: () => server.triggerWireframeReload(),
   });
 
   // Handle graceful shutdown

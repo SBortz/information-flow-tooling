@@ -27,8 +27,10 @@ export function ifLivePlugin(): Plugin {
   let fileDir: string = process.cwd();
   let currentModel: InformationFlowModel | null = null;
   let currentError: string | null = null;
-  let watcher: fs.FSWatcher | null = null;
+  let jsonWatcher: fs.FSWatcher | null = null;
+  let wireframeWatcher: fs.FSWatcher | null = null;
   let debounceTimeout: NodeJS.Timeout | null = null;
+  let pendingChangeType: 'model' | 'wireframe' | null = null;
   const clients = new Set<ServerResponse>();
 
   function findGiraflowFiles(): string[] {
@@ -60,9 +62,9 @@ export function ifLivePlugin(): Plugin {
     }
   }
 
-  function notifyClients(): void {
+  function notifyClients(eventType: 'reload' | 'wireframe-reload'): void {
     for (const client of clients) {
-      client.write('data: reload\n\n');
+      client.write(`data: ${eventType}\n\n`);
     }
   }
 
@@ -100,19 +102,43 @@ export function ifLivePlugin(): Plugin {
       const fileName = path.basename(filePath);
       server.config.logger.info(`\n  Watching: ${fileName}\n`);
 
-      // File watcher
-      watcher = fs.watch(filePath, () => {
+      // Derive the .giraflow folder path
+      const giraflowFolderPath = filePath.replace(/\.json$/, '');
+
+      function scheduleNotify(changeType: 'model' | 'wireframe'): void {
+        // Model changes take precedence
+        if (pendingChangeType !== 'model') {
+          pendingChangeType = changeType;
+        }
+
         if (debounceTimeout) clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
-          server.config.logger.info(`  ⟳ File changed, reloading...`);
-          loadModel();
-          notifyClients();
+          if (pendingChangeType === 'model') {
+            server.config.logger.info(`  ⟳ Model changed, reloading...`);
+            loadModel();
+            notifyClients('reload');
+          } else {
+            server.config.logger.info(`  ⟳ Wireframe changed, refreshing iframes...`);
+            notifyClients('wireframe-reload');
+          }
+          pendingChangeType = null;
         }, 100);
+      }
+
+      // Watch JSON file
+      jsonWatcher = fs.watch(filePath, () => scheduleNotify('model'));
+      jsonWatcher.on('error', (err) => {
+        server.config.logger.error(`  Watch error (JSON): ${err.message}`);
       });
 
-      watcher.on('error', (err) => {
-        server.config.logger.error(`  Watch error: ${err.message}`);
-      });
+      // Watch wireframe folder if it exists
+      if (fs.existsSync(giraflowFolderPath) && fs.statSync(giraflowFolderPath).isDirectory()) {
+        wireframeWatcher = fs.watch(giraflowFolderPath, { recursive: true }, () => scheduleNotify('wireframe'));
+        wireframeWatcher.on('error', (err) => {
+          server.config.logger.error(`  Watch error (wireframes): ${err.message}`);
+        });
+        server.config.logger.info(`  👁 Watching wireframes in ${path.basename(giraflowFolderPath)}/\n`);
+      }
 
       // Middleware for API and SSE
       server.middlewares.use((req, res, next) => {
@@ -154,7 +180,9 @@ export function ifLivePlugin(): Plugin {
         }
 
         if (req.url?.startsWith('/assets/')) {
-          const assetName = decodeURIComponent(req.url.slice('/assets/'.length));
+          // Remove query string before extracting asset name
+          const urlWithoutQuery = req.url.split('?')[0];
+          const assetName = decodeURIComponent(urlWithoutQuery.slice('/assets/'.length));
           // Asset folder is the giraflow file path without .json extension
           const giraflowDir = filePath!.replace(/\.json$/, '');
           const absolutePath = path.resolve(giraflowDir, assetName);
@@ -206,7 +234,8 @@ export function ifLivePlugin(): Plugin {
 
     closeBundle() {
       if (debounceTimeout) clearTimeout(debounceTimeout);
-      if (watcher) watcher.close();
+      if (jsonWatcher) jsonWatcher.close();
+      if (wireframeWatcher) wireframeWatcher.close();
       for (const client of clients) {
         client.end();
       }

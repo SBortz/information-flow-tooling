@@ -18,7 +18,7 @@
       "tick": 2,
       "readsView": "Todos",
       "sendsCommand": "AddTodo",
-      "wireframes": ["add-todo.html"]
+      "wireframes": ["add-todo-empty.html"]
     },
     {
       "type": "command",
@@ -47,7 +47,8 @@
       "name": "User",
       "tick": 6,
       "readsView": "Todos",
-      "sendsCommand": "AddTodo"
+      "sendsCommand": "AddTodo",
+      "wireframes": ["add-todo-with-milk.html"]
     },
     {
       "type": "command",
@@ -77,7 +78,8 @@
       "name": "User",
       "tick": 10,
       "readsView": "Todos",
-      "sendsCommand": "FinishTodo"
+      "sendsCommand": "FinishTodo",
+      "wireframes": ["finish-todo-both-open.html"]
     },
     {
       "type": "command",
@@ -107,7 +109,8 @@
       "name": "User",
       "tick": 14,
       "readsView": "Todos",
-      "sendsCommand": "FinishTodo"
+      "sendsCommand": "FinishTodo",
+      "wireframes": ["finish-todo-milk-done.html"]
     },
     {
       "type": "command",
@@ -150,7 +153,8 @@
       "name": "User",
       "tick": 20,
       "readsView": "Todos",
-      "sendsCommand": "FinishAllTodos"
+      "sendsCommand": "FinishAllTodos",
+      "wireframes": ["finish-all.html"]
     },
     {
       "type": "command",
