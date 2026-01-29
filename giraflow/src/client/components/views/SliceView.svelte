@@ -904,20 +904,6 @@
     border-bottom: 1px solid var(--border);
   }
 
-  .detail-header.state {
-    background: linear-gradient(
-      to bottom,
-      var(--bg-card),
-      rgba(59, 130, 246, 0.02)
-    );
-  }
-  .detail-header.command {
-    background: linear-gradient(
-      to bottom,
-      var(--bg-card),
-      rgba(239, 68, 68, 0.02)
-    );
-  }
 
   .title-group {
     display: flex;
@@ -958,7 +944,7 @@
     color: var(--color-state);
   }
   .type-badge.command {
-    background: rgba(239, 68, 68, 0.1);
+    background: var(--bg-secondary);
     color: var(--color-command);
   }
 
