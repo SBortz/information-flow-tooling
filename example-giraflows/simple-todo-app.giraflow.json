@@ -195,10 +195,12 @@
       "scenarios": [
         {
           "name": "Empty state with no events",
+          "initialState": [],
           "steps": []
         },
         {
           "name": "Added items appear as open",
+          "initialState": [],
           "steps": [
             {
               "given": { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } },
@@ -208,6 +210,7 @@
         },
         {
           "name": "Done items are marked",
+          "initialState": [],
           "steps": [
             {
               "given": { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } },
@@ -221,6 +224,7 @@
         },
         {
           "name": "State evolution (step-by-step)",
+          "initialState": [],
           "steps": [
             {
               "given": { "event": "TodoAdded", "data": { "todoId": "t-1", "title": "Buy milk" } },

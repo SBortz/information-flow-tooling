@@ -71,10 +71,30 @@
     {#if stateScenario}
       <div class="scenario-step">
         <div class="steps-grid">
+          {#if stateScenario.initialState !== undefined}
+            <div class="step-row">
+              <div class="step-timeline">
+                <span class="timeline-dot initial"></span>
+                <span class="timeline-line-bottom"></span>
+              </div>
+              <div class="event-column">
+                <div class="scenario-box scenario-box-initial">
+                  <span class="box-title initial">Initial State</span>
+                </div>
+              </div>
+              <div class="arrow">→</div>
+              <div class="state-column">
+                <div class="scenario-box scenario-box-state">
+                  <span class="box-title state">◆ State</span>
+                  <JsonDisplay data={stateScenario.initialState} class="scenario-json" />
+                </div>
+              </div>
+            </div>
+          {/if}
           {#each stateScenario.steps as step, index}
             <div class="step-row">
               <div class="step-timeline">
-                {#if index > 0}
+                {#if index > 0 || stateScenario.initialState !== undefined}
                   <span class="timeline-line-top"></span>
                 {/if}
                 <span class="timeline-dot"></span>
@@ -418,6 +438,11 @@
     border-left-color: var(--color-state);
   }
 
+  .scenario-box-initial {
+    border-left-color: var(--text-secondary);
+    background: var(--bg-primary);
+  }
+
   .box-title {
     font-weight: 500;
     display: block;
@@ -434,6 +459,14 @@
 
   .box-title.state {
     color: var(--color-state);
+  }
+
+  .box-title.initial {
+    color: var(--text-secondary);
+  }
+
+  .timeline-dot.initial {
+    background: var(--text-secondary);
   }
 
   .step-row {

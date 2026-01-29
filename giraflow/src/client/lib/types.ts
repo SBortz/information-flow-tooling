@@ -32,6 +32,7 @@ export interface ScenarioStep {
 
 export interface StateViewScenario {
   name: string;
+  initialState?: unknown;
   steps: ScenarioStep[];
 }
 

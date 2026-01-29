@@ -159,19 +159,26 @@
     "StateViewScenario": {
       "type": "object",
       "description": "A Given-Then scenario describing how events project to state",
-      "required": ["name", "given", "then"],
+      "required": ["name", "steps"],
       "properties": {
         "name": {
           "type": "string",
           "description": "Descriptive name of the scenario (e.g. 'Show available books after return')"
         },
-        "given": {
-          "type": "array",
-          "description": "Events that have occurred to build up the state",
-          "items": { "$ref": "#/$defs/EventReference" }
+        "initialState": {
+          "description": "The initial state before any events are processed"
         },
-        "then": {
-          "description": "The expected state of the view after processing the given events"
+        "steps": {
+          "type": "array",
+          "description": "Sequence of given-then steps showing state evolution",
+          "items": {
+            "type": "object",
+            "required": ["given", "then"],
+            "properties": {
+              "given": { "$ref": "#/$defs/EventReference" },
+              "then": { "description": "The expected state after processing this event" }
+            }
+          }
         }
       }
     },

@@ -1106,12 +1106,15 @@
   .scenarios {
     margin-top: 2rem;
     padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
 
   .scenarios h3 {
     font-size: 0.875rem;
     color: var(--text-secondary);
-    margin-bottom: 1rem;
+    margin-bottom: 0;
   }
 
   .empty-state {
