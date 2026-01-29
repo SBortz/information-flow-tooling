@@ -79,35 +79,38 @@
     return () => observer.disconnect();
   });
 
-  // IntersectionObserver for scroll-based scenario highlighting
+  // Scroll-based scenario highlighting
   $effect(() => {
     if (!scrollContainer || scenarioElements.size === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Find the topmost visible scenario
-        const visibleEntries = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    function updateActiveScenario() {
+      const containerRect = scrollContainer!.getBoundingClientRect();
+      const threshold = containerRect.top + containerRect.height * 0.15; // 15% vom oberen Rand
 
-        if (visibleEntries.length > 0) {
-          activeScenarioId = visibleEntries[0].target.id;
-        } else {
-          activeScenarioId = null;
+      let closestElement: HTMLElement | null = null;
+      let closestDistance = Infinity;
+
+      for (const element of scenarioElements.values()) {
+        const rect = element.getBoundingClientRect();
+        // Element muss sichtbar sein (oberer Rand über Threshold)
+        if (rect.top <= threshold) {
+          const distance = threshold - rect.top;
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestElement = element;
+          }
         }
-      },
-      {
-        root: scrollContainer,
-        rootMargin: "-10% 0px -70% 0px",
-        threshold: 0,
-      },
-    );
+      }
 
-    for (const el of scenarioElements.values()) {
-      observer.observe(el);
+      if (closestElement) {
+        activeScenarioId = closestElement.id;
+      }
     }
 
-    return () => observer.disconnect();
+    scrollContainer.addEventListener("scroll", updateActiveScenario);
+    updateActiveScenario(); // Initial call
+
+    return () => scrollContainer!.removeEventListener("scroll", updateActiveScenario);
   });
 
   // URL hash handling for deep-links - only handle slice/* hashes
@@ -162,6 +165,18 @@
     };
   }
 
+  function registerScenarioElement(el: HTMLElement, id: string) {
+    scenarioElements.set(id, el);
+    scenarioElements = new Map(scenarioElements);
+
+    return {
+      destroy() {
+        scenarioElements.delete(id);
+        scenarioElements = new Map(scenarioElements);
+      },
+    };
+  }
+
   function getSliceKey(slice: DeduplicatedSlice) {
     return `${slice.type}:${slice.name}`;
   }
@@ -184,6 +199,8 @@
     const id = `scenario-${sliceKey}-${scenarioIndex}`;
     const el = document.getElementById(id);
     if (el) {
+      // Set active immediately on click
+      activeScenarioId = id;
       el.scrollIntoView({ behavior: "smooth", block: "start" });
       window.location.hash = `slice/${encodeURIComponent(slice.name)}/scenario/${encodeURIComponent(scenarioName)}`;
     }
@@ -400,12 +417,13 @@
           {#if slice.scenarios.length > 0}
             <div class="scenario-nav-list {isActive ? 'expanded' : ''}">
               {#each slice.scenarios as scenario, scenarioIndex}
+                {@const scenarioId = `scenario-${sliceKey}-${scenarioIndex}`}
                 <button
-                  class="scenario-nav-item"
+                  class="scenario-nav-item {activeScenarioId === scenarioId ? 'active' : ''}"
                   onclick={() =>
                     scrollToScenario(slice, scenarioIndex, scenario.name)}
                 >
-                  <span class="scenario-icon">⚡</span>
+                  <span class="scenario-icon">›</span>
                   <span class="scenario-name">{scenario.name}</span>
                 </button>
               {/each}
@@ -604,7 +622,8 @@
               <div class="scenarios">
                 <h3>Scenarios ({slice.scenarios.length})</h3>
                 {#each slice.scenarios as scenario, scenarioIndex}
-                  <div id="scenario-{sliceKey}-{scenarioIndex}">
+                  {@const scenarioId = `scenario-${sliceKey}-${scenarioIndex}`}
+                  <div id={scenarioId} use:registerScenarioElement={scenarioId}>
                     <Scenario
                       {scenario}
                       type={slice.type}
@@ -764,6 +783,14 @@
     color: var(--color-warning);
   }
 
+  .scenario-nav-item.active {
+    background: var(--bg-card);
+    color: var(--color-warning);
+    font-weight: 500;
+    border-left: 2px solid var(--color-warning);
+    padding-left: calc(0.5rem - 2px);
+  }
+
   .scenario-icon {
     font-size: 0.7rem;
   }
@@ -797,6 +824,7 @@
     display: flex;
     flex-direction: column;
     gap: 3rem;
+    padding-bottom: calc(70vh);
   }
 
   .slice-detail-view {
