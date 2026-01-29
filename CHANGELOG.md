@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.5] - 2025-01-29
+
+- **Fixed navigation**: Back- and forth navigation was broken. It's fixed with this minor update.
+
 ## [0.2.4] - 2025-01-29
 
 ### Changed
