@@ -17,7 +17,8 @@
       "name": "User",
       "tick": 2,
       "readsView": "Todos",
-      "sendsCommand": "AddTodo"
+      "sendsCommand": "AddTodo",
+      "wireframes": ["user-2.html"]
     },
     {
       "type": "command",
@@ -46,7 +47,8 @@
       "name": "User",
       "tick": 6,
       "readsView": "Todos",
-      "sendsCommand": "AddTodo"
+      "sendsCommand": "AddTodo",
+      "wireframes": ["user-6.html"]
     },
     {
       "type": "command",
@@ -76,7 +78,8 @@
       "name": "User",
       "tick": 10,
       "readsView": "Todos",
-      "sendsCommand": "FinishTodo"
+      "sendsCommand": "FinishTodo",
+      "wireframes": ["user-10.html"]
     },
     {
       "type": "command",
@@ -90,6 +93,13 @@
       "tick": 12,
       "producedBy": "FinishTodo-11",
       "example": { "todoId": "t-1" }
+    },
+    {
+      "type": "event",
+      "name": "NotificationSent",
+      "tick": 12,
+      "system": "Notifications",
+      "example": { "type": "todo_completed", "todoId": "t-1", "channel": "push" }
     },
     {
       "type": "state",
@@ -106,7 +116,8 @@
       "name": "User",
       "tick": 14,
       "readsView": "Todos",
-      "sendsCommand": "FinishTodo"
+      "sendsCommand": "FinishTodo",
+      "wireframes": ["user-14.html"]
     },
     {
       "type": "command",
@@ -122,22 +133,38 @@
       "example": { "todoId": "t-2" }
     },
     {
+      "type": "event",
+      "name": "ReminderTriggered",
+      "tick": 16,
+      "system": "Reminders",
+      "externalSource": "Scheduler",
+      "example": { "todoId": "t-2", "message": "Don't forget to walk the dog!" }
+    },
+    {
+      "type": "actor",
+      "name": "Admin",
+      "tick": 17,
+      "role": "Admin",
+      "readsView": "Todos",
+      "sendsCommand": "ResetAllTodos"
+    },
+    {
       "type": "command",
       "name": "ResetAllTodos",
-      "tick": 17,
+      "tick": 18,
       "example": {}
     },
     {
       "type": "event",
       "name": "AllTodosReset",
-      "tick": 18,
-      "producedBy": "ResetAllTodos-17",
+      "tick": 19,
+      "producedBy": "ResetAllTodos-18",
       "example": {}
     },
     {
       "type": "state",
       "name": "Todos",
-      "tick": 19,
+      "tick": 20,
       "sourcedFrom": ["TodoAdded", "TodoDone", "AllTodosReset", "AllTodosFinished"],
       "example": [
         { "id": "t-1", "title": "Buy milk", "done": false },
@@ -147,32 +174,55 @@
     {
       "type": "actor",
       "name": "User",
-      "tick": 20,
+      "tick": 21,
       "readsView": "Todos",
-      "sendsCommand": "FinishAllTodos"
+      "sendsCommand": "FinishAllTodos",
+      "wireframes": ["user-20.html"]
     },
     {
       "type": "command",
       "name": "FinishAllTodos",
-      "tick": 21,
+      "tick": 22,
       "example": {}
     },
     {
       "type": "event",
       "name": "AllTodosFinished",
-      "tick": 22,
-      "producedBy": "FinishAllTodos-21",
+      "tick": 23,
+      "producedBy": "FinishAllTodos-22",
       "example": {}
+    },
+    {
+      "type": "event",
+      "name": "NotificationSent",
+      "tick": 23,
+      "system": "Notifications",
+      "example": { "type": "all_completed", "channel": "email" }
     },
     {
       "type": "state",
       "name": "Todos",
-      "tick": 23,
+      "tick": 24,
       "sourcedFrom": ["TodoAdded", "TodoDone", "AllTodosReset", "AllTodosFinished"],
       "example": [
         { "id": "t-1", "title": "Buy milk", "done": true },
         { "id": "t-2", "title": "Walk dog", "done": true }
       ]
+    },
+    {
+      "type": "actor",
+      "name": "Scheduler",
+      "tick": 25,
+      "role": "System",
+      "readsView": "Todos",
+      "sendsCommand": "ArchiveCompletedTodos"
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 26,
+      "readsView": "Todos",
+      "wireframes": ["user-24.html"]
     }
   ],
 

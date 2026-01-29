@@ -65,6 +65,7 @@ export interface Event {
   tick: number;
   producedBy?: string;
   externalSource?: string;
+  system?: string;
   example?: unknown;
 }
 
@@ -84,6 +85,7 @@ export interface Actor {
   readsView: string;
   sendsCommand: string;
   wireframes?: string[];
+  role?: string;
 }
 
 export interface Command {

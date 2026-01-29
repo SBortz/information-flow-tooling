@@ -208,6 +208,10 @@
           "type": "string",
           "description": "For external events: the source system (e.g. 'Carrier Webhook')"
         },
+        "system": {
+          "type": "string",
+          "description": "System/bounded context this event belongs to (determines swimlane)"
+        },
         "example": {
           "description": "Example payload of the event"
         }
@@ -276,6 +280,10 @@
           "type": "array",
           "description": "Wireframe HTML files for this actor's UI (relative paths within the assets folder)",
           "items": { "type": "string" }
+        },
+        "role": {
+          "type": "string",
+          "description": "Role category for grouping actors into swimlanes"
         }
       }
     },

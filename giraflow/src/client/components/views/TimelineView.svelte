@@ -21,6 +21,71 @@
   // Build view model from raw data
   let viewModel = $derived(buildTimelineViewModel(modelStore.model));
   let timelineItems = $derived(viewModel.items);
+  let laneConfig = $derived(viewModel.laneConfig);
+
+  // Calculate total width for the lane area
+  let totalLaneWidth = $derived(laneConfig.totalLanes * laneConfig.laneWidth);
+
+  // Calculate symbol padding based on position and lane index
+  function getSymbolPadding(position: string, laneIndex: number): number {
+    const laneWidth = laneConfig.laneWidth;
+    if (position === 'left') {
+      // Events: lane 0 is outermost (leftmost), higher lanes are more to the right
+      return laneIndex * laneWidth + 8;
+    } else if (position === 'center') {
+      // Commands/States: always in the center lane
+      return laneConfig.eventLaneCount * laneWidth + 8;
+    } else {
+      // Actors: lane 0 is innermost (leftmost of actor lanes)
+      return (laneConfig.eventLaneCount + 1 + laneIndex) * laneWidth + 8;
+    }
+  }
+
+  // Generate CSS for dynamic lane backgrounds
+  function generateLaneBackgroundCSS(): string {
+    const laneWidth = laneConfig.laneWidth;
+    const eventLanes = laneConfig.eventLaneCount;
+    const actorLanes = laneConfig.actorLaneCount;
+    const totalLanes = laneConfig.totalLanes;
+    const centerLaneIndex = eventLanes;
+
+    // Build background layers
+    const layers: string[] = [];
+    const positions: string[] = [];
+    const sizes: string[] = [];
+
+    // Hatching for center lane only
+    layers.push(`repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 3px,
+      rgba(107, 114, 128, 0.18) 3px,
+      rgba(107, 114, 128, 0.18) 4px
+    )`);
+    positions.push(`${centerLaneIndex * laneWidth}px 0`);
+    sizes.push(`${laneWidth}px 100%`);
+
+    // Tint for all lanes
+    for (let i = 0; i < totalLanes; i++) {
+      layers.push(`linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05))`);
+      positions.push(`${i * laneWidth}px 0`);
+      sizes.push(`${laneWidth}px 100%`);
+    }
+
+    // Vertical lines (one at each lane boundary + rightmost edge)
+    for (let i = 0; i <= totalLanes; i++) {
+      layers.push(`linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4))`);
+      positions.push(`${i * laneWidth - 1}px 0`);
+      sizes.push(`2px 100%`);
+    }
+
+    return `
+      background-image: ${layers.join(',\n      ')};
+      background-position: ${positions.join(',\n      ')};
+      background-size: ${sizes.join(',\n      ')};
+      background-repeat: no-repeat;
+    `;
+  }
 
   function scrollToDetail(tick: number) {
     const element = document.getElementById(`tick-${tick}`);
@@ -140,16 +205,22 @@
   <!-- Master: Compact timeline on the left -->
   <aside class="timeline-master">
     <div class="tl-master-content">
-      <div class="tl-master-line"></div>
-      {#each timelineItems as { element: el, position }}
+      <div
+        class="tl-master-line"
+        style="width: {totalLaneWidth}px; {generateLaneBackgroundCSS()}"
+      ></div>
+      {#each timelineItems as { element: el, position, laneIndex }}
         <button
-          class="tl-master-item tl-{position}"
+          class="tl-master-item"
           class:active={activeTick === el.tick}
           data-tick={el.tick}
           onclick={() => scrollToDetail(el.tick)}
         >
           <span class="tl-tick">@{el.tick}</span>
-          <span class="tl-symbol {el.type}">{symbols[el.type]}</span>
+          <span
+            class="tl-symbol {el.type}"
+            style="width: {totalLaneWidth}px; padding-left: {getSymbolPadding(position, laneIndex)}px;"
+          >{symbols[el.type]}</span>
           <span class="tl-name {el.type}">{el.name}</span>
         </button>
       {/each}
@@ -185,6 +256,11 @@
                 externalSource: {el.externalSource}
               </div>
             {/if}
+            {#if el.system}
+              <div class="tl-detail-row">
+                system: {el.system}
+              </div>
+            {/if}
             {#if el.example}
               <JsonDisplay data={el.example} class="tl-json" />
             {/if}
@@ -204,6 +280,11 @@
               reads <span class="state">{el.readsView}</span> → triggers
               <span class="command">{el.sendsCommand}</span>
             </div>
+            {#if el.role}
+              <div class="tl-detail-row">
+                role: {el.role}
+              </div>
+            {/if}
             {#if el.wireframes && el.wireframes.length > 0}
               <div class="tl-wireframes">
                 {#each el.wireframes as wireframe}
@@ -260,46 +341,8 @@
     bottom: 0;
     /* left padding (0.75rem) + tick width (2rem) + gap (0.5rem) + tick margin (0.25rem) = 3.5rem */
     left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);
-    width: 72px;
     pointer-events: none;
     z-index: 2;
-    background-image:
-      /* Hatching for middle lane only */
-      repeating-linear-gradient(
-        -45deg,
-        transparent,
-        transparent 3px,
-        rgba(107, 114, 128, 0.18) 3px,
-        rgba(107, 114, 128, 0.18) 4px
-      ),
-      /* Tint for all 3 lanes */
-        linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05)),
-      linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05)),
-      linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05)),
-      /* 4 vertical lines */
-        linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4)),
-      linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4)),
-      linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4)),
-      linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4));
-    background-position:
-      24px 0,
-      0 0,
-      24px 0,
-      48px 0,
-      0 0,
-      24px 0,
-      48px 0,
-      70px 0;
-    background-size:
-      24px 100%,
-      24px 100%,
-      24px 100%,
-      24px 100%,
-      2px 100%,
-      2px 100%,
-      2px 100%,
-      2px 100%;
-    background-repeat: no-repeat;
   }
 
   .tl-master-item {
@@ -340,7 +383,6 @@
   }
 
   .tl-master-item .tl-symbol {
-    width: 72px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -349,18 +391,6 @@
     flex-shrink: 0;
     position: relative;
     z-index: 3;
-  }
-
-  .tl-master-item.tl-left .tl-symbol {
-    padding-left: 8px;
-  }
-
-  .tl-master-item.tl-center .tl-symbol {
-    padding-left: 32px;
-  }
-
-  .tl-master-item.tl-right .tl-symbol {
-    padding-left: 56px;
   }
 
   .tl-master-item .tl-name {
