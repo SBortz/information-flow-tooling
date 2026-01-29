@@ -18,20 +18,102 @@
     return 'center';
   }
 
-  function scrollToDetail(tick: number) {
-    const element = document.getElementById(`tick-${tick}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      element.classList.add('highlight-flash');
-      setTimeout(() => element.classList.remove('highlight-flash'), 2000);
-    }
-  }
+  let activeTick = $state<number | null>(null);
+  let detailContainer: HTMLElement | null = $state(null);
+  let detailElements = $state<Map<number, HTMLElement>>(new Map());
 
   let sortedTimeline = $derived(
     modelStore.model
       ? [...modelStore.model.timeline].sort((a, b) => a.tick - b.tick)
       : []
   );
+
+  function scrollToDetail(tick: number) {
+    const element = document.getElementById(`tick-${tick}`);
+    if (element) {
+      activeTick = tick;
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      element.classList.add('highlight-flash');
+      setTimeout(() => element.classList.remove('highlight-flash'), 2000);
+      // Update URL
+      history.replaceState({ view: 'timeline', tick }, '', `#timeline/tick-${tick}`);
+    }
+  }
+
+  // Register detail elements for intersection observer
+  function registerDetailElement(el: HTMLElement, tick: number) {
+    detailElements.set(tick, el);
+    detailElements = new Map(detailElements);
+    return {
+      destroy() {
+        detailElements.delete(tick);
+        detailElements = new Map(detailElements);
+      }
+    };
+  }
+
+  // IntersectionObserver for scroll-based highlighting
+  $effect(() => {
+    if (!detailContainer || detailElements.size === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the topmost visible element
+        const visibleEntries = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (visibleEntries.length > 0) {
+          const id = visibleEntries[0].target.id;
+          if (id.startsWith('tick-')) {
+            const tick = parseInt(id.replace('tick-', ''), 10);
+            if (!isNaN(tick) && tick !== activeTick) {
+              activeTick = tick;
+              // Update URL without adding history entry
+              history.replaceState({ view: 'timeline', tick }, '', `#timeline/tick-${tick}`);
+
+              // Scroll master item into view if needed
+              const masterItem = document.querySelector(`.tl-master-item[data-tick="${tick}"]`);
+              if (masterItem) {
+                masterItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }
+            }
+          }
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: 0,
+      }
+    );
+
+    for (const el of detailElements.values()) {
+      observer.observe(el);
+    }
+
+    return () => observer.disconnect();
+  });
+
+  // Handle initial hash on mount
+  $effect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash.startsWith('timeline/tick-')) {
+      const tick = parseInt(hash.replace('timeline/tick-', ''), 10);
+      if (!isNaN(tick) && sortedTimeline.length > 0) {
+        activeTick = tick;
+        requestAnimationFrame(() => {
+          const el = document.getElementById(`tick-${tick}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
+    } else if (sortedTimeline.length > 0 && activeTick === null) {
+      // Set first tick as active by default
+      activeTick = sortedTimeline[0].tick;
+    }
+  });
 </script>
 
 <div class="timeline-master-detail">
@@ -40,7 +122,12 @@
     <div class="tl-master-line"></div>
     {#each sortedTimeline as el}
       {@const position = getPosition(el.type)}
-      <button class="tl-master-item tl-{position}" onclick={() => scrollToDetail(el.tick)}>
+      <button
+        class="tl-master-item tl-{position}"
+        class:active={activeTick === el.tick}
+        data-tick={el.tick}
+        onclick={() => scrollToDetail(el.tick)}
+      >
         <span class="tl-tick">@{el.tick}</span>
         <span class="tl-symbol {el.type}">{symbols[el.type]}</span>
         <span class="tl-name {el.type}">{el.name}</span>
@@ -49,10 +136,14 @@
   </aside>
 
   <!-- Detail: Continuous stream on the right -->
-  <main class="timeline-detail">
+  <main class="timeline-detail" bind:this={detailContainer}>
     {#each sortedTimeline as el}
       {@const position = getPosition(el.type)}
-      <section class="tl-detail-item tl-{position}" id="tick-{el.tick}">
+      <section
+        class="tl-detail-item tl-{position}"
+        id="tick-{el.tick}"
+        use:registerDetailElement={el.tick}
+      >
         <div class="tl-detail-header">
           <span class="tl-symbol {el.type}">{symbols[el.type]}</span>
           <span class="tl-tick">@{el.tick}</span>
@@ -110,26 +201,27 @@
   /* Master sidebar */
   .timeline-master {
     width: 30%;
-    min-width: 240px;
-    max-width: 360px;
+    min-width: 280px;
     position: sticky;
     top: 120px;
     align-self: flex-start;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
+    overflow-x: hidden;
     background: var(--bg-card);
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    border-radius: 0 0 0.5rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
     box-shadow: var(--shadow-card);
+    margin: 1.5rem 0 1.5rem 2rem;
   }
 
   .tl-master-line {
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 0;
-    width: 90px;
+    /* left padding (0.75rem) + tick width (2rem) + gap (0.5rem) = 3.25rem */
+    left: calc(0.75rem + 2rem + 0.5rem);
+    width: 72px;
     pointer-events: none;
     z-index: 2;
     background-image:
@@ -145,12 +237,12 @@
       linear-gradient(rgba(107,114,128,0.4), rgba(107,114,128,0.4)),
       linear-gradient(rgba(107,114,128,0.4), rgba(107,114,128,0.4));
     background-position:
-      46px 0,
-      22px 0, 46px 0, 70px 0,
-      20px 0, 44px 0, 68px 0, 88px 0;
+      24px 0,
+      0 0, 24px 0, 48px 0,
+      0 0, 24px 0, 48px 0, 70px 0;
     background-size:
-      22px 100%,
-      22px 100%, 22px 100%, 22px 100%,
+      24px 100%,
+      24px 100%, 24px 100%, 24px 100%,
       2px 100%, 2px 100%, 2px 100%, 2px 100%;
     background-repeat: no-repeat;
   }
@@ -159,7 +251,7 @@
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 0.5rem 0.75rem 0.5rem 0;
+    padding: 0.5rem 0.75rem;
     gap: 0.5rem;
     background: transparent;
     border: none;
@@ -178,15 +270,21 @@
     background: var(--bg-secondary);
   }
 
+  .tl-master-item.active {
+    background: var(--bg-secondary);
+    box-shadow: inset 3px 0 0 var(--color-command);
+  }
+
   .tl-master-item .tl-tick {
     color: var(--text-secondary);
     font-size: 0.75rem;
     flex-shrink: 0;
-    width: 2.5rem;
+    width: 2rem;
+    text-align: right;
   }
 
   .tl-master-item .tl-symbol {
-    width: 90px;
+    width: 72px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -198,15 +296,15 @@
   }
 
   .tl-master-item.tl-left .tl-symbol {
-    padding-left: 27px;
+    padding-left: 8px;
   }
 
   .tl-master-item.tl-center .tl-symbol {
-    padding-left: 51px;
+    padding-left: 32px;
   }
 
   .tl-master-item.tl-right .tl-symbol {
-    padding-left: 75px;
+    padding-left: 56px;
   }
 
   .tl-master-item .tl-name {
@@ -215,12 +313,13 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
   }
 
   /* Detail area */
   .timeline-detail {
     flex: 1;
-    padding: 1.5rem 2rem;
+    padding: 1.5rem 2rem 1.5rem 1rem;
     overflow-y: auto;
   }
 
@@ -231,6 +330,7 @@
     margin-bottom: 1rem;
     box-shadow: var(--shadow-card);
     overflow: hidden;
+    scroll-margin-top: 1.5rem;
   }
 
   .tl-detail-item:last-child {
