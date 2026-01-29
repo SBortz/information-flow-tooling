@@ -75,11 +75,12 @@ export function buildLaneConfig(model: InformationFlowModel | null): LaneConfig 
   // Sort systems alphabetically, reversed (outermost first)
   const namedSystems = Array.from(systemsSet).sort().reverse();
   // Default (empty string) is innermost/rightmost of event lanes
-  const eventSystems = [...namedSystems, ''];
-  if (!hasDefaultEventSystem && namedSystems.length > 0) {
-    // If there are no default events but there are named systems, still keep the default lane
-    // This ensures consistent layout
-  }
+  // Only include default lane if:
+  // - There are elements without a system (hasDefaultEventSystem), OR
+  // - There are no named systems at all (fallback to ensure at least one lane)
+  const eventSystems = hasDefaultEventSystem
+    ? [...namedSystems, '']
+    : (namedSystems.length > 0 ? namedSystems : ['']);
 
   // Extract unique roles from actors
   const rolesSet = new Set<string>();
@@ -99,10 +100,12 @@ export function buildLaneConfig(model: InformationFlowModel | null): LaneConfig 
   // Sort roles alphabetically
   const namedRoles = Array.from(rolesSet).sort();
   // Default (empty string) is innermost/leftmost of actor lanes
-  const actorRoles = ['', ...namedRoles];
-  if (!hasDefaultActorRole && namedRoles.length > 0) {
-    // If there are no default actors but there are named roles, still keep the default lane
-  }
+  // Only include default lane if:
+  // - There are elements without a role (hasDefaultActorRole), OR
+  // - There are no named roles at all (fallback to ensure at least one lane)
+  const actorRoles = hasDefaultActorRole
+    ? ['', ...namedRoles]
+    : (namedRoles.length > 0 ? namedRoles : ['']);
 
   const eventLaneCount = eventSystems.length;
   const actorLaneCount = actorRoles.length;

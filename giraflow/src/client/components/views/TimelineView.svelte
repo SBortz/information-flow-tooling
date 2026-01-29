@@ -326,7 +326,7 @@
           {/each}
         </div>
         </div>
-        {#if laneConfig.eventSystems.some(s => s !== '') || laneConfig.actorRoles.some(r => r !== '')}
+        {#if laneConfig.eventSystems.length > 1 || laneConfig.actorRoles.length > 1}
           <div class="tl-filter-dropdown">
             <button
               class="tl-filter-trigger"
@@ -340,32 +340,32 @@
             </button>
             {#if filterDropdownOpen}
               <div class="tl-filter-panel">
-                {#if laneConfig.eventSystems.some(s => s !== '')}
+                {#if laneConfig.eventSystems.length > 1}
                   <div class="tl-filter-group">
                     <span class="tl-filter-label">Systems</span>
-                    {#each laneConfig.eventSystems.filter(s => s !== '') as system}
+                    {#each laneConfig.eventSystems as system}
                       <label class="tl-filter-item">
                         <input
                           type="checkbox"
                           checked={!hiddenSystems.has(system)}
                           onchange={() => toggleSystem(system)}
                         />
-                        <span>{system}</span>
+                        <span>{system || 'Default'}</span>
                       </label>
                     {/each}
                   </div>
                 {/if}
-                {#if laneConfig.actorRoles.some(r => r !== '')}
+                {#if laneConfig.actorRoles.length > 1}
                   <div class="tl-filter-group">
                     <span class="tl-filter-label">Roles</span>
-                    {#each laneConfig.actorRoles.filter(r => r !== '') as role}
+                    {#each laneConfig.actorRoles as role}
                       <label class="tl-filter-item">
                         <input
                           type="checkbox"
                           checked={!hiddenRoles.has(role)}
                           onchange={() => toggleRole(role)}
                         />
-                        <span>{role}</span>
+                        <span>{role || 'Default'}</span>
                       </label>
                     {/each}
                   </div>
