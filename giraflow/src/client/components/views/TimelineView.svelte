@@ -226,8 +226,8 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    /* left padding (0.75rem) + tick width (2rem) + gap (0.5rem) = 3.25rem */
-    left: calc(0.75rem + 2rem + 0.5rem);
+    /* left padding (0.75rem) + tick width (2rem) + gap (0.5rem) + tick margin (0.25rem) = 3.5rem */
+    left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);
     width: 72px;
     pointer-events: none;
     z-index: 2;
@@ -288,6 +288,7 @@
     flex-shrink: 0;
     width: 2rem;
     text-align: right;
+    margin-right: 0.25rem;
   }
 
   .tl-master-item .tl-symbol {
@@ -321,6 +322,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     flex: 1;
+    margin-left: 0.25rem;
   }
 
   /* Detail area */
