@@ -532,7 +532,7 @@
 
   .tl-lane-labels {
     position: relative;
-    height: 4.5rem;
+    height: 7rem;
   }
 
   .tl-lane-label {
@@ -580,8 +580,8 @@
 
   .tl-master-line {
     position: absolute;
-    /* Top offset accounts for lane header: padding (0.5rem + 0.5rem) + labels height (4.5rem) + border (1px) */
-    top: calc(0.5rem + 0.5rem + 4.5rem + 1px);
+    /* Top offset accounts for lane header: padding (0.5rem + 0.5rem) + labels height (7rem) + border (1px) */
+    top: calc(0.5rem + 0.5rem + 7rem + 1px);
     bottom: 0;
     /* left padding (0.75rem) + tick width (2rem) + gap (0.5rem) + tick margin (0.25rem) = 3.5rem */
     left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);
