@@ -73,7 +73,15 @@
         <div class="steps-grid">
           {#each stateScenario.steps as step, index}
             <div class="step-row">
-              <div class="step-number">{index + 1}.</div>
+              <div class="step-timeline">
+                {#if index > 0}
+                  <span class="timeline-line-top"></span>
+                {/if}
+                <span class="timeline-dot"></span>
+                {#if index < stateScenario.steps.length - 1}
+                  <span class="timeline-line-bottom"></span>
+                {/if}
+              </div>
               <div class="event-column">
                 <div class="scenario-box scenario-box-event">
                   <span class="box-title event">● {step.given.event}</span>
@@ -101,7 +109,15 @@
         <div class="timeline-scenario">
           {#each timelineScenario.rows as row, index}
             <div class="timeline-row-wrapper" class:events-only={row.type === "events-only"}>
-              <div class="step-number">{index + 1}.</div>
+              <div class="step-timeline">
+                {#if index > 0}
+                  <span class="timeline-line-top"></span>
+                {/if}
+                <span class="timeline-dot"></span>
+                {#if index < timelineScenario.rows.length - 1}
+                  <span class="timeline-line-bottom"></span>
+                {/if}
+              </div>
               <div
                 class="timeline-row"
                 class:command-execution={row.type === "command"}
@@ -171,7 +187,15 @@
         <div class="timeline-scenario">
           {#each flattenedCommandSteps as step, index}
             <div class="timeline-row-wrapper" class:events-only={step.type === "events-only"}>
-              <div class="step-number">{index + 1}.</div>
+              <div class="step-timeline">
+                {#if index > 0}
+                  <span class="timeline-line-top"></span>
+                {/if}
+                <span class="timeline-dot"></span>
+                {#if index < flattenedCommandSteps.length - 1}
+                  <span class="timeline-line-bottom"></span>
+                {/if}
+              </div>
               <div
                 class="timeline-row"
                 class:command-execution={step.type === "command"}
@@ -428,13 +452,40 @@
     align-items: stretch;
   }
 
-  .step-number {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    font-weight: 500;
+  .step-timeline {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-width: 1.5rem;
-    text-align: right;
-    padding-top: 0.5rem;
+  }
+
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    z-index: 1;
+  }
+
+  .timeline-line-top {
+    position: absolute;
+    top: -1.5rem;
+    bottom: 50%;
+    left: 50%;
+    width: 2px;
+    background: var(--border);
+    transform: translateX(-50%);
+  }
+
+  .timeline-line-bottom {
+    position: absolute;
+    top: 50%;
+    bottom: -1.5rem;
+    left: 50%;
+    width: 2px;
+    background: var(--border);
+    transform: translateX(-50%);
   }
 
   .event-column,
