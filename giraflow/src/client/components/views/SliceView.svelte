@@ -1,39 +1,22 @@
 <script lang="ts">
   import { modelStore } from "../../stores/model.svelte";
-  import type {
-    StateView,
-    Command,
-    Event,
-    Actor,
-    Attachment,
-    CommandScenario,
-    StateViewScenario,
-    TimelineScenario,
-    TimelineScenarioRow,
-  } from "../../lib/types";
-  import { isState, isCommand, isEvent } from "../../lib/types";
+  import {
+    buildSliceViewModel,
+    getSliceKey,
+    getReadingActors,
+    getTriggeringActors,
+    getSliceExamples,
+    groupActorsByName,
+    type Slice,
+  } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import Scenario from "../shared/Scenario.svelte";
 
-  interface DeduplicatedSlice {
-    name: string;
-    type: "state" | "command";
-    ticks: number[];
-    sourcedFrom: { name: string; ticks: number[] }[];
-    produces: { name: string; ticks: number[] }[];
-    attachments: Attachment[];
-    scenarios: (CommandScenario | StateViewScenario | TimelineScenario)[];
-    specScenarioCount: number;
-    stateOccurrences: { tick: number; state: StateView }[];
-    commandOccurrences: {
-      tick: number;
-      command: Command;
-      producedEvents: Event[];
-    }[];
-    example?: any;
-  }
-
-  let deduplicatedSlices = $derived(buildDeduplicatedSlices());
+  // Build view model from raw data
+  let viewModel = $derived(
+    modelStore.model ? buildSliceViewModel(modelStore.model) : null
+  );
+  let slices = $derived(viewModel?.slices ?? []);
   let activeSliceKey = $state<string | null>(null);
   let activeScenarioId = $state<string | null>(null);
   let scrollContainer: HTMLElement | null = $state(null);
@@ -43,8 +26,8 @@
 
   // Set first slice as active by default
   $effect(() => {
-    if (!activeSliceKey && deduplicatedSlices.length > 0) {
-      activeSliceKey = getSliceKey(deduplicatedSlices[0]);
+    if (!activeSliceKey && slices.length > 0) {
+      activeSliceKey = getSliceKey(slices[0]);
     }
   });
 
@@ -118,14 +101,14 @@
   // URL hash handling for deep-links - only handle slice/* hashes
   $effect(() => {
     const hash = window.location.hash.slice(1);
-    if (hash && hash.startsWith("slice/") && deduplicatedSlices.length > 0) {
+    if (hash && hash.startsWith("slice/") && slices.length > 0) {
       const parts = hash.split("/");
       const sliceName = decodeURIComponent(parts[1]);
       const scenarioName =
         parts[2] === "scenario" ? decodeURIComponent(parts[3]) : null;
 
       // Find the slice by name
-      const slice = deduplicatedSlices.find((s) => s.name === sliceName);
+      const slice = slices.find((s) => s.name === sliceName);
       if (slice) {
         const sliceKey = getSliceKey(slice);
         activeSliceKey = sliceKey;
@@ -179,11 +162,7 @@
     };
   }
 
-  function getSliceKey(slice: DeduplicatedSlice) {
-    return `${slice.type}:${slice.name}`;
-  }
-
-  function scrollToSlice(slice: DeduplicatedSlice) {
+  function scrollToSlice(slice: Slice) {
     const sliceKey = getSliceKey(slice);
     const el = document.getElementById(`slice-${sliceKey}`);
     if (el) {
@@ -194,7 +173,7 @@
   }
 
   function scrollToScenario(
-    slice: DeduplicatedSlice,
+    slice: Slice,
     scenarioIndex: number,
     scenarioName: string,
   ) {
@@ -210,232 +189,11 @@
     }
   }
 
-  function buildDeduplicatedSlices(): DeduplicatedSlice[] {
-    if (!modelStore.model) return [];
-    const timeline = modelStore.model.timeline;
-    const events = timeline.filter(isEvent) as Event[];
-    const elements = timeline
-      .filter((el): el is StateView | Command => isState(el) || isCommand(el))
-      .sort((a, b) => a.tick - b.tick);
-
-    const seen = new Map<string, DeduplicatedSlice>();
-    // Temporary helper to collect source names before aggregating ticks
-    const sliceSourceNames = new Map<string, Set<string>>();
-
-    for (const el of elements) {
-      const key = `${el.type}:${el.name}`;
-      if (!seen.has(key)) {
-        seen.set(key, {
-          name: el.name,
-          type: el.type as "state" | "command",
-          ticks: [],
-          sourcedFrom: [],
-          produces: [],
-          attachments: [],
-          scenarios: [],
-          specScenarioCount: 0,
-          stateOccurrences: [],
-          commandOccurrences: [],
-        });
-        sliceSourceNames.set(key, new Set());
-      }
-      const slice = seen.get(key)!;
-      slice.ticks.push(el.tick);
-
-      // Capture example if not yet set
-      if (!slice.example && el.example) {
-        slice.example = el.example;
-      }
-
-      if (isState(el)) {
-        for (const s of el.sourcedFrom) {
-          sliceSourceNames.get(key)!.add(s);
-        }
-      }
-      if (el.attachments) slice.attachments.push(...el.attachments);
-
-      // Collect state and command occurrences for later consolidation
-      if (isState(el)) {
-        slice.stateOccurrences.push({ tick: el.tick, state: el });
-      } else if (isCommand(el)) {
-        const producedEvents = events.filter(
-          (e) => e.producedBy === `${el.name}-${el.tick}`,
-        );
-        slice.commandOccurrences.push({
-          tick: el.tick,
-          command: el,
-          producedEvents,
-        });
-      }
-    }
-
-    // Populate data
-    for (const [key, slice] of seen) {
-      if (slice.type === "state") {
-        const sourceNames = sliceSourceNames.get(key)!;
-        for (const sourceName of sourceNames) {
-          // Find all occurrences of this event
-          const sourceEvents = events.filter((e) => e.name === sourceName);
-          slice.sourcedFrom.push({
-            name: sourceName,
-            ticks: sourceEvents.map((e) => e.tick),
-          });
-        }
-      } else if (slice.type === "command") {
-        // Aggregate produced events
-        const producedMap = new Map<string, number[]>();
-        for (const occ of slice.commandOccurrences) {
-          for (const evt of occ.producedEvents) {
-            if (!producedMap.has(evt.name)) {
-              producedMap.set(evt.name, []);
-            }
-            producedMap.get(evt.name)!.push(evt.tick);
-          }
-        }
-        slice.produces = Array.from(producedMap.entries()).map(
-          ([name, ticks]) => ({
-            name,
-            ticks: ticks.sort((a, b) => a - b),
-          }),
-        );
-      }
-    }
-
-    // Convert state occurrences to single timeline scenario
-    for (const [, slice] of seen) {
-      if (slice.type === "state" && slice.stateOccurrences.length > 0) {
-        let initialState: unknown = undefined;
-        const steps: { given: { event: string; data?: unknown }; then: unknown }[] = [];
-
-        for (let index = 0; index < slice.stateOccurrences.length; index++) {
-          const occ = slice.stateOccurrences[index];
-          const prevTick = index > 0 ? slice.stateOccurrences[index - 1].tick : 0;
-          const precedingEvent = events.find(
-            (e) =>
-              e.tick > prevTick &&
-              e.tick < occ.tick &&
-              occ.state.sourcedFrom.includes(e.name),
-          );
-
-          if (!precedingEvent && index === 0) {
-            // First occurrence without preceding event -> set as initialState
-            initialState = occ.state.example;
-          } else if (precedingEvent) {
-            steps.push({
-              given: {
-                event: precedingEvent.name,
-                ...(precedingEvent.example ? { data: precedingEvent.example } : {}),
-              },
-              then: occ.state.example,
-            });
-          }
-        }
-
-        const scenario: StateViewScenario = {
-          name: "Timeline Scenario",
-          steps,
-        };
-        if (initialState !== undefined) {
-          scenario.initialState = initialState;
-        }
-        slice.scenarios.push(scenario);
-      }
-    }
-
-    // Convert command occurrences to chronological timeline scenario
-    for (const [, slice] of seen) {
-      if (slice.type === "command" && slice.commandOccurrences.length > 0) {
-        const rows: TimelineScenarioRow[] = [];
-        let lastTick = 0;
-
-        for (const occ of slice.commandOccurrences) {
-          // Events zwischen lastTick und diesem Command
-          const eventsBetween = events
-            .filter((e) => e.tick > lastTick && e.tick < occ.tick)
-            .map((e) => ({
-              event: e.name,
-              ...(e.example ? { data: e.example } : {}),
-            }));
-
-          for (const eventRef of eventsBetween) {
-            rows.push({ type: "events-only", events: [eventRef] });
-          }
-
-          // Command mit produced Events
-          rows.push({
-            type: "command",
-            command: {
-              name: occ.command.name,
-              ...(occ.command.example ? { data: occ.command.example } : {}),
-            },
-            producedEvents: occ.producedEvents.map((e) => ({
-              event: e.name,
-              ...(e.example ? { data: e.example } : {}),
-            })),
-          });
-
-          // Update lastTick to include produced events
-          const maxProducedTick = Math.max(
-            occ.tick,
-            ...occ.producedEvents.map((e) => e.tick),
-          );
-          lastTick = maxProducedTick;
-        }
-
-        slice.scenarios.push({ name: "Timeline Scenario", rows });
-      }
-    }
-
-    // Add spec scenarios (after Timeline Scenario for both states and commands)
-    for (const [, slice] of seen) {
-      const specScenarios =
-        modelStore.model?.specifications?.find(
-          (s) => s.name === slice.name && s.type === slice.type,
-        )?.scenarios ?? [];
-      slice.specScenarioCount = specScenarios.length;
-      // Timeline Scenario first, then spec scenarios
-      slice.scenarios = [...slice.scenarios, ...specScenarios];
-    }
-
-    return [...seen.values()];
-  }
-
-  function getReadingActors(stateName: string): Actor[] {
-    return modelStore.actors.filter((a) => a.readsView === stateName);
-  }
-
-  function getTriggeringActors(commandName: string): Actor[] {
-    return modelStore.actors.filter((a) => a.sendsCommand === commandName);
-  }
-
-  function getStateExamples(slice: DeduplicatedSlice): { tick: number; data: any }[] {
-    return slice.stateOccurrences
-      .filter(occ => occ.state.example)
-      .map(occ => ({ tick: occ.tick, data: occ.state.example }));
-  }
-
-  function getCommandExamples(slice: DeduplicatedSlice): { tick: number; data: any }[] {
-    return slice.commandOccurrences
-      .filter(occ => occ.command.example)
-      .map(occ => ({ tick: occ.tick, data: occ.command.example }));
-  }
-
   function navigateCarousel(sliceKey: string, direction: number, total: number) {
     const current = carouselIndices.get(sliceKey) ?? 0;
     const next = (current + direction + total) % total;
     carouselIndices.set(sliceKey, next);
     carouselIndices = new Map(carouselIndices);
-  }
-
-  function groupActors(actors: Actor[]): { name: string; ticks: number[] }[] {
-    const grouped = new Map<string, number[]>();
-    for (const actor of actors) {
-      if (!grouped.has(actor.name)) {
-        grouped.set(actor.name, []);
-      }
-      grouped.get(actor.name)!.push(actor.tick);
-    }
-    return Array.from(grouped.entries()).map(([name, ticks]) => ({ name, ticks }));
   }
 </script>
 
@@ -443,10 +201,10 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <h3>Slices</h3>
-      <span class="count">{deduplicatedSlices.length}</span>
+      <span class="count">{slices.length}</span>
     </div>
     <div class="slice-list">
-      {#each deduplicatedSlices as slice}
+      {#each slices as slice}
         {@const sliceKey = getSliceKey(slice)}
         {@const isActive = activeSliceKey === sliceKey}
         <div class="slice-nav-item {slice.type} {isActive ? 'active' : ''}">
@@ -483,11 +241,11 @@
   </aside>
 
   <section class="main-content" bind:this={scrollContainer}>
-    {#if deduplicatedSlices.length > 0}
+    {#if slices.length > 0}
       <div class="slices-container">
-        {#each deduplicatedSlices as slice, sliceIndex}
+        {#each slices as slice, sliceIndex}
           {@const sliceKey = getSliceKey(slice)}
-          {@const examples = slice.type === "state" ? getStateExamples(slice) : getCommandExamples(slice)}
+          {@const examples = getSliceExamples(slice)}
           <article
             id="slice-{sliceKey}"
             class="slice-detail-view"
@@ -523,8 +281,8 @@
 
               <div class="detail-body">
                 <div class="slice-details">
-                  {#if slice.type === "state"}
-                    {@const readingActors = getReadingActors(slice.name)}
+                  {#if slice.type === "state" && viewModel}
+                    {@const readingActors = getReadingActors(viewModel, slice.name)}
                     <div class="metadata-columns">
                       <div class="metadata-column">
                         {#if slice.sourcedFrom.length > 0}
@@ -554,7 +312,7 @@
                       </div>
                       <div class="metadata-column">
                         {#if readingActors.length > 0}
-                          {@const groupedActors = groupActors(readingActors)}
+                          {@const groupedActors = groupActorsByName(readingActors)}
                           <div class="detail-section">
                             <h4>Read By</h4>
                             {#each groupedActors as actor}
@@ -580,12 +338,12 @@
                         {/if}
                       </div>
                     </div>
-                  {:else}
-                    {@const triggeringActors = getTriggeringActors(slice.name)}
+                  {:else if viewModel}
+                    {@const triggeringActors = getTriggeringActors(viewModel, slice.name)}
                     <div class="metadata-columns">
                       <div class="metadata-column">
                         {#if triggeringActors.length > 0}
-                          {@const groupedTriggers = groupActors(triggeringActors)}
+                          {@const groupedTriggers = groupActorsByName(triggeringActors)}
                           <div class="detail-section">
                             <h4>Triggered By</h4>
                             {#each groupedTriggers as actor}

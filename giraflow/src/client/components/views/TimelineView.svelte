@@ -1,13 +1,7 @@
 <script lang="ts">
   import { modelStore } from "../../stores/model.svelte";
-  import type {
-    TimelineElement,
-    Event,
-    StateView,
-    Command,
-    Actor,
-  } from "../../lib/types";
   import { isEvent, isState, isCommand, isActor } from "../../lib/types";
+  import { buildTimelineViewModel } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
 
@@ -18,23 +12,15 @@
     actor: "○",
   };
 
-  function getPosition(type: string): "left" | "center" | "right" {
-    if (type === "event") return "left";
-    if (type === "actor") return "right";
-    return "center";
-  }
-
   let activeTick = $state<number | null>(null);
   let detailContainer: HTMLElement | null = $state(null);
   let detailElements = $state<Map<number, HTMLElement>>(new Map());
   // Set flag immediately if there's a hash to navigate to
   let isProgrammaticScroll = window.location.hash.includes("timeline/tick-");
 
-  let sortedTimeline = $derived(
-    modelStore.model
-      ? [...modelStore.model.timeline].sort((a, b) => a.tick - b.tick)
-      : [],
-  );
+  // Build view model from raw data
+  let viewModel = $derived(buildTimelineViewModel(modelStore.model));
+  let timelineItems = $derived(viewModel.items);
 
   function scrollToDetail(tick: number) {
     const element = document.getElementById(`tick-${tick}`);
@@ -131,7 +117,7 @@
     const hash = window.location.hash.slice(1);
     if (hash.startsWith("timeline/tick-")) {
       const tick = parseInt(hash.replace("timeline/tick-", ""), 10);
-      if (!isNaN(tick) && sortedTimeline.length > 0) {
+      if (!isNaN(tick) && timelineItems.length > 0) {
         activeTick = tick;
         isProgrammaticScroll = true;
         requestAnimationFrame(() => {
@@ -143,9 +129,9 @@
           setTimeout(() => (isProgrammaticScroll = false), 1000);
         });
       }
-    } else if (sortedTimeline.length > 0 && activeTick === null) {
+    } else if (timelineItems.length > 0 && activeTick === null) {
       // Set first tick as active by default
-      activeTick = sortedTimeline[0].tick;
+      activeTick = timelineItems[0].element.tick;
     }
   });
 </script>
@@ -155,8 +141,7 @@
   <aside class="timeline-master">
     <div class="tl-master-content">
       <div class="tl-master-line"></div>
-      {#each sortedTimeline as el}
-        {@const position = getPosition(el.type)}
+      {#each timelineItems as { element: el, position }}
         <button
           class="tl-master-item tl-{position}"
           class:active={activeTick === el.tick}
@@ -175,10 +160,9 @@
   <main class="timeline-detail" bind:this={detailContainer}>
     <header class="tl-detail-title">
       <h2>Timeline</h2>
-      <span class="tl-detail-count">{sortedTimeline.length} items</span>
+      <span class="tl-detail-count">{viewModel.count} items</span>
     </header>
-    {#each sortedTimeline as el}
-      {@const position = getPosition(el.type)}
+    {#each timelineItems as { element: el, position }}
       <section
         class="tl-detail-item tl-{position}"
         id="tick-{el.tick}"

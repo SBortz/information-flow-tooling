@@ -1,67 +1,9 @@
 <script lang="ts">
   import { modelStore } from "../../stores/model.svelte";
+  import { buildTableViewModel } from "../../lib/models";
 
-  interface DeduplicatedItem {
-    name: string;
-    ticks: number[];
-    count: number;
-  }
-
-  interface DeduplicatedStateView extends DeduplicatedItem {
-    sourcedFrom: string[];
-  }
-
-  // Deduplicate with occurrence counts
-  function deduplicateWithCounts<T extends { name: string; tick: number }>(
-    items: T[],
-  ): DeduplicatedItem[] {
-    const map = new Map<string, number[]>();
-    for (const item of items) {
-      const ticks = map.get(item.name) || [];
-      ticks.push(item.tick);
-      map.set(item.name, ticks);
-    }
-    return [...map.entries()]
-      .map(([name, ticks]) => ({
-        name,
-        ticks: ticks.sort((a, b) => a - b),
-        count: ticks.length,
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  // Deduplicate states with sourcedFrom info
-  function deduplicateStates(
-    items: { name: string; tick: number; sourcedFrom: string[] }[],
-  ): DeduplicatedStateView[] {
-    const map = new Map<string, { ticks: number[]; sourcedFrom: string[] }>();
-    for (const item of items) {
-      const existing = map.get(item.name);
-      if (existing) {
-        existing.ticks.push(item.tick);
-      } else {
-        map.set(item.name, {
-          ticks: [item.tick],
-          sourcedFrom: item.sourcedFrom,
-        });
-      }
-    }
-    return [...map.entries()]
-      .map(([name, { ticks, sourcedFrom }]) => ({
-        name,
-        ticks: ticks.sort((a, b) => a - b),
-        count: ticks.length,
-        sourcedFrom,
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  let deduplicatedEvents = $derived(deduplicateWithCounts(modelStore.events));
-  let deduplicatedStates = $derived(deduplicateStates(modelStore.states));
-  let deduplicatedCommands = $derived(
-    deduplicateWithCounts(modelStore.commands),
-  );
-  let deduplicatedActors = $derived(deduplicateWithCounts(modelStore.actors));
+  // Build view model from raw data
+  let viewModel = $derived(buildTableViewModel(modelStore.model));
 </script>
 
 <div class="table-view">
@@ -79,10 +21,10 @@
     </div>
   {/if}
 
-  {#if deduplicatedEvents.length > 0}
+  {#if viewModel.events.length > 0}
     <div class="table-section">
       <h2 class="events">
-        <span class="symbol">●</span> Events ({modelStore.events.length} total, {deduplicatedEvents.length}
+        <span class="symbol">●</span> Events ({viewModel.totalEvents} total, {viewModel.events.length}
         unique)
       </h2>
       <table>
@@ -93,7 +35,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each deduplicatedEvents as event}
+          {#each viewModel.events as event}
             <tr>
               <td class="col-name"><span class="event">{event.name}</span></td>
               <td>
@@ -114,11 +56,11 @@
     </div>
   {/if}
 
-  {#if deduplicatedStates.length > 0}
+  {#if viewModel.states.length > 0}
     <div class="table-section">
       <h2 class="states">
-        <span class="symbol">◆</span> State Views ({modelStore.states.length} total,
-        {deduplicatedStates.length} unique)
+        <span class="symbol">◆</span> State Views ({viewModel.totalStates} total,
+        {viewModel.states.length} unique)
       </h2>
       <table>
         <thead>
@@ -129,7 +71,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each deduplicatedStates as state}
+          {#each viewModel.states as state}
             <tr>
               <td class="col-name"><span class="state">{state.name}</span></td>
               <td class="col-occurrences">
@@ -158,11 +100,11 @@
     </div>
   {/if}
 
-  {#if deduplicatedCommands.length > 0}
+  {#if viewModel.commands.length > 0}
     <div class="table-section">
       <h2 class="commands">
-        <span class="symbol">▶</span> Commands ({modelStore.commands.length} total,
-        {deduplicatedCommands.length} unique)
+        <span class="symbol">▶</span> Commands ({viewModel.totalCommands} total,
+        {viewModel.commands.length} unique)
       </h2>
       <table>
         <thead>
@@ -172,7 +114,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each deduplicatedCommands as command}
+          {#each viewModel.commands as command}
             <tr>
               <td class="col-name"
                 ><span class="command">{command.name}</span></td
@@ -195,10 +137,10 @@
     </div>
   {/if}
 
-  {#if deduplicatedActors.length > 0}
+  {#if viewModel.actors.length > 0}
     <div class="table-section">
       <h2 class="actors">
-        <span class="symbol">○</span> Actors ({modelStore.actors.length} total, {deduplicatedActors.length}
+        <span class="symbol">○</span> Actors ({viewModel.totalActors} total, {viewModel.actors.length}
         unique)
       </h2>
       <table>
@@ -209,7 +151,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each deduplicatedActors as actor}
+          {#each viewModel.actors as actor}
             <tr>
               <td class="col-name"><span class="actor">{actor.name}</span></td>
               <td>
