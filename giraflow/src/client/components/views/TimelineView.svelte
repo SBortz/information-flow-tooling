@@ -298,61 +298,88 @@
 <div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
   <!-- Master: Compact timeline on the left -->
   <aside class="timeline-master">
-    {#if laneConfig.eventSystems.some(s => s !== '') || laneConfig.actorRoles.some(r => r !== '')}
-      <div class="tl-filter-dropdown">
-        <button
-          class="tl-filter-trigger"
-          class:has-filters={hasActiveFilters}
-          onclick={() => filterDropdownOpen = !filterDropdownOpen}
-        >
-          <span>Filters</span>
-          {#if hasActiveFilters}
-            <span class="tl-filter-badge">{hiddenSystems.size + hiddenRoles.size}</span>
-          {/if}
-          <span class="tl-filter-arrow">{filterDropdownOpen ? '▲' : '▼'}</span>
-        </button>
-        {#if filterDropdownOpen}
-          <div class="tl-filter-panel">
-            {#if laneConfig.eventSystems.some(s => s !== '')}
-              <div class="tl-filter-group">
-                <span class="tl-filter-label">Systems</span>
-                {#each laneConfig.eventSystems.filter(s => s !== '') as system}
-                  <label class="tl-filter-item">
-                    <input
-                      type="checkbox"
-                      checked={!hiddenSystems.has(system)}
-                      onchange={() => toggleSystem(system)}
-                    />
-                    <span>{system}</span>
-                  </label>
-                {/each}
+    <div class="tl-master-content">
+      <div class="tl-lane-header">
+        <div class="tl-lane-labels-wrapper" style="padding-left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);">
+        <div class="tl-lane-labels" style="width: {totalLaneWidth}px;">
+          {#each filteredLaneConfig().eventSystems as system, i}
+            <div
+              class="tl-lane-label event"
+              style="left: {i * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+            >
+              <span class="tl-lane-label-text">{system || 'Default'}</span>
+            </div>
+          {/each}
+          <div
+            class="tl-lane-label center"
+            style="left: {filteredLaneConfig().eventLaneCount * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+          >
+            <span class="tl-lane-label-text">Cmds/States</span>
+          </div>
+          {#each filteredLaneConfig().actorRoles as role, i}
+            <div
+              class="tl-lane-label actor"
+              style="left: {(filteredLaneConfig().eventLaneCount + 1 + i) * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+            >
+              <span class="tl-lane-label-text">{role || 'Default'}</span>
+            </div>
+          {/each}
+        </div>
+        </div>
+        {#if laneConfig.eventSystems.some(s => s !== '') || laneConfig.actorRoles.some(r => r !== '')}
+          <div class="tl-filter-dropdown">
+            <button
+              class="tl-filter-trigger"
+              class:has-filters={hasActiveFilters}
+              onclick={() => filterDropdownOpen = !filterDropdownOpen}
+            >
+              <span>⚙</span>
+              {#if hasActiveFilters}
+                <span class="tl-filter-badge">{hiddenSystems.size + hiddenRoles.size}</span>
+              {/if}
+            </button>
+            {#if filterDropdownOpen}
+              <div class="tl-filter-panel">
+                {#if laneConfig.eventSystems.some(s => s !== '')}
+                  <div class="tl-filter-group">
+                    <span class="tl-filter-label">Systems</span>
+                    {#each laneConfig.eventSystems.filter(s => s !== '') as system}
+                      <label class="tl-filter-item">
+                        <input
+                          type="checkbox"
+                          checked={!hiddenSystems.has(system)}
+                          onchange={() => toggleSystem(system)}
+                        />
+                        <span>{system}</span>
+                      </label>
+                    {/each}
+                  </div>
+                {/if}
+                {#if laneConfig.actorRoles.some(r => r !== '')}
+                  <div class="tl-filter-group">
+                    <span class="tl-filter-label">Roles</span>
+                    {#each laneConfig.actorRoles.filter(r => r !== '') as role}
+                      <label class="tl-filter-item">
+                        <input
+                          type="checkbox"
+                          checked={!hiddenRoles.has(role)}
+                          onchange={() => toggleRole(role)}
+                        />
+                        <span>{role}</span>
+                      </label>
+                    {/each}
+                  </div>
+                {/if}
+                {#if hasActiveFilters}
+                  <button class="tl-filter-clear" onclick={clearAllFilters}>
+                    Clear all filters
+                  </button>
+                {/if}
               </div>
-            {/if}
-            {#if laneConfig.actorRoles.some(r => r !== '')}
-              <div class="tl-filter-group">
-                <span class="tl-filter-label">Roles</span>
-                {#each laneConfig.actorRoles.filter(r => r !== '') as role}
-                  <label class="tl-filter-item">
-                    <input
-                      type="checkbox"
-                      checked={!hiddenRoles.has(role)}
-                      onchange={() => toggleRole(role)}
-                    />
-                    <span>{role}</span>
-                  </label>
-                {/each}
-              </div>
-            {/if}
-            {#if hasActiveFilters}
-              <button class="tl-filter-clear" onclick={clearAllFilters}>
-                Clear all filters
-              </button>
             {/if}
           </div>
         {/if}
       </div>
-    {/if}
-    <div class="tl-master-content">
       <div
         class="tl-master-line"
         style="width: {totalLaneWidth}px; {generateLaneBackgroundCSS()}"
@@ -485,9 +512,76 @@
     min-height: 100%;
   }
 
-  .tl-master-line {
+  .tl-lane-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0.5rem 0.5rem 0.5rem 0;
+    gap: 0.5rem;
+  }
+
+  .tl-lane-labels-wrapper {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tl-lane-labels {
+    position: relative;
+    height: 4.5rem;
+  }
+
+  .tl-lane-label {
     position: absolute;
     top: 0;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+    padding-bottom: 0.25rem;
+  }
+
+  .tl-lane-label-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.25rem 0.15rem;
+    border-radius: 0.2rem;
+    max-height: calc(100% - 4px);
+  }
+
+  .tl-lane-label.event .tl-lane-label-text {
+    background: rgba(249, 115, 22, 0.15);
+    color: var(--color-event);
+  }
+
+  .tl-lane-label.center .tl-lane-label-text {
+    background: rgba(107, 114, 128, 0.15);
+    color: var(--text-secondary);
+  }
+
+  .tl-lane-label.actor .tl-lane-label-text {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--color-actor);
+  }
+
+  .tl-master-line {
+    position: absolute;
+    /* Top offset accounts for lane header: padding (0.5rem + 0.5rem) + labels height (4.5rem) + border (1px) */
+    top: calc(0.5rem + 0.5rem + 4.5rem + 1px);
     bottom: 0;
     /* left padding (0.75rem) + tick width (2rem) + gap (0.5rem) + tick margin (0.25rem) = 3.5rem */
     left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);
@@ -708,53 +802,62 @@
   /* Filter dropdown styles */
   .tl-filter-dropdown {
     position: relative;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-secondary);
+    flex-shrink: 0;
+    align-self: flex-end;
+    margin-bottom: 0.25rem;
   }
 
   .tl-filter-trigger {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0.6rem;
+    justify-content: center;
+    gap: 0.25rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
     border: 1px solid var(--border);
     background: var(--bg-card);
     border-radius: 0.25rem;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-family: inherit;
     cursor: pointer;
     transition: all 0.15s;
+    color: var(--text-secondary);
   }
 
   .tl-filter-trigger:hover {
     border-color: var(--text-secondary);
+    background: var(--bg-secondary);
   }
 
   .tl-filter-trigger.has-filters {
     border-color: var(--color-command);
+    color: var(--color-command);
   }
 
   .tl-filter-badge {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
     background: var(--color-command);
     color: white;
-    font-size: 0.65rem;
-    padding: 0.1rem 0.35rem;
-    border-radius: 0.75rem;
+    font-size: 0.55rem;
+    min-width: 1rem;
+    height: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.25rem;
+    border-radius: 0.5rem;
     font-weight: 600;
-  }
-
-  .tl-filter-arrow {
-    font-size: 0.6rem;
-    color: var(--text-secondary);
   }
 
   .tl-filter-panel {
     position: absolute;
     top: 100%;
-    left: 0.75rem;
-    right: 0.75rem;
+    right: 0;
     margin-top: 0.25rem;
+    min-width: 10rem;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 0.375rem;
