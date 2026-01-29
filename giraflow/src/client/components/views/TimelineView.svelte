@@ -1,21 +1,27 @@
 <script lang="ts">
-  import { modelStore } from '../../stores/model.svelte';
-  import type { TimelineElement, Event, StateView, Command, Actor } from '../../lib/types';
-  import { isEvent, isState, isCommand, isActor } from '../../lib/types';
-  import JsonDisplay from '../shared/JsonDisplay.svelte';
-  import WireframeViewer from '../shared/WireframeViewer.svelte';
+  import { modelStore } from "../../stores/model.svelte";
+  import type {
+    TimelineElement,
+    Event,
+    StateView,
+    Command,
+    Actor,
+  } from "../../lib/types";
+  import { isEvent, isState, isCommand, isActor } from "../../lib/types";
+  import JsonDisplay from "../shared/JsonDisplay.svelte";
+  import WireframeViewer from "../shared/WireframeViewer.svelte";
 
   const symbols: Record<string, string> = {
-    event: '●',
-    state: '◆',
-    command: '▶',
-    actor: '○',
+    event: "●",
+    state: "◆",
+    command: "▶",
+    actor: "○",
   };
 
-  function getPosition(type: string): 'left' | 'center' | 'right' {
-    if (type === 'event') return 'left';
-    if (type === 'actor') return 'right';
-    return 'center';
+  function getPosition(type: string): "left" | "center" | "right" {
+    if (type === "event") return "left";
+    if (type === "actor") return "right";
+    return "center";
   }
 
   let activeTick = $state<number | null>(null);
@@ -25,18 +31,22 @@
   let sortedTimeline = $derived(
     modelStore.model
       ? [...modelStore.model.timeline].sort((a, b) => a.tick - b.tick)
-      : []
+      : [],
   );
 
   function scrollToDetail(tick: number) {
     const element = document.getElementById(`tick-${tick}`);
     if (element) {
       activeTick = tick;
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      element.classList.add('highlight-flash');
-      setTimeout(() => element.classList.remove('highlight-flash'), 2000);
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      element.classList.add("highlight-flash");
+      setTimeout(() => element.classList.remove("highlight-flash"), 2000);
       // Update URL
-      history.replaceState({ view: 'timeline', tick }, '', `#timeline/tick-${tick}`);
+      history.replaceState(
+        { view: "timeline", tick },
+        "",
+        `#timeline/tick-${tick}`,
+      );
     }
   }
 
@@ -48,7 +58,7 @@
       destroy() {
         detailElements.delete(tick);
         detailElements = new Map(detailElements);
-      }
+      },
     };
   }
 
@@ -60,22 +70,31 @@
       (entries) => {
         // Find the topmost visible element
         const visibleEntries = entries
-          .filter(e => e.isIntersecting)
+          .filter((e) => e.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
 
         if (visibleEntries.length > 0) {
           const id = visibleEntries[0].target.id;
-          if (id.startsWith('tick-')) {
-            const tick = parseInt(id.replace('tick-', ''), 10);
+          if (id.startsWith("tick-")) {
+            const tick = parseInt(id.replace("tick-", ""), 10);
             if (!isNaN(tick) && tick !== activeTick) {
               activeTick = tick;
               // Update URL without adding history entry
-              history.replaceState({ view: 'timeline', tick }, '', `#timeline/tick-${tick}`);
+              history.replaceState(
+                { view: "timeline", tick },
+                "",
+                `#timeline/tick-${tick}`,
+              );
 
               // Scroll master item into view if needed
-              const masterItem = document.querySelector(`.tl-master-item[data-tick="${tick}"]`);
+              const masterItem = document.querySelector(
+                `.tl-master-item[data-tick="${tick}"]`,
+              );
               if (masterItem) {
-                masterItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                masterItem.scrollIntoView({
+                  behavior: "smooth",
+                  block: "nearest",
+                });
               }
             }
           }
@@ -83,9 +102,9 @@
       },
       {
         root: null, // viewport
-        rootMargin: '-20% 0px -60% 0px',
+        rootMargin: "-20% 0px -60% 0px",
         threshold: 0,
-      }
+      },
     );
 
     for (const el of detailElements.values()) {
@@ -98,14 +117,14 @@
   // Handle initial hash on mount
   $effect(() => {
     const hash = window.location.hash.slice(1);
-    if (hash.startsWith('timeline/tick-')) {
-      const tick = parseInt(hash.replace('timeline/tick-', ''), 10);
+    if (hash.startsWith("timeline/tick-")) {
+      const tick = parseInt(hash.replace("timeline/tick-", ""), 10);
       if (!isNaN(tick) && sortedTimeline.length > 0) {
         activeTick = tick;
         requestAnimationFrame(() => {
           const el = document.getElementById(`tick-${tick}`);
           if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
           }
         });
       }
@@ -122,23 +141,27 @@
     <div class="tl-master-content">
       <div class="tl-master-line"></div>
       {#each sortedTimeline as el}
-      {@const position = getPosition(el.type)}
-      <button
-        class="tl-master-item tl-{position}"
-        class:active={activeTick === el.tick}
-        data-tick={el.tick}
-        onclick={() => scrollToDetail(el.tick)}
-      >
-        <span class="tl-tick">@{el.tick}</span>
-        <span class="tl-symbol {el.type}">{symbols[el.type]}</span>
-        <span class="tl-name {el.type}">{el.name}</span>
-      </button>
+        {@const position = getPosition(el.type)}
+        <button
+          class="tl-master-item tl-{position}"
+          class:active={activeTick === el.tick}
+          data-tick={el.tick}
+          onclick={() => scrollToDetail(el.tick)}
+        >
+          <span class="tl-tick">@{el.tick}</span>
+          <span class="tl-symbol {el.type}">{symbols[el.type]}</span>
+          <span class="tl-name {el.type}">{el.name}</span>
+        </button>
       {/each}
     </div>
   </aside>
 
   <!-- Detail: Continuous stream on the right -->
   <main class="timeline-detail" bind:this={detailContainer}>
+    <header class="tl-detail-title">
+      <h2>Timeline</h2>
+      <span class="tl-detail-count">{sortedTimeline.length} items</span>
+    </header>
     {#each sortedTimeline as el}
       {@const position = getPosition(el.type)}
       <section
@@ -154,10 +177,14 @@
         <div class="tl-detail-content">
           {#if isEvent(el)}
             {#if el.producedBy}
-              <div class="tl-detail-row">producedBy: <span class="command">{el.producedBy}</span></div>
+              <div class="tl-detail-row">
+                producedBy: <span class="command">{el.producedBy}</span>
+              </div>
             {/if}
             {#if el.externalSource}
-              <div class="tl-detail-row">externalSource: {el.externalSource}</div>
+              <div class="tl-detail-row">
+                externalSource: {el.externalSource}
+              </div>
             {/if}
             {#if el.example}
               <JsonDisplay data={el.example} class="tl-json" />
@@ -165,7 +192,9 @@
           {:else if isState(el)}
             {#if el.sourcedFrom.length > 0}
               <div class="tl-detail-row">
-                sourcedFrom: {#each el.sourcedFrom as eventName, i}<span class="event">{eventName}</span>{i < el.sourcedFrom.length - 1 ? ', ' : ''}{/each}
+                sourcedFrom: {#each el.sourcedFrom as eventName, i}<span
+                    class="event">{eventName}</span
+                  >{i < el.sourcedFrom.length - 1 ? ", " : ""}{/each}
               </div>
             {/if}
             {#if el.example}
@@ -173,12 +202,16 @@
             {/if}
           {:else if isActor(el)}
             <div class="tl-detail-row">
-              reads <span class="state">{el.readsView}</span> → triggers <span class="command">{el.sendsCommand}</span>
+              reads <span class="state">{el.readsView}</span> → triggers
+              <span class="command">{el.sendsCommand}</span>
             </div>
             {#if el.wireframes && el.wireframes.length > 0}
               <div class="tl-wireframes">
                 {#each el.wireframes as wireframe}
-                  <WireframeViewer src="/wireframes/{wireframe}" title="{el.name} - {wireframe}" />
+                  <WireframeViewer
+                    src="/wireframes/{wireframe}"
+                    title="{el.name} - {wireframe}"
+                  />
                 {/each}
               </div>
             {/if}
@@ -233,24 +266,40 @@
     z-index: 2;
     background-image:
       /* Hatching for middle lane only */
-      repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(107,114,128,0.18) 3px, rgba(107,114,128,0.18) 4px),
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 3px,
+        rgba(107, 114, 128, 0.18) 3px,
+        rgba(107, 114, 128, 0.18) 4px
+      ),
       /* Tint for all 3 lanes */
-      linear-gradient(rgba(107,114,128,0.05), rgba(107,114,128,0.05)),
-      linear-gradient(rgba(107,114,128,0.05), rgba(107,114,128,0.05)),
-      linear-gradient(rgba(107,114,128,0.05), rgba(107,114,128,0.05)),
+        linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05)),
+      linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05)),
+      linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05)),
       /* 4 vertical lines */
-      linear-gradient(rgba(107,114,128,0.4), rgba(107,114,128,0.4)),
-      linear-gradient(rgba(107,114,128,0.4), rgba(107,114,128,0.4)),
-      linear-gradient(rgba(107,114,128,0.4), rgba(107,114,128,0.4)),
-      linear-gradient(rgba(107,114,128,0.4), rgba(107,114,128,0.4));
+        linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4)),
+      linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4)),
+      linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4)),
+      linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4));
     background-position:
       24px 0,
-      0 0, 24px 0, 48px 0,
-      0 0, 24px 0, 48px 0, 70px 0;
+      0 0,
+      24px 0,
+      48px 0,
+      0 0,
+      24px 0,
+      48px 0,
+      70px 0;
     background-size:
       24px 100%,
-      24px 100%, 24px 100%, 24px 100%,
-      2px 100%, 2px 100%, 2px 100%, 2px 100%;
+      24px 100%,
+      24px 100%,
+      24px 100%,
+      2px 100%,
+      2px 100%,
+      2px 100%,
+      2px 100%;
     background-repeat: no-repeat;
   }
 
@@ -328,8 +377,29 @@
   /* Detail area */
   .timeline-detail {
     flex: 1;
-    padding: 1.5rem 2rem 1.5rem 1rem;
+    padding: 1.5rem 2rem 50vh 1rem;
     overflow-y: auto;
+  }
+
+  .tl-detail-title {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tl-detail-title h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+  }
+
+  .tl-detail-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
   }
 
   .tl-detail-item {
@@ -339,7 +409,7 @@
     margin-bottom: 1rem;
     box-shadow: var(--shadow-card);
     overflow: hidden;
-    scroll-margin-top: 1.5rem;
+    scroll-margin-top: calc(95px + 1.5rem);
   }
 
   .tl-detail-item:last-child {
@@ -391,20 +461,44 @@
   }
 
   /* Color classes */
-  .tl-symbol.event { color: var(--color-event); }
-  .tl-symbol.state { color: var(--color-state); }
-  .tl-symbol.command { color: var(--color-command); }
-  .tl-symbol.actor { color: var(--color-actor); }
+  .tl-symbol.event {
+    color: var(--color-event);
+  }
+  .tl-symbol.state {
+    color: var(--color-state);
+  }
+  .tl-symbol.command {
+    color: var(--color-command);
+  }
+  .tl-symbol.actor {
+    color: var(--color-actor);
+  }
 
-  .tl-name.event { color: var(--color-event); }
-  .tl-name.state { color: var(--color-state); }
-  .tl-name.actor { color: var(--color-actor); }
-  .tl-name.command { color: var(--color-command); }
+  .tl-name.event {
+    color: var(--color-event);
+  }
+  .tl-name.state {
+    color: var(--color-state);
+  }
+  .tl-name.actor {
+    color: var(--color-actor);
+  }
+  .tl-name.command {
+    color: var(--color-command);
+  }
 
-  .tl-detail-row .event { color: var(--color-event); }
-  .tl-detail-row .state { color: var(--color-state); }
-  .tl-detail-row .actor { color: var(--color-actor); }
-  .tl-detail-row .command { color: var(--color-command); }
+  .tl-detail-row .event {
+    color: var(--color-event);
+  }
+  .tl-detail-row .state {
+    color: var(--color-state);
+  }
+  .tl-detail-row .actor {
+    color: var(--color-actor);
+  }
+  .tl-detail-row .command {
+    color: var(--color-command);
+  }
 
   :global(.tl-json) {
     margin-top: 0.5rem;
@@ -423,7 +517,12 @@
   }
 
   @keyframes flash {
-    0%, 20% { background: rgba(234, 179, 8, 0.25); }
-    100% { background: transparent; }
+    0%,
+    20% {
+      background: rgba(234, 179, 8, 0.25);
+    }
+    100% {
+      background: transparent;
+    }
   }
 </style>
