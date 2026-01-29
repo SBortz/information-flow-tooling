@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
 import type { InformationFlowModel } from './server/types.js';
 import type { ServerResponse } from 'node:http';
+import { buildSliceViewModel, type SliceViewModel } from './shared/slice-builder.js';
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html',
@@ -26,6 +27,7 @@ export function ifLivePlugin(): Plugin {
   let filePath: string | null = null;
   let fileDir: string = process.cwd();
   let currentModel: InformationFlowModel | null = null;
+  let currentSlices: SliceViewModel | null = null;
   let currentError: string | null = null;
   let jsonWatcher: fs.FSWatcher | null = null;
   let wireframeWatcher: fs.FSWatcher | null = null;
@@ -57,6 +59,11 @@ export function ifLivePlugin(): Plugin {
       const content = fs.readFileSync(filePath, 'utf-8');
       currentModel = JSON.parse(content) as InformationFlowModel;
       currentError = null;
+
+      // Build slices
+      if (currentModel) {
+        currentSlices = buildSliceViewModel(currentModel);
+      }
     } catch (err) {
       currentError = err instanceof Error ? err.message : String(err);
     }
@@ -152,6 +159,15 @@ export function ifLivePlugin(): Plugin {
             error: currentError,
             watchedFile: filePath ? path.basename(filePath) : null,
           }));
+          return;
+        }
+
+        if (req.url === '/api/slices') {
+          res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+          });
+          res.end(JSON.stringify(currentSlices));
           return;
         }
 

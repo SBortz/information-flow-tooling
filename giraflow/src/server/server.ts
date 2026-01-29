@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { InformationFlowModel } from './types.js';
+import { buildSliceViewModel, exportSlicesToJson, type SliceViewModel } from '../shared/slice-builder.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,17 +35,36 @@ export function createServer(options: ServerOptions): {
   const clients = new Set<http.ServerResponse>();
 
   let currentModel: InformationFlowModel | null = null;
+  let currentSlices: SliceViewModel | null = null;
   let currentError: string | null = null;
 
   // Path to built client assets
-  const clientDistPath = path.join(__dirname, '../client');
+  // In dist: server is at dist/server/server/, client is at dist/client/
+  const clientDistPath = path.join(__dirname, '../../client');
   const isDev = !fs.existsSync(clientDistPath);
+
+  function writeSlicesJson(): void {
+    if (!currentSlices) return;
+    // Asset folder: hotel.giraflow.json → hotel.giraflow/slices.json
+    const giraflowDir = filePath.replace(/\.json$/i, '');
+    if (!fs.existsSync(giraflowDir)) {
+      fs.mkdirSync(giraflowDir, { recursive: true });
+    }
+    const slicesPath = path.join(giraflowDir, 'slices.json');
+    fs.writeFileSync(slicesPath, exportSlicesToJson(currentSlices.slices));
+  }
 
   function loadModel(): void {
     try {
       const content = fs.readFileSync(filePath, 'utf-8');
       currentModel = JSON.parse(content) as InformationFlowModel;
       currentError = null;
+
+      // Build slices and auto-export
+      if (currentModel) {
+        currentSlices = buildSliceViewModel(currentModel);
+        writeSlicesJson();
+      }
     } catch (err) {
       currentError = err instanceof Error ? err.message : String(err);
       // Keep old model for display, just show error
@@ -145,6 +165,17 @@ export function createServer(options: ServerOptions): {
           watchedFile: path.basename(filePath),
         })
       );
+      return;
+    }
+
+    // API endpoint for slices
+    if (url.pathname === '/api/slices') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
+      });
+      res.end(JSON.stringify(currentSlices));
       return;
     }
 

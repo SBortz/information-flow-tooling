@@ -1,7 +1,9 @@
 import type { InformationFlowModel, ViewMode, Event, StateView, Command, Actor } from '../lib/types';
+import type { SliceViewModel } from '../lib/models/slice-model';
 
 class ModelStore {
   model = $state<InformationFlowModel | null>(null);
+  slices = $state<SliceViewModel | null>(null);
   error = $state<string | null>(null);
   watchedFile = $state<string>('');
   view = $state<ViewMode>('timeline');
@@ -125,6 +127,10 @@ class ModelStore {
     this.model = data.model;
     this.error = data.error;
     this.watchedFile = data.watchedFile;
+  }
+
+  updateSlices(slices: SliceViewModel | null) {
+    this.slices = slices;
   }
 }
 

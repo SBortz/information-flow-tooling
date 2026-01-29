@@ -4,12 +4,12 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "./dist/server",
-    "rootDir": "./src/server",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true
   },
-  "include": ["src/server/**/*"],
+  "include": ["src/server/**/*", "src/shared/**/*"],
   "exclude": ["node_modules", "dist"]
 }

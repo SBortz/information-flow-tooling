@@ -18,13 +18,29 @@ async function fetchModel() {
   }
 }
 
+// Fetch slices from API
+async function fetchSlices() {
+  try {
+    const res = await fetch('/api/slices');
+    const data = await res.json();
+    modelStore.updateSlices(data);
+  } catch (e) {
+    modelStore.updateSlices(null);
+  }
+}
+
+// Fetch both model and slices
+async function fetchAll() {
+  await Promise.all([fetchModel(), fetchSlices()]);
+}
+
 // Connect to SSE for live updates
 function connectSSE() {
   const events = new EventSource('/events');
 
   events.onmessage = (event) => {
     if (event.data === 'reload' || event.data === 'update') {
-      fetchModel();
+      fetchAll();
     } else if (event.data === 'wireframe-reload') {
       // Only reload iframes, not the whole model
       triggerWireframeReload();
@@ -38,7 +54,7 @@ function connectSSE() {
 
 // Initialize
 modelStore.loadExpandAllFromStorage();
-fetchModel();
+fetchAll();
 connectSSE();
 
 // Mount Svelte app

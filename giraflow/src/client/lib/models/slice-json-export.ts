@@ -1,8 +1,5 @@
 import type { Slice } from './slice-model';
-
-export function exportSlicesToJson(slices: Slice[]): string {
-  return JSON.stringify(slices, null, 2);
-}
+import { exportSlicesToJson } from './slice-model';
 
 function extractBaseName(filePath: string): string {
   // Get filename from path

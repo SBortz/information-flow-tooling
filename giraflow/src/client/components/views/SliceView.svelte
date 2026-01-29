@@ -1,7 +1,6 @@
 <script lang="ts">
   import { modelStore } from "../../stores/model.svelte";
   import {
-    buildSliceViewModel,
     getSliceKey,
     getReadingActors,
     getTriggeringActors,
@@ -9,14 +8,13 @@
     groupActorsByName,
     downloadSlicesJson,
     type Slice,
+    type SliceViewModel,
   } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import Scenario from "../shared/Scenario.svelte";
 
-  // Build view model from raw data
-  let viewModel = $derived(
-    modelStore.model ? buildSliceViewModel(modelStore.model) : null
-  );
+  // Use slices from store (fetched from server)
+  let viewModel = $derived(modelStore.slices);
   let slices = $derived(viewModel?.slices ?? []);
   let activeSliceKey = $state<string | null>(null);
   let activeScenarioId = $state<string | null>(null);

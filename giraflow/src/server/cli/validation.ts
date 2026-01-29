@@ -13,9 +13,9 @@ export function getBundledSchemaPath(): string | null {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
-  // Check multiple locations: dist/server/ (production) and monorepo root (development with tsx)
+  // Check multiple locations: dist/server/server/ (production) and monorepo root (development with tsx)
   const candidates = [
-    join(__dirname, '..', 'giraflow.schema.json'),           // dist/server/giraflow.schema.json
+    join(__dirname, '..', 'giraflow.schema.json'),           // dist/server/server/giraflow.schema.json
     join(__dirname, '..', '..', '..', '..', 'giraflow.schema.json'),  // monorepo root (dev mode from src/server/cli/)
   ];
 
@@ -34,9 +34,9 @@ export function getBundledAiInstructionsPath(): string | null {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
-  // Check multiple locations: dist/server/ (production) and monorepo docs/ (development with tsx)
+  // Check multiple locations: dist/server/server/ (production) and monorepo docs/ (development with tsx)
   const candidates = [
-    join(__dirname, '..', 'design-methodology.md'),           // dist/server/design-methodology.md
+    join(__dirname, '..', 'design-methodology.md'),           // dist/server/server/design-methodology.md
     join(__dirname, '..', '..', '..', '..', 'docs', 'design-methodology.md'),  // monorepo root/docs (dev mode from src/server/cli/)
   ];
 

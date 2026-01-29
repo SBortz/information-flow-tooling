@@ -2,20 +2,20 @@
   "name": "giraflow",
   "version": "0.0.0",
   "description": "Giraflow – live preview server for .giraflow.json models with hot reload",
-  "main": "dist/server/index.js",
+  "main": "dist/server/server/index.js",
   "bin": {
-    "giraflow": "dist/server/index.js"
+    "giraflow": "dist/server/server/index.js"
   },
   "type": "module",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npm run bundle:wired && vite build && tsc -p tsconfig.server.json && cp ../giraflow.schema.json dist/server/ && cp ../docs/design-methodology.md dist/server/",
+    "build": "npm run bundle:wired && vite build && tsc -p tsconfig.server.json && cp ../giraflow.schema.json dist/server/server/ && cp ../docs/design-methodology.md dist/server/server/",
     "bundle:wired": "esbuild node_modules/wired-elements/lib/wired-elements.js --bundle --format=esm --outfile=public/lib/wired-elements.js",
     "dev": "tsx src/dev-cli.ts",
     "dev:server": "tsx watch src/server/index.ts",
-    "start": "node dist/server/index.js",
+    "start": "node dist/server/server/index.js",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "prepublishOnly": "npm run build"
   },
