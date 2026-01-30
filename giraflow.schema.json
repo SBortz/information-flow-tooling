@@ -269,8 +269,11 @@
           "description": "Logical timestamp for ordering on the timeline"
         },
         "readsView": {
-          "type": "string",
-          "description": "Name of the state view that the actor reads"
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ],
+          "description": "Name(s) of the state view(s) that the actor reads"
         },
         "sendsCommand": {
           "type": "string",

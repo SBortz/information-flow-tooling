@@ -19,10 +19,43 @@
       }
     },
     {
+      "type": "state",
+      "name": "ColoringPictureLibrary",
+      "tick": 15,
+      "sourcedFrom": ["ImageApproved", "ImageCategorized", "ImageViewed", "ImageDownloaded"],
+      "example": {
+        "images": [
+          {
+            "imageId": "img-047",
+            "title": "Friendly Dinosaur Party",
+            "thumbnailUrl": "/images/img-047-thumb.png",
+            "tags": ["Animals", "Dinosaurs", "Party"],
+            "viewCount": 234
+          },
+          {
+            "imageId": "img-042",
+            "title": "Magical Rainbow Unicorn",
+            "thumbnailUrl": "/images/img-042-thumb.png",
+            "tags": ["Fantasy", "Unicorn", "Rainbow"],
+            "viewCount": 567
+          },
+          {
+            "imageId": "img-038",
+            "title": "Princess Castle",
+            "thumbnailUrl": "/images/img-038-thumb.png",
+            "tags": ["Fantasy", "Castle", "Princess"],
+            "viewCount": 678
+          }
+        ],
+        "totalCount": 156,
+        "availableTags": ["Animals", "Fantasy", "Space", "Nature", "Vehicles", "Dinosaurs", "Unicorn", "Party"]
+      }
+    },
+    {
       "type": "actor",
       "name": "Kid",
       "tick": 20,
-      "readsView": "WishSubmissionForm",
+      "readsView": ["WishSubmissionForm", "ColoringPictureLibrary"],
       "sendsCommand": "SubmitWish",
       "role": "Kid",
       "wireframes": ["wireframes/kid-wish-submission-20.html"]
@@ -181,7 +214,7 @@
       "type": "state",
       "name": "GenerationQueue",
       "tick": 160,
-      "sourcedFrom": ["WishApproved", "RegenerationRequested"],
+      "sourcedFrom": ["WishApproved", "RegenerationRequested", "PromptAdjustedAndRegenerationRequested"],
       "example": {
         "queue": [
           {
@@ -361,6 +394,38 @@
         "previousAttempt": 3,
         "requestedBy": "admin-01",
         "requestedAt": "2026-01-29T10:24:00Z"
+      }
+    },
+    {
+      "type": "actor",
+      "name": "Admin",
+      "tick": 262,
+      "readsView": "PendingImages",
+      "sendsCommand": "AdjustPromptAndRegenerate",
+      "role": "Admin"
+    },
+    {
+      "type": "command",
+      "name": "AdjustPromptAndRegenerate",
+      "tick": 264,
+      "example": {
+        "imageId": "img-048",
+        "newPrompt": "A magical unicorn with a flowing rainbow mane, flying gracefully over a colorful rainbow with sparkles and twinkling stars all around"
+      }
+    },
+    {
+      "type": "event",
+      "name": "PromptAdjustedAndRegenerationRequested",
+      "tick": 266,
+      "producedBy": "AdjustPromptAndRegenerate-264",
+      "example": {
+        "imageId": "img-048",
+        "wishId": "wish-015",
+        "originalPrompt": "A magical unicorn flying over a rainbow with sparkles and stars",
+        "newPrompt": "A magical unicorn with a flowing rainbow mane, flying gracefully over a colorful rainbow with sparkles and twinkling stars all around",
+        "previousAttempt": 3,
+        "adjustedBy": "admin-01",
+        "requestedAt": "2026-01-29T10:24:30Z"
       }
     },
     {
@@ -1056,6 +1121,68 @@
     },
 
     {
+      "name": "AdjustPromptAndRegenerate",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Adjust prompt and request regeneration",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "ImageGenerated",
+                  "data": {
+                    "imageId": "img-510",
+                    "wishId": "wish-510",
+                    "prompt": "A robot",
+                    "imageUrl": "/images/img-510.png",
+                    "attempt": 2,
+                    "generatedAt": "2026-01-29T10:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "imageId": "img-510",
+                "newPrompt": "A friendly robot with big eyes, waving hello, standing in a garden with flowers"
+              },
+              "produces": [
+                {
+                  "event": "PromptAdjustedAndRegenerationRequested",
+                  "data": {
+                    "imageId": "img-510",
+                    "wishId": "wish-510",
+                    "originalPrompt": "A robot",
+                    "newPrompt": "A friendly robot with big eyes, waving hello, standing in a garden with flowers",
+                    "previousAttempt": 2,
+                    "adjustedBy": "admin-01",
+                    "requestedAt": "2026-01-29T10:05:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Cannot adjust prompt for non-existent image",
+          "steps": [
+            {
+              "type": "command",
+              "when": {
+                "imageId": "img-999",
+                "newPrompt": "Some new prompt"
+              },
+              "fails": "Image not found"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
       "name": "RejectImagePermanently",
       "type": "command",
       "scenarios": [
@@ -1395,6 +1522,38 @@
                   {
                     "wishId": "wish-1002",
                     "prompt": "A ninja turtle",
+                    "attempt": 3,
+                    "queuedAt": "2026-01-29T10:00:00Z"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Adjusted prompt adds to queue with new prompt and incremented attempt",
+          "initialState": {
+            "queue": []
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "PromptAdjustedAndRegenerationRequested",
+                "data": {
+                  "imageId": "img-1003",
+                  "wishId": "wish-1003",
+                  "originalPrompt": "A robot",
+                  "newPrompt": "A friendly robot with big eyes waving hello",
+                  "previousAttempt": 2,
+                  "adjustedBy": "admin-01",
+                  "requestedAt": "2026-01-29T10:00:00Z"
+                }
+              },
+              "then": {
+                "queue": [
+                  {
+                    "wishId": "wish-1003",
+                    "prompt": "A friendly robot with big eyes waving hello",
                     "attempt": 3,
                     "queuedAt": "2026-01-29T10:00:00Z"
                   }

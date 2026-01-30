@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.6] - 2025-01-29
+
+- **Slices file generation**: To help AI understand the model, the application generates a slices.json file in the assets.
+
 ## [0.3.5] - 2025-01-29
 
 - **Support for multiple lanes**: Event Models should be able to support multiple lanes in order to work with multiple systems / actors in different roles. This is now possible.

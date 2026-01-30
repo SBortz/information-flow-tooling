@@ -7,19 +7,61 @@
   <script type="module" src="/lib/wired-elements.js"></script>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f5f5f5;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: #fffef0;
       padding: 20px;
       max-width: 1100px;
       margin: 0 auto;
     }
     h1 {
-      color: #333;
+      color: #9b59b6;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
     }
     .nav-tabs {
       display: flex;
       gap: 10px;
       margin-bottom: 20px;
+      justify-content: center;
+    }
+    .nav-tabs wired-button {
+      font-size: 14px;
+    }
+    .active-tab {
+      background: #9b59b6;
+      color: white;
+    }
+    .stats {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      justify-content: center;
+    }
+    .stat-card {
+      padding: 15px 25px;
+      text-align: center;
+      min-width: 120px;
+    }
+    .stat-number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ff6b6b;
+    }
+    .stat-number.published {
+      color: #27ae60;
+    }
+    .stat-number.regenerated {
+      color: #f39c12;
+    }
+    .stat-label {
+      color: #666;
+      font-size: 13px;
+      margin-top: 4px;
     }
     .image-grid {
       display: grid;
@@ -37,94 +79,123 @@
     }
     .image-id {
       font-size: 12px;
-      color: #888;
+      color: #9b59b6;
+      font-weight: bold;
     }
     .attempt-badge {
-      background: #ff9800;
+      background: #f39c12;
       color: white;
-      padding: 2px 8px;
-      border-radius: 10px;
+      padding: 3px 10px;
+      border-radius: 12px;
       font-size: 11px;
+      font-weight: bold;
+    }
+    .attempt-badge.high {
+      background: #e74c3c;
     }
     .image-preview {
       width: 100%;
       height: 200px;
-      background: #e0e0e0;
+      background: linear-gradient(135deg, #f0f8ff 0%, #e8f4f8 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 8px;
-      margin-bottom: 10px;
-      color: #666;
+      margin-bottom: 12px;
+      color: #888;
       font-style: italic;
+      border: 2px dashed #4a90d9;
     }
-    .original-prompt {
-      background: #fff;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      font-size: 13px;
-      border-left: 3px solid #4a90d9;
+    .prompt-section {
+      margin-bottom: 12px;
     }
-    .original-prompt strong {
-      display: block;
+    .prompt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .prompt-header strong {
       font-size: 11px;
       color: #888;
-      margin-bottom: 4px;
+      text-transform: uppercase;
     }
-    .button-row {
+    .edit-prompt-btn {
+      font-size: 11px;
+      padding: 2px 8px;
+    }
+    .original-prompt {
+      background: #f0f8ff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      border-left: 4px solid #4a90d9;
+      line-height: 1.4;
+    }
+    .prompt-edit-mode {
+      display: none;
+    }
+    .prompt-edit-mode.active {
+      display: block;
+    }
+    .prompt-edit-mode wired-textarea {
+      width: 100%;
+      min-height: 60px;
+      margin-bottom: 8px;
+      --wired-input-font-family: 'Comic Sans MS', cursive;
+    }
+    .prompt-edit-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .save-prompt-btn {
+      background: #4a90d9 !important;
+      color: white;
+      font-size: 12px;
+    }
+    .cancel-btn {
+      font-size: 12px;
+    }
+    .action-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
     .approve-btn {
-      --wired-button-bg: #4caf50;
+      background: #27ae60 !important;
+      color: white;
     }
     .regen-btn {
-      --wired-button-bg: #ff9800;
+      background: #f39c12 !important;
+      color: white;
     }
     .reject-btn {
-      --wired-button-bg: #f44336;
-    }
-    .stats {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-    .stat-card {
-      padding: 15px 25px;
-      text-align: center;
-    }
-    .stat-number {
-      font-size: 28px;
-      font-weight: bold;
-      color: #2196f3;
-    }
-    .stat-label {
-      color: #666;
-      font-size: 13px;
+      background: #e74c3c !important;
+      color: white;
     }
   </style>
 </head>
 <body>
   <h1>Admin Dashboard</h1>
+  <p class="subtitle">Review generated coloring pictures</p>
 
   <div class="nav-tabs">
-    <wired-button>Pending Wishes (12)</wired-button>
-    <wired-button elevation="2">Pending Images (3)</wired-button>
+    <wired-button elevation="1">Pending Wishes (12)</wired-button>
+    <wired-button elevation="2" class="active-tab">Pending Images (3)</wired-button>
+    <wired-button elevation="1">Generating (2)</wired-button>
   </div>
 
   <div class="stats">
-    <wired-card class="stat-card">
+    <wired-card class="stat-card" elevation="1">
       <div class="stat-number">3</div>
       <div class="stat-label">Pending Review</div>
     </wired-card>
-    <wired-card class="stat-card">
-      <div class="stat-number">28</div>
+    <wired-card class="stat-card" elevation="1">
+      <div class="stat-number published">28</div>
       <div class="stat-label">Published Today</div>
     </wired-card>
-    <wired-card class="stat-card">
-      <div class="stat-number">7</div>
+    <wired-card class="stat-card" elevation="1">
+      <div class="stat-number regenerated">7</div>
       <div class="stat-label">Regenerated</div>
     </wired-card>
   </div>
@@ -132,17 +203,29 @@
   <div class="image-grid">
     <wired-card class="image-card" elevation="2">
       <div class="image-header">
-        <span class="image-id">IMG-047 (from WISH-001)</span>
+        <span class="image-id">IMG-047 (WISH-001)</span>
         <span class="attempt-badge">Attempt 1</span>
       </div>
       <div class="image-preview">
         [Generated coloring image preview]
       </div>
-      <div class="original-prompt">
-        <strong>Original Wish:</strong>
-        A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake
+      <div class="prompt-section">
+        <div class="prompt-header">
+          <strong>Prompt:</strong>
+          <wired-button class="edit-prompt-btn">Edit</wired-button>
+        </div>
+        <div class="original-prompt">
+          A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake
+        </div>
+        <div class="prompt-edit-mode">
+          <wired-textarea>A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake</wired-textarea>
+          <div class="prompt-edit-actions">
+            <wired-button elevation="1" class="save-prompt-btn">Save & Regenerate</wired-button>
+            <wired-button class="cancel-btn">Cancel</wired-button>
+          </div>
+        </div>
       </div>
-      <div class="button-row">
+      <div class="action-row">
         <wired-button elevation="1" class="approve-btn">Publish</wired-button>
         <wired-button elevation="1" class="regen-btn">Regenerate</wired-button>
         <wired-button elevation="1" class="reject-btn">Reject</wired-button>
@@ -151,17 +234,29 @@
 
     <wired-card class="image-card" elevation="2">
       <div class="image-header">
-        <span class="image-id">IMG-048 (from WISH-015)</span>
-        <span class="attempt-badge">Attempt 3</span>
+        <span class="image-id">IMG-048 (WISH-015)</span>
+        <span class="attempt-badge high">Attempt 3</span>
       </div>
       <div class="image-preview">
         [Generated coloring image preview]
       </div>
-      <div class="original-prompt">
-        <strong>Original Wish:</strong>
-        A magical unicorn flying over a rainbow with sparkles and stars
+      <div class="prompt-section">
+        <div class="prompt-header">
+          <strong>Prompt:</strong>
+          <wired-button class="edit-prompt-btn">Edit</wired-button>
+        </div>
+        <div class="original-prompt">
+          A magical unicorn flying over a rainbow with sparkles and stars
+        </div>
+        <div class="prompt-edit-mode">
+          <wired-textarea>A magical unicorn flying over a rainbow with sparkles and stars</wired-textarea>
+          <div class="prompt-edit-actions">
+            <wired-button elevation="1" class="save-prompt-btn">Save & Regenerate</wired-button>
+            <wired-button class="cancel-btn">Cancel</wired-button>
+          </div>
+        </div>
       </div>
-      <div class="button-row">
+      <div class="action-row">
         <wired-button elevation="1" class="approve-btn">Publish</wired-button>
         <wired-button elevation="1" class="regen-btn">Regenerate</wired-button>
         <wired-button elevation="1" class="reject-btn">Reject</wired-button>
@@ -170,17 +265,29 @@
 
     <wired-card class="image-card" elevation="2">
       <div class="image-header">
-        <span class="image-id">IMG-049 (from WISH-022)</span>
+        <span class="image-id">IMG-049 (WISH-022)</span>
         <span class="attempt-badge">Attempt 1</span>
       </div>
       <div class="image-preview">
         [Generated coloring image preview]
       </div>
-      <div class="original-prompt">
-        <strong>Original Wish:</strong>
-        A cat astronaut floating in space with planets around
+      <div class="prompt-section">
+        <div class="prompt-header">
+          <strong>Prompt:</strong>
+          <wired-button class="edit-prompt-btn">Edit</wired-button>
+        </div>
+        <div class="original-prompt">
+          A cat astronaut floating in space with planets around
+        </div>
+        <div class="prompt-edit-mode">
+          <wired-textarea>A cat astronaut floating in space with planets around</wired-textarea>
+          <div class="prompt-edit-actions">
+            <wired-button elevation="1" class="save-prompt-btn">Save & Regenerate</wired-button>
+            <wired-button class="cancel-btn">Cancel</wired-button>
+          </div>
+        </div>
       </div>
-      <div class="button-row">
+      <div class="action-row">
         <wired-button elevation="1" class="approve-btn">Publish</wired-button>
         <wired-button elevation="1" class="regen-btn">Regenerate</wired-button>
         <wired-button elevation="1" class="reject-btn">Reject</wired-button>

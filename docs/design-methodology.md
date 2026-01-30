@@ -179,6 +179,10 @@ Use realistic but simple data (e.g., "ord-123", "user-456").
    - Use Nodes.js for backend
    - Use svelte & vite for frontend
 
+4. Frontend
+   - Use the wireframes for orientation
+   - Keep in mind that these are just quick and dirty wireframes, just to get a first picture
+   - Use common sense to make the best out of the wireframe and transform it into a modern looking interface
 
 ---
 
