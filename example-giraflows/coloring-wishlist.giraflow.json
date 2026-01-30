@@ -302,16 +302,54 @@
         "imageId": "img-047",
         "wishId": "wish-001",
         "prompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
-        "imageUrl": "/images/img-047.png",
+        "temporaryUrl": "https://oaidalleapiprodscus.blob.core.windows.net/...",
         "attempt": 1,
         "generatedAt": "2026-01-29T10:21:00Z"
       }
     },
     {
       "type": "state",
+      "name": "ImagesToStore",
+      "tick": 192,
+      "sourcedFrom": ["ImageGenerated", "ImageStoredLocally"],
+      "example": {
+        "images": [
+          {
+            "imageId": "img-047",
+            "wishId": "wish-001",
+            "temporaryUrl": "https://oaidalleapiprodscus.blob.core.windows.net/...",
+            "generatedAt": "2026-01-29T10:21:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "type": "command",
+      "name": "StoreImageLocally",
+      "tick": 194,
+      "example": {
+        "imageId": "img-047",
+        "wishId": "wish-001",
+        "temporaryUrl": "https://oaidalleapiprodscus.blob.core.windows.net/..."
+      }
+    },
+    {
+      "type": "event",
+      "name": "ImageStoredLocally",
+      "tick": 196,
+      "producedBy": "StoreImageLocally-194",
+      "example": {
+        "imageId": "img-047",
+        "wishId": "wish-001",
+        "localPath": "/images/img-047.png",
+        "storedAt": "2026-01-29T10:21:05Z"
+      }
+    },
+    {
+      "type": "state",
       "name": "PendingImages",
       "tick": 200,
-      "sourcedFrom": ["ImageGenerated"],
+      "sourcedFrom": ["ImageStoredLocally"],
       "example": {
         "images": [
           {

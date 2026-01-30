@@ -159,13 +159,19 @@ Use realistic but simple data (e.g., "ord-123", "user-456").
 
 ### Core Principles
 
-1. **Slice-by-Slice Implementation**
-   - Use the giraflow-slices.json to understand what the distinct slices to be implemented are
+1. **Information flow and slices**
+   - The *.giraflow.json contains the complete timeline model of the application. Use that to understand how the flow of the application works.
+   - Use the *.giraflow-slices.json (which is generated from  *.giraflow.json) file to understand what the distinct slices to be implemented are.
+   - Respect these files as the exact source of truth for the implementation. Take all the data models precisely from that. If there are any changes necessary generate a question for the user to ask.
+
+2. **Slice-by-Slice Implementation**
+   
    - Implement one complete vertical slice at a time
    - Finish and verify one slice before starting the next
-   - Respect the exact models from the giraflow model.
+   - Respect the exact models from the giraflow model
+   - Track the status of implementation of a slice (command || state) in the status field of the particular slice  *.giraflow.json file. Use "implemented" for completed slices.
 
-2. **No Shared Components | Isolation Over DRY**
+3. **No Shared Components | Isolation Over DRY**
    - Do NOT create reusable utilities, helpers, or shared abstractions
    - Each slice owns its own code, even if similar to other slices
    - Duplication is acceptable and preferred over premature abstraction
@@ -173,16 +179,18 @@ Use realistic but simple data (e.g., "ord-123", "user-456").
    - Changes to one slice must not affect other slices
    - Copy-paste is better than coupling
 
-3. **Default Implementation stack**
+4. **Default Implementation stack**
    - Use Event Sourcing
    - Use Emmett in-memory as the default database.
    - Use Nodes.js for backend
    - Use svelte & vite for frontend
 
-4. Frontend
-   - Use the wireframes for orientation
-   - Keep in mind that these are just quick and dirty wireframes, just to get a first picture
-   - Use common sense to make the best out of the wireframe and transform it into a modern looking interface
+5. Frontend
+   - Use the wireframes as the template for a view
+   - The wireframe should contain all the information that should be included in the real view
+   - For more precision please consider the state & command that are used on that particular view
+   - Keep in mind that these are just quick and dirty wireframes, just to get a first picture. They are focused on the information flow. So design-wise they should be reworked to be more modern and user-friendly.
+
 
 ---
 

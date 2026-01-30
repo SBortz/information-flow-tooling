@@ -247,6 +247,13 @@
           "type": "array",
           "description": "Additional information (images, links, notes, files) attached to this state view",
           "items": { "$ref": "#/$defs/Attachment" }
+        },
+        "status": {
+          "description": "Implementation status of this slice. Can be a simple string (e.g. 'implemented', 'planned') or a complex status object.",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "object", "additionalProperties": true }
+          ]
         }
       }
     },
@@ -315,6 +322,13 @@
           "type": "array",
           "description": "Additional information (images, links, notes, files) attached to this command",
           "items": { "$ref": "#/$defs/Attachment" }
+        },
+        "status": {
+          "description": "Implementation status of this slice. Can be a simple string (e.g. 'implemented', 'planned') or a complex status object.",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "object", "additionalProperties": true }
+          ]
         }
       }
     },

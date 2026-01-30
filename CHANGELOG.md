@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.7] - 2025-01-30
+
+- **Reworked AI instructions**: Fine-tuning of ai instructions
+- **Coloring pictures example**: Put in a download image flow into the example
+- **Status field in model**: Added a status field to the schema for the AI to put implementation status into it.
+
 ## [0.3.6] - 2025-01-29
 
 - **Slices file generation**: To help AI understand the model, the application generates a slices.json file in the assets.
