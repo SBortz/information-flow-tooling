@@ -49,6 +49,27 @@ export function getBundledAiInstructionsPath(): string | null {
 }
 
 /**
+ * Get the path to the bundled examples directory (copied during build)
+ */
+export function getBundledExamplesPath(): string | null {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+
+  // Check multiple locations: dist/server/server/examples/ (production) and monorepo example-giraflows/ (development with tsx)
+  const candidates = [
+    join(__dirname, '..', 'examples'),           // dist/server/server/examples/
+    join(__dirname, '..', '..', '..', '..', 'example-giraflows'),  // monorepo root/example-giraflows (dev mode from src/server/cli/)
+  ];
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+/**
  * Validate a JSON document against a JSON Schema
  */
 export async function validateAgainstSchema(

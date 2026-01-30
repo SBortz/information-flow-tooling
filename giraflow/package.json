@@ -11,7 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run bundle:wired && vite build && tsc -p tsconfig.server.json && cp ../giraflow.schema.json dist/server/server/ && cp ../docs/design-methodology.md dist/server/server/",
+    "build": "npm run bundle:wired && vite build && tsc -p tsconfig.server.json && cp ../giraflow.schema.json dist/server/server/ && cp ../docs/design-methodology.md dist/server/server/ && cp -r ../example-giraflows dist/server/server/examples",
     "bundle:wired": "esbuild node_modules/wired-elements/lib/wired-elements.js --bundle --format=esm --outfile=public/lib/wired-elements.js",
     "dev": "tsx src/dev-cli.ts",
     "dev:server": "tsx watch src/server/index.ts",

@@ -3,7 +3,7 @@
 import { spawn } from 'node:child_process';
 import { findGiraflowFiles, promptFileSelection } from './server/file-selector.js';
 
-const CLI_COMMANDS = ['view', 'create', 'copy-schema', 'copy-ai-instructions', 'generate-slices', '--help', '-h', '--version', '-V'];
+const CLI_COMMANDS = ['view', 'create', 'copy-schema', 'copy-ai-instructions', 'copy-example', 'generate-slices', '--help', '-h', '--version', '-V'];
 
 async function main() {
   const args = process.argv.slice(2);
@@ -49,7 +49,7 @@ async function main() {
   }
 
   // Start vite with the selected file
-  const vite = spawn('npx', ['vite', '--port', '5173'], {
+  const vite = spawn('npx', ['vite', '--port', '4321'], {
     env: { ...process.env, IF_FILE: filePath },
     stdio: 'inherit',
     shell: true,
