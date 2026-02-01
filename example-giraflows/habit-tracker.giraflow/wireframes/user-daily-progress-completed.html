@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Today's Progress - Habit Tracker</title>
+  <script type="module" src="/lib/wired-elements.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+    }
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .nav-tab {
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .nav-tab.active {
+      background: #3498db;
+      color: white;
+    }
+    .celebration {
+      text-align: center;
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+    .celebration-icon {
+      font-size: 80px;
+      margin-bottom: 15px;
+    }
+    .celebration-title {
+      font-size: 28px;
+      color: #27ae60;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .celebration-subtitle {
+      color: #7f8c8d;
+      font-size: 16px;
+    }
+    .progress-ring {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .progress-circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: conic-gradient(#27ae60 0deg 360deg, #ecf0f1 360deg 360deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .progress-inner {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .progress-percent {
+      font-size: 36px;
+      font-weight: bold;
+      color: #27ae60;
+    }
+    .progress-label {
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+    .habit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .habit-item {
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: #f8fff8;
+    }
+    .habit-checkbox {
+      flex-shrink: 0;
+    }
+    .habit-info {
+      flex: 1;
+    }
+    .habit-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #7f8c8d;
+      text-decoration: line-through;
+      margin-bottom: 4px;
+    }
+    .habit-meta {
+      font-size: 13px;
+      color: #95a5a6;
+    }
+    .habit-status {
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .streak-bonus {
+      text-align: center;
+      padding: 20px;
+      margin-top: 20px;
+      background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+    }
+    .streak-bonus-title {
+      font-size: 18px;
+      color: #856404;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .streak-bonus-detail {
+      color: #856404;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Habit Tracker</h1>
+  <p class="subtitle">Build better habits, one day at a time</p>
+
+  <div class="nav-tabs">
+    <wired-button class="nav-tab">My Habits</wired-button>
+    <wired-button class="nav-tab active">Today</wired-button>
+    <wired-button class="nav-tab">Streaks</wired-button>
+    <wired-button class="nav-tab">Statistics</wired-button>
+  </div>
+
+  <wired-card class="celebration" elevation="2">
+    <div class="celebration-icon">&#127881;</div>
+    <div class="celebration-title">Perfect Day!</div>
+    <p class="celebration-subtitle">You completed all your habits today. Keep it up!</p>
+  </wired-card>
+
+  <div class="progress-ring">
+    <div class="progress-circle">
+      <div class="progress-inner">
+        <div class="progress-percent">100%</div>
+        <div class="progress-label">completed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="habit-list">
+    <wired-card class="habit-item" elevation="1">
+      <wired-checkbox checked class="habit-checkbox"></wired-checkbox>
+      <div class="habit-info">
+        <div class="habit-name">Morning Meditation</div>
+        <div class="habit-meta">Completed at 7:30 AM</div>
+      </div>
+      <span class="habit-status">Done</span>
+    </wired-card>
+
+    <wired-card class="habit-item" elevation="1">
+      <wired-checkbox checked class="habit-checkbox"></wired-checkbox>
+      <div class="habit-info">
+        <div class="habit-name">Read 30 Minutes</div>
+        <div class="habit-meta">Completed at 9:15 PM</div>
+      </div>
+      <span class="habit-status">Done</span>
+    </wired-card>
+  </div>
+
+  <wired-card class="streak-bonus" elevation="1">
+    <div class="streak-bonus-title">&#128293; Streak Bonus!</div>
+    <p class="streak-bonus-detail">Morning Meditation: 16 days | Read 30 Minutes: 9 days</p>
+  </wired-card>
+</body>
+</html>

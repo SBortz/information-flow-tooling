@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morning Meditation - Habit Tracker</title>
+  <script type="module" src="/lib/wired-elements.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 15px;
+      color: #3498db;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .habit-icon {
+      font-size: 32px;
+    }
+    .habit-meta {
+      color: #7f8c8d;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+    .habit-meta span {
+      margin-right: 20px;
+    }
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 25px;
+    }
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .stat-card {
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #e67e22;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-top: 5px;
+    }
+    .goal-section {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .goal-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    .goal-title {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .goal-value {
+      color: #e67e22;
+      font-weight: bold;
+    }
+    .goal-bar {
+      height: 12px;
+      background: #ecf0f1;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .goal-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f39c12, #e67e22);
+      border-radius: 6px;
+    }
+    .goal-note {
+      font-size: 13px;
+      color: #7f8c8d;
+    }
+    .calendar-section {
+      padding: 20px;
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .calendar-title {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .calendar-nav {
+      display: flex;
+      gap: 10px;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      text-align: center;
+    }
+    .calendar-day-name {
+      font-size: 11px;
+      color: #7f8c8d;
+      padding: 5px;
+    }
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      border-radius: 50%;
+    }
+    .calendar-day.completed {
+      background: #27ae60;
+      color: white;
+    }
+    .calendar-day.missed {
+      background: #e74c3c;
+      color: white;
+    }
+    .calendar-day.today {
+      border: 2px solid #3498db;
+    }
+    .calendar-day.future {
+      color: #bdc3c7;
+    }
+    .sidebar-card {
+      padding: 20px;
+      margin-bottom: 15px;
+    }
+    .sidebar-card h3 {
+      margin-top: 0;
+      color: #2c3e50;
+      font-size: 16px;
+      border-bottom: 2px solid #ecf0f1;
+      padding-bottom: 10px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #ecf0f1;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    .detail-label {
+      color: #7f8c8d;
+    }
+    .detail-value {
+      color: #2c3e50;
+      font-weight: 500;
+    }
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .danger-btn {
+      color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-link">&larr; Back to My Habits</div>
+
+  <h1>
+    <span class="habit-icon">&#129495;</span>
+    Morning Meditation
+  </h1>
+  <div class="habit-meta">
+    <span>&#128197; Daily at 06:30</span>
+    <span>&#127919; Goal: 60 days</span>
+    <span>&#128193; Mindfulness</span>
+  </div>
+
+  <div class="main-content">
+    <div class="main-column">
+      <div class="stats-row">
+        <wired-card class="stat-card" elevation="2">
+          <div class="stat-value">15</div>
+          <div class="stat-label">Current Streak</div>
+        </wired-card>
+        <wired-card class="stat-card" elevation="2">
+          <div class="stat-value">15</div>
+          <div class="stat-label">Best Streak</div>
+        </wired-card>
+        <wired-card class="stat-card" elevation="2">
+          <div class="stat-value">15</div>
+          <div class="stat-label">Total Completions</div>
+        </wired-card>
+      </div>
+
+      <wired-card class="goal-section" elevation="2">
+        <div class="goal-header">
+          <span class="goal-title">Goal Progress</span>
+          <span class="goal-value">15 / 60 days (25%)</span>
+        </div>
+        <div class="goal-bar">
+          <div class="goal-fill" style="width: 25%"></div>
+        </div>
+        <p class="goal-note">45 more days to reach your goal!</p>
+      </wired-card>
+
+      <wired-card class="calendar-section" elevation="2">
+        <div class="calendar-header">
+          <span class="calendar-title">February 2026</span>
+          <div class="calendar-nav">
+            <wired-button>&lt;</wired-button>
+            <wired-button>&gt;</wired-button>
+          </div>
+        </div>
+        <div class="calendar-grid">
+          <div class="calendar-day-name">Mon</div>
+          <div class="calendar-day-name">Tue</div>
+          <div class="calendar-day-name">Wed</div>
+          <div class="calendar-day-name">Thu</div>
+          <div class="calendar-day-name">Fri</div>
+          <div class="calendar-day-name">Sat</div>
+          <div class="calendar-day-name">Sun</div>
+
+          <div class="calendar-day future"></div>
+          <div class="calendar-day future"></div>
+          <div class="calendar-day future"></div>
+          <div class="calendar-day future"></div>
+          <div class="calendar-day future"></div>
+          <div class="calendar-day future"></div>
+          <div class="calendar-day completed">1</div>
+
+          <div class="calendar-day completed">2</div>
+          <div class="calendar-day completed">3</div>
+          <div class="calendar-day completed">4</div>
+          <div class="calendar-day completed">5</div>
+          <div class="calendar-day completed">6</div>
+          <div class="calendar-day completed">7</div>
+          <div class="calendar-day completed">8</div>
+
+          <div class="calendar-day completed">9</div>
+          <div class="calendar-day completed">10</div>
+          <div class="calendar-day completed">11</div>
+          <div class="calendar-day completed">12</div>
+          <div class="calendar-day completed today">13</div>
+          <div class="calendar-day future">14</div>
+          <div class="calendar-day future">15</div>
+
+          <div class="calendar-day future">16</div>
+          <div class="calendar-day future">17</div>
+          <div class="calendar-day future">18</div>
+          <div class="calendar-day future">19</div>
+          <div class="calendar-day future">20</div>
+          <div class="calendar-day future">21</div>
+          <div class="calendar-day future">22</div>
+
+          <div class="calendar-day future">23</div>
+          <div class="calendar-day future">24</div>
+          <div class="calendar-day future">25</div>
+          <div class="calendar-day future">26</div>
+          <div class="calendar-day future">27</div>
+          <div class="calendar-day future">28</div>
+          <div class="calendar-day future"></div>
+        </div>
+      </wired-card>
+    </div>
+
+    <div class="sidebar">
+      <wired-card class="sidebar-card" elevation="2">
+        <h3>Details</h3>
+        <div class="detail-row">
+          <span class="detail-label">Frequency</span>
+          <span class="detail-value">Daily</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Reminder</span>
+          <span class="detail-value">06:30 AM</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Category</span>
+          <span class="detail-value">Mindfulness</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Created</span>
+          <span class="detail-value">Jan 29, 2026</span>
+        </div>
+      </wired-card>
+
+      <wired-card class="sidebar-card" elevation="2">
+        <h3>Actions</h3>
+        <div class="action-buttons">
+          <wired-button elevation="1">Edit Habit</wired-button>
+          <wired-button elevation="1">Change Reminder</wired-button>
+          <wired-button elevation="1" class="danger-btn">Archive Habit</wired-button>
+        </div>
+      </wired-card>
+    </div>
+  </div>
+</body>
+</html>

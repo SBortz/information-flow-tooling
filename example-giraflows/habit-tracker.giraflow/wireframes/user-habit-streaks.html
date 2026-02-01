@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Streaks - Habit Tracker</title>
+  <script type="module" src="/lib/wired-elements.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+    }
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .nav-tab {
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .nav-tab.active {
+      background: #3498db;
+      color: white;
+    }
+    .streak-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .summary-card {
+      padding: 20px;
+      text-align: center;
+    }
+    .summary-value {
+      font-size: 36px;
+      font-weight: bold;
+      color: #e67e22;
+    }
+    .summary-value.fire::before {
+      content: '&#128293; ';
+    }
+    .summary-label {
+      font-size: 13px;
+      color: #7f8c8d;
+      margin-top: 5px;
+    }
+    .streak-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .streak-card {
+      padding: 20px;
+    }
+    .streak-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .habit-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #e67e22;
+    }
+    .streak-details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .detail-item {
+      text-align: center;
+    }
+    .detail-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    .detail-label {
+      font-size: 11px;
+      color: #7f8c8d;
+    }
+    .goal-progress {
+      margin-top: 15px;
+    }
+    .goal-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #7f8c8d;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 10px;
+      background: #ecf0f1;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 5px;
+    }
+    .progress-fill.green { background: #27ae60; }
+    .progress-fill.orange { background: #e67e22; }
+    .progress-fill.blue { background: #3498db; }
+    .calendar-hint {
+      text-align: center;
+      margin-top: 20px;
+      padding: 15px;
+    }
+    .calendar-hint p {
+      color: #7f8c8d;
+      font-size: 13px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Habit Tracker</h1>
+  <p class="subtitle">Build better habits, one day at a time</p>
+
+  <div class="nav-tabs">
+    <wired-button class="nav-tab">My Habits</wired-button>
+    <wired-button class="nav-tab">Today</wired-button>
+    <wired-button class="nav-tab active">Streaks</wired-button>
+    <wired-button class="nav-tab">Statistics</wired-button>
+  </div>
+
+  <div class="streak-summary">
+    <wired-card class="summary-card" elevation="2">
+      <div class="summary-value">15</div>
+      <div class="summary-label">Longest Current Streak</div>
+    </wired-card>
+    <wired-card class="summary-card" elevation="2">
+      <div class="summary-value">15</div>
+      <div class="summary-label">Best Ever Streak</div>
+    </wired-card>
+    <wired-card class="summary-card" elevation="2">
+      <div class="summary-value">2</div>
+      <div class="summary-label">Active Streaks</div>
+    </wired-card>
+  </div>
+
+  <div class="streak-list">
+    <wired-card class="streak-card" elevation="2">
+      <div class="streak-header">
+        <div class="habit-name">&#129495; Morning Meditation</div>
+        <div class="streak-badge">&#128293; 15</div>
+      </div>
+      <div class="streak-details">
+        <div class="detail-item">
+          <div class="detail-value">15</div>
+          <div class="detail-label">Current Streak</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-value">15</div>
+          <div class="detail-label">Best Streak</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-value">60</div>
+          <div class="detail-label">Goal Days</div>
+        </div>
+      </div>
+      <div class="goal-progress">
+        <div class="goal-label">
+          <span>Goal Progress</span>
+          <span>15/60 days (25%)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill orange" style="width: 25%"></div>
+        </div>
+      </div>
+    </wired-card>
+
+    <wired-card class="streak-card" elevation="2">
+      <div class="streak-header">
+        <div class="habit-name">&#128218; Read 30 Minutes</div>
+        <div class="streak-badge">&#128293; 8</div>
+      </div>
+      <div class="streak-details">
+        <div class="detail-item">
+          <div class="detail-value">8</div>
+          <div class="detail-label">Current Streak</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-value">8</div>
+          <div class="detail-label">Best Streak</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-value">60</div>
+          <div class="detail-label">Goal Days</div>
+        </div>
+      </div>
+      <div class="goal-progress">
+        <div class="goal-label">
+          <span>Goal Progress</span>
+          <span>8/60 days (13%)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill blue" style="width: 13%"></div>
+        </div>
+      </div>
+    </wired-card>
+
+    <wired-card class="streak-card" elevation="2">
+      <div class="streak-header">
+        <div class="habit-name">&#128203; Weekly Review</div>
+        <div class="streak-badge">&#128293; 4</div>
+      </div>
+      <div class="streak-details">
+        <div class="detail-item">
+          <div class="detail-value">4</div>
+          <div class="detail-label">Current Streak</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-value">4</div>
+          <div class="detail-label">Best Streak</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-value">12</div>
+          <div class="detail-label">Goal Days</div>
+        </div>
+      </div>
+      <div class="goal-progress">
+        <div class="goal-label">
+          <span>Goal Progress</span>
+          <span>4/12 weeks (33%)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill green" style="width: 33%"></div>
+        </div>
+      </div>
+    </wired-card>
+  </div>
+
+  <wired-card class="calendar-hint" elevation="1">
+    <p>Click on a habit to view its completion calendar</p>
+  </wired-card>
+</body>
+</html>

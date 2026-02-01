@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archived Habits - Habit Tracker</title>
+  <script type="module" src="/lib/wired-elements.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 15px;
+      color: #3498db;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #7f8c8d;
+      margin-bottom: 30px;
+    }
+    .info-banner {
+      padding: 15px 20px;
+      margin-bottom: 25px;
+      background: #e8f4f8;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .info-icon {
+      font-size: 24px;
+    }
+    .info-text {
+      font-size: 14px;
+      color: #2980b9;
+    }
+    .archived-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .archived-card {
+      padding: 20px;
+      opacity: 0.85;
+    }
+    .archived-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+    .habit-info {
+      flex: 1;
+    }
+    .habit-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    .habit-meta {
+      font-size: 13px;
+      color: #7f8c8d;
+    }
+    .habit-meta span {
+      margin-right: 15px;
+    }
+    .archived-badge {
+      background: #7f8c8d;
+      color: white;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .archived-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #7f8c8d;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #95a5a6;
+    }
+    .archived-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .restore-btn {
+      color: #27ae60;
+    }
+    .delete-btn {
+      color: #e74c3c;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .empty-icon {
+      font-size: 60px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+    .empty-title {
+      font-size: 20px;
+      color: #7f8c8d;
+      margin-bottom: 10px;
+    }
+    .empty-description {
+      color: #95a5a6;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-link">&larr; Back to My Habits</div>
+
+  <h1>Archived Habits</h1>
+  <p class="subtitle">Habits you've paused or completed</p>
+
+  <wired-card class="info-banner" elevation="1">
+    <span class="info-icon">&#128712;</span>
+    <span class="info-text">Archived habits don't appear in your daily progress and won't send reminders. You can restore them at any time or permanently delete them.</span>
+  </wired-card>
+
+  <div class="archived-list">
+    <wired-card class="archived-card" elevation="2">
+      <div class="archived-header">
+        <div class="habit-info">
+          <div class="habit-name">&#128218; Read 30 Minutes</div>
+          <div class="habit-meta">
+            <span>Daily</span>
+            <span>Category: Learning</span>
+            <span>Archived: Feb 15, 2026</span>
+          </div>
+        </div>
+        <span class="archived-badge">Archived</span>
+      </div>
+      <div class="archived-stats">
+        <div class="stat-item">
+          <div class="stat-value">15</div>
+          <div class="stat-label">Total Completions</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10</div>
+          <div class="stat-label">Best Streak</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">18</div>
+          <div class="stat-label">Days Active</div>
+        </div>
+      </div>
+      <div class="archived-actions">
+        <wired-button class="restore-btn" elevation="1">Restore Habit</wired-button>
+        <wired-button class="delete-btn" elevation="1">Delete Permanently</wired-button>
+      </div>
+    </wired-card>
+  </div>
+
+  <!-- Empty state (shown when no archived habits)
+  <wired-card elevation="2">
+    <div class="empty-state">
+      <div class="empty-icon">&#128230;</div>
+      <div class="empty-title">No archived habits</div>
+      <p class="empty-description">When you archive habits, they'll appear here.</p>
+    </div>
+  </wired-card>
+  -->
+</body>
+</html>

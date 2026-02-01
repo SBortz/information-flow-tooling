@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Habits - Habit Tracker</title>
+  <script type="module" src="/lib/wired-elements.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+    }
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .nav-tab {
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .nav-tab.active {
+      background: #3498db;
+      color: white;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .habit-count {
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+    .habit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .habit-card {
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .habit-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .habit-icon.wellness { background: #e8f5e9; }
+    .habit-icon.learning { background: #e3f2fd; }
+    .habit-icon.productivity { background: #fff3e0; }
+    .habit-info {
+      flex: 1;
+    }
+    .habit-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 4px;
+    }
+    .habit-meta {
+      font-size: 13px;
+      color: #7f8c8d;
+    }
+    .habit-meta span {
+      margin-right: 15px;
+    }
+    .habit-streak {
+      text-align: center;
+    }
+    .streak-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #e67e22;
+    }
+    .streak-label {
+      font-size: 11px;
+      color: #7f8c8d;
+    }
+    .habit-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .category-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      margin-top: 5px;
+    }
+    .category-tag.wellness { background: #c8e6c9; color: #2e7d32; }
+    .category-tag.learning { background: #bbdefb; color: #1565c0; }
+    .category-tag.productivity { background: #ffe0b2; color: #e65100; }
+    .footer-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .footer-link a {
+      color: #7f8c8d;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Habit Tracker</h1>
+  <p class="subtitle">Build better habits, one day at a time</p>
+
+  <div class="nav-tabs">
+    <wired-button class="nav-tab active">My Habits</wired-button>
+    <wired-button class="nav-tab">Today</wired-button>
+    <wired-button class="nav-tab">Streaks</wired-button>
+    <wired-button class="nav-tab">Statistics</wired-button>
+  </div>
+
+  <div class="header-row">
+    <span class="habit-count">2 active habits</span>
+    <wired-button elevation="2">+ Add Habit</wired-button>
+  </div>
+
+  <div class="habit-list">
+    <wired-card class="habit-card" elevation="2">
+      <div class="habit-icon wellness">&#129495;</div>
+      <div class="habit-info">
+        <div class="habit-name">Morning Meditation</div>
+        <div class="habit-meta">
+          <span>Daily at 07:00</span>
+          <span>Goal: 30 days</span>
+        </div>
+        <span class="category-tag wellness">Mindfulness</span>
+      </div>
+      <div class="habit-streak">
+        <div class="streak-value">15</div>
+        <div class="streak-label">day streak</div>
+      </div>
+      <div class="habit-actions">
+        <wired-button>Edit</wired-button>
+        <wired-button>Archive</wired-button>
+      </div>
+    </wired-card>
+
+    <wired-card class="habit-card" elevation="2">
+      <div class="habit-icon learning">&#128218;</div>
+      <div class="habit-info">
+        <div class="habit-name">Read 30 Minutes</div>
+        <div class="habit-meta">
+          <span>Daily at 21:00</span>
+          <span>Goal: 60 days</span>
+        </div>
+        <span class="category-tag learning">Learning</span>
+      </div>
+      <div class="habit-streak">
+        <div class="streak-value">8</div>
+        <div class="streak-label">day streak</div>
+      </div>
+      <div class="habit-actions">
+        <wired-button>Edit</wired-button>
+        <wired-button>Archive</wired-button>
+      </div>
+    </wired-card>
+  </div>
+
+  <div class="footer-link">
+    <a>View archived habits (1) &rarr;</a>
+  </div>
+</body>
+</html>

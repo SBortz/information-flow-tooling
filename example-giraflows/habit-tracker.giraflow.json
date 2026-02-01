@@ -1,0 +1,2691 @@
+{
+  "$schema": "../giraflow.schema.json",
+  "name": "Habit Tracker",
+  "description": "A habit tracking application where users can define daily/weekly habits, track completions, and monitor streaks. The system automatically calculates streaks at the end of each day and sends reminders for incomplete habits.",
+  "version": "1.0.0",
+
+  "timeline": [
+    {
+      "type": "state",
+      "name": "HabitList",
+      "tick": 10,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [],
+        "totalCount": 0
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 20,
+      "readsView": "HabitList",
+      "sendsCommand": "CreateHabit",
+      "role": "User",
+      "wireframes": ["wireframes/user-habit-list-empty.html"]
+    },
+    {
+      "type": "command",
+      "name": "CreateHabit",
+      "tick": 30,
+      "example": {
+        "name": "Morning Meditation",
+        "frequency": "daily",
+        "category": "Wellness",
+        "reminderTime": "07:00",
+        "goalDays": 30
+      },
+      "attachments": [
+        {
+          "type": "note",
+          "label": "Validation Rules",
+          "content": "- Name must be unique per user\n- Name max 50 characters\n- Frequency: 'daily' or 'weekly' only\n- GoalDays must be positive integer"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "HabitCreated",
+      "tick": 40,
+      "producedBy": "CreateHabit-30",
+      "example": {
+        "habitId": "habit-001",
+        "name": "Morning Meditation",
+        "frequency": "daily",
+        "category": "Wellness",
+        "reminderTime": "07:00",
+        "goalDays": 30,
+        "createdAt": "2026-01-29T06:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitList",
+      "tick": 50,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "frequency": "daily",
+            "category": "Wellness",
+            "reminderTime": "07:00",
+            "goalDays": 30,
+            "createdAt": "2026-01-29T06:00:00Z"
+          }
+        ],
+        "totalCount": 1
+      }
+    },
+    {
+      "type": "state",
+      "name": "DailyProgress",
+      "tick": 60,
+      "sourcedFrom": ["HabitCreated", "HabitCompleted", "HabitUncompleted", "HabitArchived"],
+      "example": {
+        "date": "2026-01-29",
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "category": "Wellness",
+            "completed": false,
+            "completedAt": null
+          }
+        ],
+        "completedCount": 0,
+        "totalCount": 1,
+        "progressPercent": 0
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 70,
+      "readsView": "DailyProgress",
+      "sendsCommand": "CompleteHabit",
+      "role": "User",
+      "wireframes": ["wireframes/user-daily-progress.html"]
+    },
+    {
+      "type": "command",
+      "name": "CompleteHabit",
+      "tick": 80,
+      "example": {
+        "habitId": "habit-001",
+        "completedAt": "2026-01-29T07:30:00Z"
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitCompleted",
+      "tick": 90,
+      "producedBy": "CompleteHabit-80",
+      "example": {
+        "habitId": "habit-001",
+        "completedAt": "2026-01-29T07:30:00Z",
+        "date": "2026-01-29"
+      }
+    },
+    {
+      "type": "state",
+      "name": "DailyProgress",
+      "tick": 100,
+      "sourcedFrom": ["HabitCreated", "HabitCompleted", "HabitUncompleted", "HabitArchived"],
+      "example": {
+        "date": "2026-01-29",
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "category": "Wellness",
+            "completed": true,
+            "completedAt": "2026-01-29T07:30:00Z"
+          }
+        ],
+        "completedCount": 1,
+        "totalCount": 1,
+        "progressPercent": 100
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitStreaks",
+      "tick": 110,
+      "sourcedFrom": ["HabitCreated", "StreakUpdated", "StreakBroken"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "currentStreak": 1,
+            "bestStreak": 1,
+            "goalDays": 30,
+            "goalProgress": 3
+          }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 120,
+      "readsView": "HabitList",
+      "sendsCommand": "CreateHabit",
+      "role": "User",
+      "wireframes": ["wireframes/user-habit-list.html"]
+    },
+    {
+      "type": "command",
+      "name": "CreateHabit",
+      "tick": 130,
+      "example": {
+        "name": "Read 30 Minutes",
+        "frequency": "daily",
+        "category": "Learning",
+        "reminderTime": "21:00",
+        "goalDays": 60
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitCreated",
+      "tick": 140,
+      "producedBy": "CreateHabit-130",
+      "example": {
+        "habitId": "habit-002",
+        "name": "Read 30 Minutes",
+        "frequency": "daily",
+        "category": "Learning",
+        "reminderTime": "21:00",
+        "goalDays": 60,
+        "createdAt": "2026-01-29T08:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitList",
+      "tick": 150,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "frequency": "daily",
+            "category": "Wellness",
+            "reminderTime": "07:00",
+            "goalDays": 30,
+            "createdAt": "2026-01-29T06:00:00Z"
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "frequency": "daily",
+            "category": "Learning",
+            "reminderTime": "21:00",
+            "goalDays": 60,
+            "createdAt": "2026-01-29T08:00:00Z"
+          }
+        ],
+        "totalCount": 2
+      }
+    },
+    {
+      "type": "state",
+      "name": "DailyProgress",
+      "tick": 160,
+      "sourcedFrom": ["HabitCreated", "HabitCompleted", "HabitUncompleted", "HabitArchived"],
+      "example": {
+        "date": "2026-01-29",
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "category": "Wellness",
+            "completed": true,
+            "completedAt": "2026-01-29T07:30:00Z"
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "category": "Learning",
+            "completed": false,
+            "completedAt": null
+          }
+        ],
+        "completedCount": 1,
+        "totalCount": 2,
+        "progressPercent": 50
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 170,
+      "readsView": "DailyProgress",
+      "sendsCommand": "CompleteHabit",
+      "role": "User"
+    },
+    {
+      "type": "command",
+      "name": "CompleteHabit",
+      "tick": 180,
+      "example": {
+        "habitId": "habit-002",
+        "completedAt": "2026-01-29T21:15:00Z"
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitCompleted",
+      "tick": 190,
+      "producedBy": "CompleteHabit-180",
+      "example": {
+        "habitId": "habit-002",
+        "completedAt": "2026-01-29T21:15:00Z",
+        "date": "2026-01-29"
+      }
+    },
+    {
+      "type": "state",
+      "name": "DailyProgress",
+      "tick": 200,
+      "sourcedFrom": ["HabitCreated", "HabitCompleted", "HabitUncompleted", "HabitArchived"],
+      "example": {
+        "date": "2026-01-29",
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "category": "Wellness",
+            "completed": true,
+            "completedAt": "2026-01-29T07:30:00Z"
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "category": "Learning",
+            "completed": true,
+            "completedAt": "2026-01-29T21:15:00Z"
+          }
+        ],
+        "completedCount": 2,
+        "totalCount": 2,
+        "progressPercent": 100
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 210,
+      "readsView": "DailyProgress",
+      "sendsCommand": null,
+      "role": "User",
+      "wireframes": ["wireframes/user-daily-progress-completed.html"]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 220,
+      "readsView": "DailyProgress",
+      "sendsCommand": "UncompleteHabit",
+      "role": "User"
+    },
+    {
+      "type": "command",
+      "name": "UncompleteHabit",
+      "tick": 230,
+      "example": {
+        "habitId": "habit-002"
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitUncompleted",
+      "tick": 240,
+      "producedBy": "UncompleteHabit-230",
+      "example": {
+        "habitId": "habit-002",
+        "date": "2026-01-29",
+        "uncompletedAt": "2026-01-29T21:20:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "DailyProgress",
+      "tick": 250,
+      "sourcedFrom": ["HabitCreated", "HabitCompleted", "HabitUncompleted", "HabitArchived"],
+      "example": {
+        "date": "2026-01-29",
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "category": "Wellness",
+            "completed": true,
+            "completedAt": "2026-01-29T07:30:00Z"
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "category": "Learning",
+            "completed": false,
+            "completedAt": null
+          }
+        ],
+        "completedCount": 1,
+        "totalCount": 2,
+        "progressPercent": 50
+      }
+    },
+    {
+      "type": "state",
+      "name": "PendingReminders",
+      "tick": 260,
+      "sourcedFrom": ["HabitCreated", "HabitCompleted", "ReminderSent"],
+      "example": {
+        "reminders": [
+          {
+            "habitId": "habit-002",
+            "habitName": "Read 30 Minutes",
+            "userId": "user-001",
+            "reminderTime": "21:00",
+            "scheduledFor": "2026-01-29T21:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "ReminderScheduler",
+      "tick": 270,
+      "readsView": "PendingReminders",
+      "sendsCommand": "SendReminder",
+      "role": "System"
+    },
+    {
+      "type": "command",
+      "name": "SendReminder",
+      "tick": 280,
+      "example": {
+        "habitId": "habit-002",
+        "userId": "user-001"
+      }
+    },
+    {
+      "type": "event",
+      "name": "ReminderSent",
+      "tick": 290,
+      "producedBy": "SendReminder-280",
+      "example": {
+        "habitId": "habit-002",
+        "userId": "user-001",
+        "sentAt": "2026-01-29T21:00:00Z"
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 300,
+      "readsView": "DailyProgress",
+      "sendsCommand": "CompleteHabit",
+      "role": "User"
+    },
+    {
+      "type": "command",
+      "name": "CompleteHabit",
+      "tick": 310,
+      "example": {
+        "habitId": "habit-002",
+        "completedAt": "2026-01-29T21:45:00Z"
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitCompleted",
+      "tick": 320,
+      "producedBy": "CompleteHabit-310",
+      "example": {
+        "habitId": "habit-002",
+        "completedAt": "2026-01-29T21:45:00Z",
+        "date": "2026-01-29"
+      }
+    },
+    {
+      "type": "state",
+      "name": "PendingStreakCalculations",
+      "tick": 330,
+      "sourcedFrom": ["HabitCompleted", "StreakUpdated"],
+      "example": {
+        "calculations": [
+          {
+            "date": "2026-01-29",
+            "userId": "user-001"
+          }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "StreakCalculator",
+      "tick": 340,
+      "readsView": "PendingStreakCalculations",
+      "sendsCommand": "CalculateStreaks",
+      "role": "System"
+    },
+    {
+      "type": "command",
+      "name": "CalculateStreaks",
+      "tick": 350,
+      "example": {
+        "date": "2026-01-29",
+        "userId": "user-001"
+      }
+    },
+    {
+      "type": "event",
+      "name": "StreakUpdated",
+      "tick": 360,
+      "producedBy": "CalculateStreaks-350",
+      "example": {
+        "habitId": "habit-001",
+        "date": "2026-01-29",
+        "currentStreak": 1,
+        "bestStreak": 1,
+        "calculatedAt": "2026-01-30T00:00:00Z"
+      }
+    },
+    {
+      "type": "event",
+      "name": "StreakUpdated",
+      "tick": 365,
+      "producedBy": "CalculateStreaks-350",
+      "example": {
+        "habitId": "habit-002",
+        "date": "2026-01-29",
+        "currentStreak": 1,
+        "bestStreak": 1,
+        "calculatedAt": "2026-01-30T00:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitStreaks",
+      "tick": 370,
+      "sourcedFrom": ["HabitCreated", "StreakUpdated", "StreakBroken"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "currentStreak": 1,
+            "bestStreak": 1,
+            "goalDays": 30,
+            "goalProgress": 3
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "currentStreak": 1,
+            "bestStreak": 1,
+            "goalDays": 60,
+            "goalProgress": 2
+          }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 380,
+      "readsView": "HabitStreaks",
+      "sendsCommand": null,
+      "role": "User",
+      "wireframes": ["wireframes/user-habit-streaks.html"]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 390,
+      "readsView": "HabitList",
+      "sendsCommand": "UpdateHabit",
+      "role": "User"
+    },
+    {
+      "type": "command",
+      "name": "UpdateHabit",
+      "tick": 400,
+      "example": {
+        "habitId": "habit-001",
+        "name": "Morning Meditation",
+        "category": "Mindfulness",
+        "reminderTime": "06:30",
+        "goalDays": 60
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitUpdated",
+      "tick": 410,
+      "producedBy": "UpdateHabit-400",
+      "example": {
+        "habitId": "habit-001",
+        "name": "Morning Meditation",
+        "category": "Mindfulness",
+        "reminderTime": "06:30",
+        "goalDays": 60,
+        "updatedAt": "2026-01-30T08:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitList",
+      "tick": 420,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "frequency": "daily",
+            "category": "Mindfulness",
+            "reminderTime": "06:30",
+            "goalDays": 60,
+            "createdAt": "2026-01-29T06:00:00Z"
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "frequency": "daily",
+            "category": "Learning",
+            "reminderTime": "21:00",
+            "goalDays": 60,
+            "createdAt": "2026-01-29T08:00:00Z"
+          }
+        ],
+        "totalCount": 2
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitDetail",
+      "tick": 430,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitCompleted", "StreakUpdated", "GoalAchieved"],
+      "example": {
+        "habitId": "habit-001",
+        "name": "Morning Meditation",
+        "frequency": "daily",
+        "category": "Mindfulness",
+        "reminderTime": "06:30",
+        "goalDays": 60,
+        "currentStreak": 15,
+        "bestStreak": 15,
+        "totalCompletions": 15,
+        "completionHistory": [
+          { "date": "2026-02-13", "completed": true },
+          { "date": "2026-02-12", "completed": true },
+          { "date": "2026-02-11", "completed": true },
+          { "date": "2026-02-10", "completed": true },
+          { "date": "2026-02-09", "completed": true }
+        ],
+        "createdAt": "2026-01-29T06:00:00Z"
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 440,
+      "readsView": "HabitDetail",
+      "sendsCommand": null,
+      "role": "User",
+      "wireframes": ["wireframes/user-habit-detail.html"]
+    },
+    {
+      "type": "state",
+      "name": "HabitStatistics",
+      "tick": 450,
+      "sourcedFrom": ["HabitCreated", "HabitCompleted", "StreakUpdated"],
+      "example": {
+        "totalHabits": 2,
+        "activeStreaks": 2,
+        "longestCurrentStreak": 15,
+        "longestEverStreak": 15,
+        "completionRateThisWeek": 85,
+        "completionRateThisMonth": 78,
+        "totalCompletionsThisMonth": 42,
+        "categoryBreakdown": [
+          { "category": "Mindfulness", "count": 1, "avgCompletionRate": 90 },
+          { "category": "Learning", "count": 1, "avgCompletionRate": 75 }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 460,
+      "readsView": "HabitStatistics",
+      "sendsCommand": null,
+      "role": "User",
+      "wireframes": ["wireframes/user-habit-statistics.html"]
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 470,
+      "readsView": "HabitList",
+      "sendsCommand": "CreateHabit",
+      "role": "User"
+    },
+    {
+      "type": "command",
+      "name": "CreateHabit",
+      "tick": 480,
+      "example": {
+        "name": "Weekly Review",
+        "frequency": "weekly",
+        "category": "Productivity",
+        "reminderTime": "10:00",
+        "goalDays": 12
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitCreated",
+      "tick": 490,
+      "producedBy": "CreateHabit-480",
+      "example": {
+        "habitId": "habit-003",
+        "name": "Weekly Review",
+        "frequency": "weekly",
+        "category": "Productivity",
+        "reminderTime": "10:00",
+        "goalDays": 12,
+        "createdAt": "2026-02-01T09:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitList",
+      "tick": 500,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "frequency": "daily",
+            "category": "Mindfulness",
+            "reminderTime": "06:30",
+            "goalDays": 60,
+            "createdAt": "2026-01-29T06:00:00Z"
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "frequency": "daily",
+            "category": "Learning",
+            "reminderTime": "21:00",
+            "goalDays": 60,
+            "createdAt": "2026-01-29T08:00:00Z"
+          },
+          {
+            "habitId": "habit-003",
+            "name": "Weekly Review",
+            "frequency": "weekly",
+            "category": "Productivity",
+            "reminderTime": "10:00",
+            "goalDays": 12,
+            "createdAt": "2026-02-01T09:00:00Z"
+          }
+        ],
+        "totalCount": 3
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 510,
+      "readsView": "HabitList",
+      "sendsCommand": "ArchiveHabit",
+      "role": "User"
+    },
+    {
+      "type": "command",
+      "name": "ArchiveHabit",
+      "tick": 520,
+      "example": {
+        "habitId": "habit-002"
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitArchived",
+      "tick": 530,
+      "producedBy": "ArchiveHabit-520",
+      "example": {
+        "habitId": "habit-002",
+        "archivedAt": "2026-02-15T10:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitList",
+      "tick": 540,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "frequency": "daily",
+            "category": "Mindfulness",
+            "reminderTime": "06:30",
+            "goalDays": 60,
+            "createdAt": "2026-01-29T06:00:00Z"
+          },
+          {
+            "habitId": "habit-003",
+            "name": "Weekly Review",
+            "frequency": "weekly",
+            "category": "Productivity",
+            "reminderTime": "10:00",
+            "goalDays": 12,
+            "createdAt": "2026-02-01T09:00:00Z"
+          }
+        ],
+        "totalCount": 2
+      }
+    },
+    {
+      "type": "state",
+      "name": "ArchivedHabits",
+      "tick": 550,
+      "sourcedFrom": ["HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "frequency": "daily",
+            "category": "Learning",
+            "archivedAt": "2026-02-15T10:00:00Z",
+            "totalCompletions": 15,
+            "bestStreak": 10
+          }
+        ],
+        "totalCount": 1
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 560,
+      "readsView": "ArchivedHabits",
+      "sendsCommand": "RestoreHabit",
+      "role": "User",
+      "wireframes": ["wireframes/user-archived-habits.html"]
+    },
+    {
+      "type": "command",
+      "name": "RestoreHabit",
+      "tick": 570,
+      "example": {
+        "habitId": "habit-002"
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitRestored",
+      "tick": 580,
+      "producedBy": "RestoreHabit-570",
+      "example": {
+        "habitId": "habit-002",
+        "restoredAt": "2026-02-16T08:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitList",
+      "tick": 590,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "frequency": "daily",
+            "category": "Mindfulness",
+            "reminderTime": "06:30",
+            "goalDays": 60,
+            "createdAt": "2026-01-29T06:00:00Z"
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "frequency": "daily",
+            "category": "Learning",
+            "reminderTime": "21:00",
+            "goalDays": 60,
+            "createdAt": "2026-01-29T08:00:00Z"
+          },
+          {
+            "habitId": "habit-003",
+            "name": "Weekly Review",
+            "frequency": "weekly",
+            "category": "Productivity",
+            "reminderTime": "10:00",
+            "goalDays": 12,
+            "createdAt": "2026-02-01T09:00:00Z"
+          }
+        ],
+        "totalCount": 3
+      }
+    },
+    {
+      "type": "state",
+      "name": "ArchivedHabits",
+      "tick": 600,
+      "sourcedFrom": ["HabitArchived", "HabitRestored", "HabitDeleted"],
+      "example": {
+        "habits": [],
+        "totalCount": 0
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 610,
+      "readsView": "ArchivedHabits",
+      "sendsCommand": "DeleteHabit",
+      "role": "User"
+    },
+    {
+      "type": "command",
+      "name": "DeleteHabit",
+      "tick": 620,
+      "example": {
+        "habitId": "habit-004"
+      }
+    },
+    {
+      "type": "event",
+      "name": "HabitDeleted",
+      "tick": 630,
+      "producedBy": "DeleteHabit-620",
+      "example": {
+        "habitId": "habit-004",
+        "deletedAt": "2026-02-16T09:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "PendingStreakCalculations",
+      "tick": 640,
+      "sourcedFrom": ["HabitCompleted", "StreakUpdated"],
+      "example": {
+        "calculations": [
+          {
+            "date": "2026-02-28",
+            "userId": "user-001"
+          }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "StreakCalculator",
+      "tick": 650,
+      "readsView": "PendingStreakCalculations",
+      "sendsCommand": "CalculateStreaks",
+      "role": "System"
+    },
+    {
+      "type": "command",
+      "name": "CalculateStreaks",
+      "tick": 660,
+      "example": {
+        "date": "2026-02-28",
+        "userId": "user-001"
+      }
+    },
+    {
+      "type": "event",
+      "name": "StreakBroken",
+      "tick": 670,
+      "producedBy": "CalculateStreaks-660",
+      "example": {
+        "habitId": "habit-001",
+        "date": "2026-02-28",
+        "previousStreak": 30,
+        "brokenAt": "2026-03-01T00:00:00Z"
+      }
+    },
+    {
+      "type": "event",
+      "name": "StreakUpdated",
+      "tick": 675,
+      "producedBy": "CalculateStreaks-660",
+      "example": {
+        "habitId": "habit-002",
+        "date": "2026-02-28",
+        "currentStreak": 28,
+        "bestStreak": 28,
+        "calculatedAt": "2026-03-01T00:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitStreaks",
+      "tick": 680,
+      "sourcedFrom": ["HabitCreated", "StreakUpdated", "StreakBroken"],
+      "example": {
+        "habits": [
+          {
+            "habitId": "habit-001",
+            "name": "Morning Meditation",
+            "currentStreak": 0,
+            "bestStreak": 30,
+            "goalDays": 60,
+            "goalProgress": 50
+          },
+          {
+            "habitId": "habit-002",
+            "name": "Read 30 Minutes",
+            "currentStreak": 28,
+            "bestStreak": 28,
+            "goalDays": 60,
+            "goalProgress": 47
+          },
+          {
+            "habitId": "habit-003",
+            "name": "Weekly Review",
+            "currentStreak": 4,
+            "bestStreak": 4,
+            "goalDays": 12,
+            "goalProgress": 33
+          }
+        ]
+      }
+    },
+    {
+      "type": "state",
+      "name": "PendingStreakCalculations",
+      "tick": 690,
+      "sourcedFrom": ["HabitCompleted", "StreakUpdated"],
+      "example": {
+        "calculations": [
+          {
+            "date": "2026-03-29",
+            "userId": "user-001"
+          }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "StreakCalculator",
+      "tick": 700,
+      "readsView": "PendingStreakCalculations",
+      "sendsCommand": "CalculateStreaks",
+      "role": "System"
+    },
+    {
+      "type": "command",
+      "name": "CalculateStreaks",
+      "tick": 710,
+      "example": {
+        "date": "2026-03-29",
+        "userId": "user-001"
+      }
+    },
+    {
+      "type": "event",
+      "name": "GoalAchieved",
+      "tick": 720,
+      "producedBy": "CalculateStreaks-710",
+      "example": {
+        "habitId": "habit-002",
+        "goalDays": 60,
+        "achievedAt": "2026-03-30T00:00:00Z"
+      }
+    },
+    {
+      "type": "event",
+      "name": "StreakUpdated",
+      "tick": 725,
+      "producedBy": "CalculateStreaks-710",
+      "example": {
+        "habitId": "habit-002",
+        "date": "2026-03-29",
+        "currentStreak": 60,
+        "bestStreak": 60,
+        "calculatedAt": "2026-03-30T00:00:00Z"
+      }
+    },
+    {
+      "type": "state",
+      "name": "HabitDetail",
+      "tick": 730,
+      "sourcedFrom": ["HabitCreated", "HabitUpdated", "HabitCompleted", "StreakUpdated", "GoalAchieved"],
+      "example": {
+        "habitId": "habit-002",
+        "name": "Read 30 Minutes",
+        "frequency": "daily",
+        "category": "Learning",
+        "reminderTime": "21:00",
+        "goalDays": 60,
+        "currentStreak": 60,
+        "bestStreak": 60,
+        "totalCompletions": 60,
+        "goalAchieved": true,
+        "goalAchievedAt": "2026-03-30T00:00:00Z",
+        "completionHistory": [
+          { "date": "2026-03-29", "completed": true },
+          { "date": "2026-03-28", "completed": true },
+          { "date": "2026-03-27", "completed": true },
+          { "date": "2026-03-26", "completed": true },
+          { "date": "2026-03-25", "completed": true }
+        ],
+        "createdAt": "2026-01-29T08:00:00Z"
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 740,
+      "readsView": "HabitDetail",
+      "sendsCommand": null,
+      "role": "User"
+    },
+    {
+      "type": "state",
+      "name": "HabitStatistics",
+      "tick": 750,
+      "sourcedFrom": ["HabitCreated", "HabitCompleted", "StreakUpdated"],
+      "example": {
+        "totalHabits": 3,
+        "activeStreaks": 3,
+        "longestCurrentStreak": 60,
+        "longestEverStreak": 60,
+        "completionRateThisWeek": 92,
+        "completionRateThisMonth": 88,
+        "totalCompletionsThisMonth": 85,
+        "goalsAchieved": 1,
+        "categoryBreakdown": [
+          { "category": "Mindfulness", "count": 1, "avgCompletionRate": 85 },
+          { "category": "Learning", "count": 1, "avgCompletionRate": 100 },
+          { "category": "Productivity", "count": 1, "avgCompletionRate": 80 }
+        ]
+      }
+    },
+    {
+      "type": "actor",
+      "name": "User",
+      "tick": 760,
+      "readsView": "HabitStatistics",
+      "sendsCommand": null,
+      "role": "User"
+    }
+  ],
+
+  "specifications": [
+    {
+      "name": "CreateHabit",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully create a new daily habit",
+          "steps": [
+            {
+              "type": "command",
+              "when": {
+                "name": "Morning Meditation",
+                "frequency": "daily",
+                "category": "Wellness",
+                "reminderTime": "07:00",
+                "goalDays": 30
+              },
+              "produces": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-101",
+                    "name": "Morning Meditation",
+                    "frequency": "daily",
+                    "category": "Wellness",
+                    "reminderTime": "07:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Successfully create a weekly habit",
+          "steps": [
+            {
+              "type": "command",
+              "when": {
+                "name": "Weekly Review",
+                "frequency": "weekly",
+                "category": "Productivity",
+                "reminderTime": "10:00",
+                "goalDays": 12
+              },
+              "produces": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-102",
+                    "name": "Weekly Review",
+                    "frequency": "weekly",
+                    "category": "Productivity",
+                    "reminderTime": "10:00",
+                    "goalDays": 12,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Reject duplicate habit name",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-103",
+                    "name": "Morning Meditation",
+                    "frequency": "daily",
+                    "category": "Wellness",
+                    "reminderTime": "07:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "name": "Morning Meditation",
+                "frequency": "daily",
+                "category": "Health",
+                "reminderTime": "08:00",
+                "goalDays": 60
+              },
+              "fails": "Habit name must be unique"
+            }
+          ]
+        },
+        {
+          "name": "Reject name exceeding 50 characters",
+          "steps": [
+            {
+              "type": "command",
+              "when": {
+                "name": "This is a very long habit name that exceeds the maximum allowed character limit",
+                "frequency": "daily",
+                "category": "Test",
+                "reminderTime": "07:00",
+                "goalDays": 30
+              },
+              "fails": "Habit name must not exceed 50 characters"
+            }
+          ]
+        },
+        {
+          "name": "Reject invalid frequency",
+          "steps": [
+            {
+              "type": "command",
+              "when": {
+                "name": "Test Habit",
+                "frequency": "monthly",
+                "category": "Test",
+                "reminderTime": "07:00",
+                "goalDays": 30
+              },
+              "fails": "Frequency must be 'daily' or 'weekly'"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CompleteHabit",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully complete a habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-201",
+                    "name": "Morning Run",
+                    "frequency": "daily",
+                    "category": "Fitness",
+                    "reminderTime": "06:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-201",
+                "completedAt": "2026-01-29T06:30:00Z"
+              },
+              "produces": [
+                {
+                  "event": "HabitCompleted",
+                  "data": {
+                    "habitId": "habit-201",
+                    "completedAt": "2026-01-29T06:30:00Z",
+                    "date": "2026-01-29"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Reject completing habit twice on same day",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-202",
+                    "name": "Drink Water",
+                    "frequency": "daily",
+                    "category": "Health",
+                    "reminderTime": "08:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitCompleted",
+                  "data": {
+                    "habitId": "habit-202",
+                    "completedAt": "2026-01-29T08:00:00Z",
+                    "date": "2026-01-29"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-202",
+                "completedAt": "2026-01-29T12:00:00Z"
+              },
+              "fails": "Habit already completed today"
+            }
+          ]
+        },
+        {
+          "name": "Reject completing archived habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-203",
+                    "name": "Old Habit",
+                    "frequency": "daily",
+                    "category": "Test",
+                    "reminderTime": "08:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitArchived",
+                  "data": {
+                    "habitId": "habit-203",
+                    "archivedAt": "2026-02-01T10:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-203",
+                "completedAt": "2026-02-02T08:00:00Z"
+              },
+              "fails": "Cannot complete archived habit"
+            }
+          ]
+        },
+        {
+          "name": "Reject completing non-existent habit",
+          "steps": [
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-999",
+                "completedAt": "2026-01-29T08:00:00Z"
+              },
+              "fails": "Habit not found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "UncompleteHabit",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully uncomplete a habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-301",
+                    "name": "Journal",
+                    "frequency": "daily",
+                    "category": "Mindfulness",
+                    "reminderTime": "21:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitCompleted",
+                  "data": {
+                    "habitId": "habit-301",
+                    "completedAt": "2026-01-29T21:00:00Z",
+                    "date": "2026-01-29"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-301"
+              },
+              "produces": [
+                {
+                  "event": "HabitUncompleted",
+                  "data": {
+                    "habitId": "habit-301",
+                    "date": "2026-01-29",
+                    "uncompletedAt": "2026-01-29T21:30:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Reject uncompleting habit not completed today",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-302",
+                    "name": "Stretch",
+                    "frequency": "daily",
+                    "category": "Fitness",
+                    "reminderTime": "07:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-302"
+              },
+              "fails": "Habit not completed today"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "UpdateHabit",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully update habit details",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-401",
+                    "name": "Exercise",
+                    "frequency": "daily",
+                    "category": "Fitness",
+                    "reminderTime": "06:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-401",
+                "name": "Morning Exercise",
+                "category": "Health",
+                "reminderTime": "05:30",
+                "goalDays": 60
+              },
+              "produces": [
+                {
+                  "event": "HabitUpdated",
+                  "data": {
+                    "habitId": "habit-401",
+                    "name": "Morning Exercise",
+                    "category": "Health",
+                    "reminderTime": "05:30",
+                    "goalDays": 60,
+                    "updatedAt": "2026-01-30T08:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Reject updating to duplicate name",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-402",
+                    "name": "Meditation",
+                    "frequency": "daily",
+                    "category": "Wellness",
+                    "reminderTime": "07:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-403",
+                    "name": "Reading",
+                    "frequency": "daily",
+                    "category": "Learning",
+                    "reminderTime": "21:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-403",
+                "name": "Meditation",
+                "category": "Learning",
+                "reminderTime": "21:00",
+                "goalDays": 30
+              },
+              "fails": "Habit name must be unique"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ArchiveHabit",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully archive a habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-501",
+                    "name": "Learn Spanish",
+                    "frequency": "daily",
+                    "category": "Learning",
+                    "reminderTime": "19:00",
+                    "goalDays": 90,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-501"
+              },
+              "produces": [
+                {
+                  "event": "HabitArchived",
+                  "data": {
+                    "habitId": "habit-501",
+                    "archivedAt": "2026-02-15T10:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Reject archiving already archived habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-502",
+                    "name": "Old Habit",
+                    "frequency": "daily",
+                    "category": "Test",
+                    "reminderTime": "08:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitArchived",
+                  "data": {
+                    "habitId": "habit-502",
+                    "archivedAt": "2026-02-01T10:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-502"
+              },
+              "fails": "Habit is already archived"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RestoreHabit",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully restore an archived habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-601",
+                    "name": "Yoga",
+                    "frequency": "daily",
+                    "category": "Wellness",
+                    "reminderTime": "06:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitArchived",
+                  "data": {
+                    "habitId": "habit-601",
+                    "archivedAt": "2026-02-15T10:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-601"
+              },
+              "produces": [
+                {
+                  "event": "HabitRestored",
+                  "data": {
+                    "habitId": "habit-601",
+                    "restoredAt": "2026-02-16T08:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Reject restoring non-archived habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-602",
+                    "name": "Active Habit",
+                    "frequency": "daily",
+                    "category": "Test",
+                    "reminderTime": "08:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-602"
+              },
+              "fails": "Habit is not archived"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DeleteHabit",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Successfully delete an archived habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-701",
+                    "name": "Deleted Habit",
+                    "frequency": "daily",
+                    "category": "Test",
+                    "reminderTime": "08:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitArchived",
+                  "data": {
+                    "habitId": "habit-701",
+                    "archivedAt": "2026-02-01T10:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-701"
+              },
+              "produces": [
+                {
+                  "event": "HabitDeleted",
+                  "data": {
+                    "habitId": "habit-701",
+                    "deletedAt": "2026-02-16T09:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Reject deleting active habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-702",
+                    "name": "Active Habit",
+                    "frequency": "daily",
+                    "category": "Test",
+                    "reminderTime": "08:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-702"
+              },
+              "fails": "Cannot delete active habit - archive it first"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CalculateStreaks",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Update streak when habit completed",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-801",
+                    "name": "Exercise",
+                    "frequency": "daily",
+                    "category": "Fitness",
+                    "reminderTime": "06:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitCompleted",
+                  "data": {
+                    "habitId": "habit-801",
+                    "completedAt": "2026-01-29T06:30:00Z",
+                    "date": "2026-01-29"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "date": "2026-01-29",
+                "userId": "user-001"
+              },
+              "produces": [
+                {
+                  "event": "StreakUpdated",
+                  "data": {
+                    "habitId": "habit-801",
+                    "date": "2026-01-29",
+                    "currentStreak": 1,
+                    "bestStreak": 1,
+                    "calculatedAt": "2026-01-30T00:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Break streak when habit missed",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-802",
+                    "name": "Meditation",
+                    "frequency": "daily",
+                    "category": "Wellness",
+                    "reminderTime": "07:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-20T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "StreakUpdated",
+                  "data": {
+                    "habitId": "habit-802",
+                    "date": "2026-01-28",
+                    "currentStreak": 9,
+                    "bestStreak": 9,
+                    "calculatedAt": "2026-01-29T00:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "date": "2026-01-29",
+                "userId": "user-001"
+              },
+              "produces": [
+                {
+                  "event": "StreakBroken",
+                  "data": {
+                    "habitId": "habit-802",
+                    "date": "2026-01-29",
+                    "previousStreak": 9,
+                    "brokenAt": "2026-01-30T00:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Achieve goal when streak reaches goal days",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-803",
+                    "name": "Reading",
+                    "frequency": "daily",
+                    "category": "Learning",
+                    "reminderTime": "21:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-01T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "StreakUpdated",
+                  "data": {
+                    "habitId": "habit-803",
+                    "date": "2026-01-29",
+                    "currentStreak": 29,
+                    "bestStreak": 29,
+                    "calculatedAt": "2026-01-30T00:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitCompleted",
+                  "data": {
+                    "habitId": "habit-803",
+                    "completedAt": "2026-01-30T21:00:00Z",
+                    "date": "2026-01-30"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "date": "2026-01-30",
+                "userId": "user-001"
+              },
+              "produces": [
+                {
+                  "event": "GoalAchieved",
+                  "data": {
+                    "habitId": "habit-803",
+                    "goalDays": 30,
+                    "achievedAt": "2026-01-31T00:00:00Z"
+                  }
+                },
+                {
+                  "event": "StreakUpdated",
+                  "data": {
+                    "habitId": "habit-803",
+                    "date": "2026-01-30",
+                    "currentStreak": 30,
+                    "bestStreak": 30,
+                    "calculatedAt": "2026-01-31T00:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SendReminder",
+      "type": "command",
+      "scenarios": [
+        {
+          "name": "Send reminder for incomplete habit",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-901",
+                    "name": "Drink Water",
+                    "frequency": "daily",
+                    "category": "Health",
+                    "reminderTime": "12:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-901",
+                "userId": "user-001"
+              },
+              "produces": [
+                {
+                  "event": "ReminderSent",
+                  "data": {
+                    "habitId": "habit-901",
+                    "userId": "user-001",
+                    "sentAt": "2026-01-29T12:00:00Z"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Skip reminder if habit already completed",
+          "steps": [
+            {
+              "type": "events-only",
+              "events": [
+                {
+                  "event": "HabitCreated",
+                  "data": {
+                    "habitId": "habit-902",
+                    "name": "Exercise",
+                    "frequency": "daily",
+                    "category": "Fitness",
+                    "reminderTime": "07:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                },
+                {
+                  "event": "HabitCompleted",
+                  "data": {
+                    "habitId": "habit-902",
+                    "completedAt": "2026-01-29T06:30:00Z",
+                    "date": "2026-01-29"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "command",
+              "when": {
+                "habitId": "habit-902",
+                "userId": "user-001"
+              },
+              "fails": "Habit already completed - reminder not needed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HabitList",
+      "type": "state",
+      "scenarios": [
+        {
+          "name": "Empty habit list initially",
+          "initialState": {
+            "habits": [],
+            "totalCount": 0
+          },
+          "steps": []
+        },
+        {
+          "name": "New habit appears in list",
+          "initialState": {
+            "habits": [],
+            "totalCount": 0
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitCreated",
+                "data": {
+                  "habitId": "habit-1001",
+                  "name": "Morning Jog",
+                  "frequency": "daily",
+                  "category": "Fitness",
+                  "reminderTime": "06:00",
+                  "goalDays": 30,
+                  "createdAt": "2026-01-29T06:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [
+                  {
+                    "habitId": "habit-1001",
+                    "name": "Morning Jog",
+                    "frequency": "daily",
+                    "category": "Fitness",
+                    "reminderTime": "06:00",
+                    "goalDays": 30,
+                    "createdAt": "2026-01-29T06:00:00Z"
+                  }
+                ],
+                "totalCount": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habit removed when archived",
+          "initialState": {
+            "habits": [
+              {
+                "habitId": "habit-1002",
+                "name": "Reading",
+                "frequency": "daily",
+                "category": "Learning",
+                "reminderTime": "21:00",
+                "goalDays": 60,
+                "createdAt": "2026-01-29T06:00:00Z"
+              }
+            ],
+            "totalCount": 1
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitArchived",
+                "data": {
+                  "habitId": "habit-1002",
+                  "archivedAt": "2026-02-15T10:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [],
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habit restored returns to list",
+          "initialState": {
+            "habits": [],
+            "totalCount": 0
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitRestored",
+                "data": {
+                  "habitId": "habit-1003",
+                  "restoredAt": "2026-02-16T08:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [
+                  {
+                    "habitId": "habit-1003"
+                  }
+                ],
+                "totalCount": 1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DailyProgress",
+      "type": "state",
+      "scenarios": [
+        {
+          "name": "New habit appears as incomplete",
+          "initialState": {
+            "date": "2026-01-29",
+            "habits": [],
+            "completedCount": 0,
+            "totalCount": 0,
+            "progressPercent": 0
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitCreated",
+                "data": {
+                  "habitId": "habit-1101",
+                  "name": "Meditation",
+                  "frequency": "daily",
+                  "category": "Wellness",
+                  "reminderTime": "07:00",
+                  "goalDays": 30,
+                  "createdAt": "2026-01-29T06:00:00Z"
+                }
+              },
+              "then": {
+                "date": "2026-01-29",
+                "habits": [
+                  {
+                    "habitId": "habit-1101",
+                    "name": "Meditation",
+                    "category": "Wellness",
+                    "completed": false,
+                    "completedAt": null
+                  }
+                ],
+                "completedCount": 0,
+                "totalCount": 1,
+                "progressPercent": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habit marked as completed",
+          "initialState": {
+            "date": "2026-01-29",
+            "habits": [
+              {
+                "habitId": "habit-1102",
+                "name": "Exercise",
+                "category": "Fitness",
+                "completed": false,
+                "completedAt": null
+              }
+            ],
+            "completedCount": 0,
+            "totalCount": 1,
+            "progressPercent": 0
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitCompleted",
+                "data": {
+                  "habitId": "habit-1102",
+                  "completedAt": "2026-01-29T06:30:00Z",
+                  "date": "2026-01-29"
+                }
+              },
+              "then": {
+                "date": "2026-01-29",
+                "habits": [
+                  {
+                    "habitId": "habit-1102",
+                    "name": "Exercise",
+                    "category": "Fitness",
+                    "completed": true,
+                    "completedAt": "2026-01-29T06:30:00Z"
+                  }
+                ],
+                "completedCount": 1,
+                "totalCount": 1,
+                "progressPercent": 100
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habit uncompleted reverts status",
+          "initialState": {
+            "date": "2026-01-29",
+            "habits": [
+              {
+                "habitId": "habit-1103",
+                "name": "Reading",
+                "category": "Learning",
+                "completed": true,
+                "completedAt": "2026-01-29T21:00:00Z"
+              }
+            ],
+            "completedCount": 1,
+            "totalCount": 1,
+            "progressPercent": 100
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitUncompleted",
+                "data": {
+                  "habitId": "habit-1103",
+                  "date": "2026-01-29",
+                  "uncompletedAt": "2026-01-29T21:30:00Z"
+                }
+              },
+              "then": {
+                "date": "2026-01-29",
+                "habits": [
+                  {
+                    "habitId": "habit-1103",
+                    "name": "Reading",
+                    "category": "Learning",
+                    "completed": false,
+                    "completedAt": null
+                  }
+                ],
+                "completedCount": 0,
+                "totalCount": 1,
+                "progressPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HabitStreaks",
+      "type": "state",
+      "scenarios": [
+        {
+          "name": "New habit starts with zero streak",
+          "initialState": {
+            "habits": []
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitCreated",
+                "data": {
+                  "habitId": "habit-1201",
+                  "name": "Yoga",
+                  "frequency": "daily",
+                  "category": "Wellness",
+                  "reminderTime": "06:00",
+                  "goalDays": 30,
+                  "createdAt": "2026-01-29T06:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [
+                  {
+                    "habitId": "habit-1201",
+                    "name": "Yoga",
+                    "currentStreak": 0,
+                    "bestStreak": 0,
+                    "goalDays": 30,
+                    "goalProgress": 0
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Streak updated after completion",
+          "initialState": {
+            "habits": [
+              {
+                "habitId": "habit-1202",
+                "name": "Meditation",
+                "currentStreak": 5,
+                "bestStreak": 10,
+                "goalDays": 30,
+                "goalProgress": 17
+              }
+            ]
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "StreakUpdated",
+                "data": {
+                  "habitId": "habit-1202",
+                  "date": "2026-01-29",
+                  "currentStreak": 6,
+                  "bestStreak": 10,
+                  "calculatedAt": "2026-01-30T00:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [
+                  {
+                    "habitId": "habit-1202",
+                    "name": "Meditation",
+                    "currentStreak": 6,
+                    "bestStreak": 10,
+                    "goalDays": 30,
+                    "goalProgress": 20
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Streak broken resets current but keeps best",
+          "initialState": {
+            "habits": [
+              {
+                "habitId": "habit-1203",
+                "name": "Exercise",
+                "currentStreak": 15,
+                "bestStreak": 20,
+                "goalDays": 30,
+                "goalProgress": 50
+              }
+            ]
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "StreakBroken",
+                "data": {
+                  "habitId": "habit-1203",
+                  "date": "2026-01-29",
+                  "previousStreak": 15,
+                  "brokenAt": "2026-01-30T00:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [
+                  {
+                    "habitId": "habit-1203",
+                    "name": "Exercise",
+                    "currentStreak": 0,
+                    "bestStreak": 20,
+                    "goalDays": 30,
+                    "goalProgress": 0
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ArchivedHabits",
+      "type": "state",
+      "scenarios": [
+        {
+          "name": "Habit appears when archived",
+          "initialState": {
+            "habits": [],
+            "totalCount": 0
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitArchived",
+                "data": {
+                  "habitId": "habit-1301",
+                  "archivedAt": "2026-02-15T10:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [
+                  {
+                    "habitId": "habit-1301",
+                    "archivedAt": "2026-02-15T10:00:00Z"
+                  }
+                ],
+                "totalCount": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habit removed when restored",
+          "initialState": {
+            "habits": [
+              {
+                "habitId": "habit-1302",
+                "name": "Old Reading",
+                "archivedAt": "2026-02-15T10:00:00Z"
+              }
+            ],
+            "totalCount": 1
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitRestored",
+                "data": {
+                  "habitId": "habit-1302",
+                  "restoredAt": "2026-02-16T08:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [],
+                "totalCount": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habit removed when deleted",
+          "initialState": {
+            "habits": [
+              {
+                "habitId": "habit-1303",
+                "name": "Deleted Habit",
+                "archivedAt": "2026-02-15T10:00:00Z"
+              }
+            ],
+            "totalCount": 1
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitDeleted",
+                "data": {
+                  "habitId": "habit-1303",
+                  "deletedAt": "2026-02-16T09:00:00Z"
+                }
+              },
+              "then": {
+                "habits": [],
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HabitStatistics",
+      "type": "state",
+      "scenarios": [
+        {
+          "name": "Statistics update with new habit",
+          "initialState": {
+            "totalHabits": 0,
+            "activeStreaks": 0,
+            "longestCurrentStreak": 0,
+            "longestEverStreak": 0,
+            "completionRateThisWeek": 0,
+            "completionRateThisMonth": 0,
+            "totalCompletionsThisMonth": 0,
+            "categoryBreakdown": []
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitCreated",
+                "data": {
+                  "habitId": "habit-1401",
+                  "name": "Meditation",
+                  "frequency": "daily",
+                  "category": "Wellness",
+                  "reminderTime": "07:00",
+                  "goalDays": 30,
+                  "createdAt": "2026-01-29T06:00:00Z"
+                }
+              },
+              "then": {
+                "totalHabits": 1,
+                "activeStreaks": 0,
+                "longestCurrentStreak": 0,
+                "longestEverStreak": 0,
+                "completionRateThisWeek": 0,
+                "completionRateThisMonth": 0,
+                "totalCompletionsThisMonth": 0,
+                "categoryBreakdown": [
+                  { "category": "Wellness", "count": 1, "avgCompletionRate": 0 }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Statistics update with completion",
+          "initialState": {
+            "totalHabits": 1,
+            "activeStreaks": 0,
+            "longestCurrentStreak": 0,
+            "longestEverStreak": 0,
+            "completionRateThisWeek": 0,
+            "completionRateThisMonth": 0,
+            "totalCompletionsThisMonth": 0,
+            "categoryBreakdown": [
+              { "category": "Wellness", "count": 1, "avgCompletionRate": 0 }
+            ]
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "HabitCompleted",
+                "data": {
+                  "habitId": "habit-1402",
+                  "completedAt": "2026-01-29T07:30:00Z",
+                  "date": "2026-01-29"
+                }
+              },
+              "then": {
+                "totalHabits": 1,
+                "activeStreaks": 1,
+                "longestCurrentStreak": 1,
+                "longestEverStreak": 1,
+                "completionRateThisWeek": 100,
+                "completionRateThisMonth": 100,
+                "totalCompletionsThisMonth": 1,
+                "categoryBreakdown": [
+                  { "category": "Wellness", "count": 1, "avgCompletionRate": 100 }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HabitDetail",
+      "type": "state",
+      "scenarios": [
+        {
+          "name": "Detail view shows habit info",
+          "initialState": null,
+          "steps": [
+            {
+              "given": {
+                "event": "HabitCreated",
+                "data": {
+                  "habitId": "habit-1501",
+                  "name": "Morning Run",
+                  "frequency": "daily",
+                  "category": "Fitness",
+                  "reminderTime": "06:00",
+                  "goalDays": 30,
+                  "createdAt": "2026-01-29T06:00:00Z"
+                }
+              },
+              "then": {
+                "habitId": "habit-1501",
+                "name": "Morning Run",
+                "frequency": "daily",
+                "category": "Fitness",
+                "reminderTime": "06:00",
+                "goalDays": 30,
+                "currentStreak": 0,
+                "bestStreak": 0,
+                "totalCompletions": 0,
+                "completionHistory": [],
+                "createdAt": "2026-01-29T06:00:00Z"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Goal achieved flag set",
+          "initialState": {
+            "habitId": "habit-1502",
+            "name": "Reading",
+            "frequency": "daily",
+            "category": "Learning",
+            "reminderTime": "21:00",
+            "goalDays": 30,
+            "currentStreak": 29,
+            "bestStreak": 29,
+            "totalCompletions": 29,
+            "goalAchieved": false,
+            "completionHistory": [],
+            "createdAt": "2026-01-01T06:00:00Z"
+          },
+          "steps": [
+            {
+              "given": {
+                "event": "GoalAchieved",
+                "data": {
+                  "habitId": "habit-1502",
+                  "goalDays": 30,
+                  "achievedAt": "2026-01-31T00:00:00Z"
+                }
+              },
+              "then": {
+                "habitId": "habit-1502",
+                "name": "Reading",
+                "frequency": "daily",
+                "category": "Learning",
+                "reminderTime": "21:00",
+                "goalDays": 30,
+                "currentStreak": 30,
+                "bestStreak": 30,
+                "totalCompletions": 30,
+                "goalAchieved": true,
+                "goalAchievedAt": "2026-01-31T00:00:00Z",
+                "completionHistory": [],
+                "createdAt": "2026-01-01T06:00:00Z"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

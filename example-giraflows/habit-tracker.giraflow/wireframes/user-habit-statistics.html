@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistics - Habit Tracker</title>
+  <script type="module" src="/lib/wired-elements.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+    }
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .nav-tab {
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .nav-tab.active {
+      background: #3498db;
+      color: white;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .stat-card {
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+    }
+    .stat-value.primary { color: #3498db; }
+    .stat-value.success { color: #27ae60; }
+    .stat-value.warning { color: #e67e22; }
+    .stat-value.info { color: #9b59b6; }
+    .stat-label {
+      font-size: 13px;
+      color: #7f8c8d;
+      margin-top: 5px;
+    }
+    .section-title {
+      font-size: 18px;
+      color: #2c3e50;
+      margin: 25px 0 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #ecf0f1;
+    }
+    .completion-rates {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .rate-card {
+      padding: 15px 20px;
+    }
+    .rate-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .rate-label {
+      font-weight: 500;
+      color: #2c3e50;
+    }
+    .rate-value {
+      font-weight: bold;
+      color: #27ae60;
+    }
+    .rate-bar {
+      height: 8px;
+      background: #ecf0f1;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .rate-fill {
+      height: 100%;
+      background: #27ae60;
+      border-radius: 4px;
+    }
+    .category-breakdown {
+      padding: 20px;
+      margin-top: 15px;
+    }
+    .category-breakdown h3 {
+      margin-top: 0;
+      color: #2c3e50;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+    .category-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .category-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .category-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+    .category-color.mindfulness { background: #27ae60; }
+    .category-color.learning { background: #3498db; }
+    .category-color.productivity { background: #e67e22; }
+    .category-name {
+      flex: 1;
+      color: #2c3e50;
+    }
+    .category-count {
+      color: #7f8c8d;
+      font-size: 13px;
+    }
+    .category-rate {
+      font-weight: bold;
+      color: #27ae60;
+    }
+    .achievement-card {
+      padding: 20px;
+      margin-top: 15px;
+      background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+      text-align: center;
+    }
+    .achievement-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+    .achievement-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #856404;
+      margin-bottom: 5px;
+    }
+    .achievement-desc {
+      font-size: 13px;
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <h1>Habit Tracker</h1>
+  <p class="subtitle">Build better habits, one day at a time</p>
+
+  <div class="nav-tabs">
+    <wired-button class="nav-tab">My Habits</wired-button>
+    <wired-button class="nav-tab">Today</wired-button>
+    <wired-button class="nav-tab">Streaks</wired-button>
+    <wired-button class="nav-tab active">Statistics</wired-button>
+  </div>
+
+  <div class="stats-grid">
+    <wired-card class="stat-card" elevation="2">
+      <div class="stat-value primary">3</div>
+      <div class="stat-label">Total Habits</div>
+    </wired-card>
+    <wired-card class="stat-card" elevation="2">
+      <div class="stat-value success">3</div>
+      <div class="stat-label">Active Streaks</div>
+    </wired-card>
+    <wired-card class="stat-card" elevation="2">
+      <div class="stat-value warning">15</div>
+      <div class="stat-label">Longest Current Streak</div>
+    </wired-card>
+    <wired-card class="stat-card" elevation="2">
+      <div class="stat-value info">85</div>
+      <div class="stat-label">Completions This Month</div>
+    </wired-card>
+  </div>
+
+  <h2 class="section-title">Completion Rates</h2>
+  <div class="completion-rates">
+    <wired-card class="rate-card" elevation="2">
+      <div class="rate-header">
+        <span class="rate-label">This Week</span>
+        <span class="rate-value">92%</span>
+      </div>
+      <div class="rate-bar">
+        <div class="rate-fill" style="width: 92%"></div>
+      </div>
+    </wired-card>
+
+    <wired-card class="rate-card" elevation="2">
+      <div class="rate-header">
+        <span class="rate-label">This Month</span>
+        <span class="rate-value">88%</span>
+      </div>
+      <div class="rate-bar">
+        <div class="rate-fill" style="width: 88%"></div>
+      </div>
+    </wired-card>
+
+    <wired-card class="rate-card" elevation="2">
+      <div class="rate-header">
+        <span class="rate-label">All Time</span>
+        <span class="rate-value">85%</span>
+      </div>
+      <div class="rate-bar">
+        <div class="rate-fill" style="width: 85%"></div>
+      </div>
+    </wired-card>
+  </div>
+
+  <wired-card class="category-breakdown" elevation="2">
+    <h3>By Category</h3>
+    <div class="category-list">
+      <div class="category-item">
+        <div class="category-color mindfulness"></div>
+        <span class="category-name">Mindfulness</span>
+        <span class="category-count">1 habit</span>
+        <span class="category-rate">90%</span>
+      </div>
+      <div class="category-item">
+        <div class="category-color learning"></div>
+        <span class="category-name">Learning</span>
+        <span class="category-count">1 habit</span>
+        <span class="category-rate">85%</span>
+      </div>
+      <div class="category-item">
+        <div class="category-color productivity"></div>
+        <span class="category-name">Productivity</span>
+        <span class="category-count">1 habit</span>
+        <span class="category-rate">80%</span>
+      </div>
+    </div>
+  </wired-card>
+
+  <wired-card class="achievement-card" elevation="2">
+    <div class="achievement-icon">&#127942;</div>
+    <div class="achievement-title">Goals Achieved: 1</div>
+    <div class="achievement-desc">You've reached your goal for "Read 30 Minutes"!</div>
+  </wired-card>
+</body>
+</html>
