@@ -1,6 +1,17 @@
 import type { GiraflowModel, ViewMode, Event, StateView, Command, Actor } from '../lib/types';
 import type { SliceViewModel } from '../lib/models/slice-model';
 
+const PUBLIC_SESSION_KEY = 'giraflow-public-session';
+
+interface PublicSession {
+  selectedExampleId: string;
+  currentExampleFolder: string | null;
+  currentRawJson: string;
+  currentView: ViewMode;
+  editedWireframes: Record<string, string>;
+  lastModified: number;
+}
+
 class ModelStore {
   model = $state<GiraflowModel | null>(null);
   slices = $state<SliceViewModel | null>(null);
@@ -19,6 +30,9 @@ class ModelStore {
   // Current example folder (for wireframe paths in public mode)
   currentExampleFolder = $state<string | null>(null);
 
+  // Selected example ID (for public mode session persistence)
+  selectedExampleId = $state<string>('');
+
   // Wireframe edits (session-only, for public mode)
   editedWireframes = $state<Map<string, string>>(new Map());
 
@@ -30,10 +44,78 @@ class ModelStore {
     const newMap = new Map(this.editedWireframes);
     newMap.set(src, content);
     this.editedWireframes = newMap;
+    this.savePublicSession();
   }
 
   clearAllEditedWireframes() {
     this.editedWireframes = new Map();
+  }
+
+  // Public session persistence methods
+  savePublicSession() {
+    if (!this.isPublicMode) return;
+
+    try {
+      const session: PublicSession = {
+        selectedExampleId: this.selectedExampleId,
+        currentExampleFolder: this.currentExampleFolder,
+        currentRawJson: this.rawJson,
+        currentView: this.view,
+        editedWireframes: Object.fromEntries(this.editedWireframes),
+        lastModified: Date.now(),
+      };
+      localStorage.setItem(PUBLIC_SESSION_KEY, JSON.stringify(session));
+    } catch (e) {
+      console.warn('Failed to save public session to localStorage:', e);
+    }
+  }
+
+  loadPublicSession(): boolean {
+    if (!this.isPublicMode) return false;
+
+    try {
+      const stored = localStorage.getItem(PUBLIC_SESSION_KEY);
+      if (!stored) return false;
+
+      const session: PublicSession = JSON.parse(stored);
+
+      // Validate required fields exist
+      if (!session.selectedExampleId || !session.currentRawJson) {
+        return false;
+      }
+
+      // Restore state
+      this.selectedExampleId = session.selectedExampleId;
+      this.currentExampleFolder = session.currentExampleFolder;
+      this.rawJson = session.currentRawJson;
+      this.view = session.currentView || 'timeline';
+      this.editedWireframes = new Map(Object.entries(session.editedWireframes || {}));
+
+      // Parse and set the model
+      if (session.currentRawJson.trim()) {
+        try {
+          const parsed = JSON.parse(session.currentRawJson);
+          this.model = parsed as GiraflowModel;
+          this.error = null;
+        } catch (e) {
+          this.jsonError = e instanceof Error ? e.message : 'Invalid JSON';
+          return false;
+        }
+      }
+
+      return true;
+    } catch (e) {
+      console.warn('Failed to load public session from localStorage:', e);
+      return false;
+    }
+  }
+
+  clearPublicSession() {
+    try {
+      localStorage.removeItem(PUBLIC_SESSION_KEY);
+    } catch (e) {
+      console.warn('Failed to clear public session:', e);
+    }
   }
 
   get events(): Event[] {
@@ -59,6 +141,7 @@ class ModelStore {
   setView(newView: ViewMode) {
     history.pushState({ view: newView }, '', `#${newView}`);
     this.view = newView;
+    this.savePublicSession();
   }
 
   navigateToTick(tick: number) {
@@ -189,6 +272,7 @@ class ModelStore {
       const parsed = JSON.parse(json);
       this.model = parsed as GiraflowModel;
       this.error = null;
+      this.savePublicSession();
     } catch (e) {
       this.jsonError = e instanceof Error ? e.message : 'Invalid JSON';
     }

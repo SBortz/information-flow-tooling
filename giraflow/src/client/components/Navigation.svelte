@@ -1,7 +1,7 @@
 <script lang="ts">
   import { modelStore } from '../stores/model.svelte';
   import type { ViewMode } from '../lib/types';
-  import { examples, getDefaultExample, type Example } from '../lib/examples';
+  import { examples, type Example } from '../lib/examples';
   import { buildSliceViewModel } from '../lib/models/slice-model';
 
   const tabs: { id: ViewMode; label: string }[] = [
@@ -12,13 +12,11 @@
     { id: 'howto', label: 'How-To' },
   ];
 
-  let selectedExampleId = $state(getDefaultExample().id);
-
   function handleExampleSelect(e: Event) {
     const select = e.currentTarget as HTMLSelectElement;
     const example = examples.find(ex => ex.id === select.value);
     if (example) {
-      selectedExampleId = example.id;
+      modelStore.selectedExampleId = example.id;
       modelStore.clearAllEditedWireframes();
       modelStore.setCurrentExampleFolder(example.folderName);
       const json = JSON.stringify(example.model, null, 2);
@@ -26,6 +24,7 @@
       if (modelStore.model) {
         modelStore.updateSlices(buildSliceViewModel(modelStore.model));
       }
+      // loadFromJson already saves the session
     }
   }
 
@@ -53,7 +52,7 @@
       <label for="example-select">Example:</label>
       <select
         id="example-select"
-        value={selectedExampleId}
+        value={modelStore.selectedExampleId}
         onchange={handleExampleSelect}
       >
         {#each examples as example}
