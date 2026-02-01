@@ -44,7 +44,8 @@ function connectSSE() {
     if (event.data === 'reload' || event.data === 'update') {
       fetchAll();
     } else if (event.data === 'wireframe-reload') {
-      // Only reload iframes, not the whole model
+      // Also fetch model to handle case where wireframes were added to actors
+      fetchAll();
       triggerWireframeReload();
     }
   };

@@ -19,6 +19,9 @@
   // Set flag immediately if there's a hash to navigate to
   let isProgrammaticScroll = window.location.hash.includes("timeline/tick-");
 
+  // Mobile side panel state
+  let sidePanelOpen = $state(false);
+
   // Filter state - sets contain systems/roles to HIDE
   let hiddenSystems = $state(new Set<string>());
   let hiddenRoles = $state(new Set<string>());
@@ -205,6 +208,10 @@
         "",
         `#timeline/tick-${tick}`,
       );
+      // Close panel on mobile after selection
+      if (window.innerWidth <= 900) {
+        sidePanelOpen = false;
+      }
     }
   }
 
@@ -305,8 +312,26 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
+  <!-- Mobile toggle button -->
+  <button
+    class="tl-panel-toggle"
+    onclick={() => sidePanelOpen = !sidePanelOpen}
+    aria-label={sidePanelOpen ? 'Close timeline panel' : 'Open timeline panel'}
+  >
+    {sidePanelOpen ? '✕' : '☰'}
+  </button>
+
+  <!-- Mobile overlay backdrop -->
+  {#if sidePanelOpen}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="tl-panel-overlay"
+      onclick={() => sidePanelOpen = false}
+    ></div>
+  {/if}
+
   <!-- Master: Compact timeline on the left -->
-  <aside class="timeline-master">
+  <aside class="timeline-master" class:open={sidePanelOpen}>
     <div class="tl-master-content">
       {#if shouldShowLaneHeader()}
         <div class="tl-lane-header">
@@ -994,5 +1019,82 @@
   .tl-filter-clear:hover {
     border-color: var(--text-secondary);
     color: var(--text-primary);
+  }
+
+  /* Mobile panel toggle button - hidden by default on desktop */
+  .tl-panel-toggle {
+    display: none;
+  }
+
+  /* Mobile overlay - hidden by default */
+  .tl-panel-overlay {
+    display: none;
+  }
+
+  /* Mobile responsive styles */
+  @media (max-width: 900px) {
+    .timeline-master {
+      position: fixed;
+      left: 0;
+      top: 120px;
+      bottom: 0;
+      width: 300px;
+      max-width: 85vw;
+      margin: 0;
+      border-radius: 0;
+      border-left: none;
+      border-top: none;
+      border-bottom: none;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 101;
+    }
+
+    .timeline-master.open {
+      transform: translateX(0);
+    }
+
+    .tl-panel-overlay {
+      display: block;
+      position: fixed;
+      inset: 0;
+      top: 120px;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+    }
+
+    .tl-panel-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      left: 1rem;
+      bottom: 1rem;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      background: var(--color-command);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      font-size: 1.25rem;
+      cursor: pointer;
+      z-index: 102;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .tl-panel-toggle:hover {
+      background: var(--color-command);
+      transform: scale(1.05);
+    }
+
+    .tl-panel-toggle:active {
+      transform: scale(0.95);
+    }
+
+    .timeline-detail {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
   }
 </style>
