@@ -204,10 +204,6 @@
           "type": "string",
           "description": "Reference to the command that produced this event (format: 'CommandName-Tick')"
         },
-        "externalSource": {
-          "type": "string",
-          "description": "For external events: the source system (e.g. 'Carrier Webhook')"
-        },
         "system": {
           "type": "string",
           "description": "System/bounded context this event belongs to (determines swimlane)"

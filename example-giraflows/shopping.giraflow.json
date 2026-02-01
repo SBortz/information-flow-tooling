@@ -9,7 +9,7 @@
       "type": "event",
       "name": "InventoryChanged",
       "tick": 1,
-      "externalSource": "Inventory System",
+      "system": "Inventory System",
       "example": {
         "ProductId": "550e8400-e29b-41d4-a716-446655440001",
         "Inventory": 50
@@ -169,7 +169,7 @@
       "type": "event",
       "name": "PriceChanged",
       "tick": 15,
-      "externalSource": "Pricing System",
+      "system": "Pricing System",
       "example": {
         "ProductId": "550e8400-e29b-41d4-a716-446655440001",
         "OldPrice": 29.99,

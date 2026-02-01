@@ -450,11 +450,6 @@
                 producedBy: <span class="command">{el.producedBy}</span>
               </div>
             {/if}
-            {#if el.externalSource}
-              <div class="tl-detail-row">
-                externalSource: {el.externalSource}
-              </div>
-            {/if}
             {#if el.example}
               <JsonDisplay data={el.example} class="tl-json" />
             {/if}

@@ -81,17 +81,6 @@ export function renderSlice(model: InformationFlowModel): void {
     renderDeduplicatedSlicePanel(slice, events, actors, isLast, deduplicatedSlices, i);
   }
 
-  // External events section
-  const externalEvents = events.filter(e => e.externalSource);
-  if (externalEvents.length > 0) {
-    console.log(colors.dim('─'.repeat(45)));
-    console.log(colors.eventBold('● EXTERNAL EVENTS'));
-
-    for (const evt of externalEvents.sort((a, b) => a.tick - b.tick)) {
-      console.log(`  ${colors.event(evt.name)} ${colors.dim(`@${evt.tick}`)}`);
-      console.log(`    ${colors.dim('source:')} ${evt.externalSource}`);
-    }
-  }
 }
 
 /**

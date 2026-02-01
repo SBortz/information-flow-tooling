@@ -34,7 +34,6 @@ export function renderTable(model: InformationFlowModel): void {
         colors.dim('Tick'),
         colors.eventBold('Name'),
         colors.dim('Produced By'),
-        colors.dim('External Source'),
       ],
       style: {
         head: [],
@@ -47,7 +46,6 @@ export function renderTable(model: InformationFlowModel): void {
         colors.dim(`@${evt.tick}`),
         colors.eventBold(evt.name),
         evt.producedBy ? colors.command(evt.producedBy) : colors.dim('-'),
-        evt.externalSource || colors.dim('-'),
       ]);
     }
 
@@ -283,18 +281,6 @@ function renderDataFlowTree(
         const prefix = isLast ? '└─' : '├─';
         console.log(`│     ${prefix} ${colors.event('●')} ${colors.event(sortedProduced[i])}`);
       }
-    }
-  }
-
-  // External events
-  const externalEvents = events.filter(e => e.externalSource);
-  if (externalEvents.length > 0) {
-    console.log(`└─ ${colors.yellow('⚡ External Events')}`);
-    for (let i = 0; i < externalEvents.length; i++) {
-      const evt = externalEvents[i];
-      const isLast = i === externalEvents.length - 1;
-      const prefix = isLast ? '└─' : '├─';
-      console.log(`   ${prefix} ${colors.event('●')} ${colors.event(evt.name)} ${colors.dim(`from ${evt.externalSource}`)}`);
     }
   }
 

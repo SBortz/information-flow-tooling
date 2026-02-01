@@ -110,9 +110,6 @@ function renderTimelineElement(
     if (evt.producedBy) {
       console.log(`${detailPrefix}${colors.dim('producedBy:')} ${colors.command(evt.producedBy)}`);
     }
-    if (evt.externalSource) {
-      console.log(`${detailPrefix}${colors.dim('externalSource:')} ${colors.dim(evt.externalSource)}`);
-    }
   } else if (isStateView(element)) {
     const sv = element as StateView;
     if (sv.sourcedFrom.length > 0) {

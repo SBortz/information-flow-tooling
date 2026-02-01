@@ -203,7 +203,7 @@ Requirements:
 
 | Type | Symbol | Naming | Required Properties | Optional Properties |
 |------|--------|--------|---------------------|---------------------|
-| Event | ● | Past tense | name, tick | producedBy, externalSource, system, example |
+| Event | ● | Past tense | name, tick | producedBy, system, example |
 | State | ◆ | Noun | name, tick, sourcedFrom | example, attachments |
 | Actor | ○ | Role | name, tick, readsView, sendsCommand | wireframes, role |
 | Command | ▶ | Imperative | name, tick | example, attachments |

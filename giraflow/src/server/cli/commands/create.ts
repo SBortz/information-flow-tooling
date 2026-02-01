@@ -89,14 +89,12 @@ async function promptElement(tick: number, timeline: TimelineElement[]): Promise
   switch (type) {
     case 'event': {
       const producedBy = await input({ message: 'producedBy (command name, optional):' });
-      const externalSource = await input({ message: 'externalSource (optional):' });
       const example = await promptExample();
       const el: TimelineElement = {
         type: 'event',
         name: trimmedName,
         tick,
         ...(producedBy.trim() && { producedBy: producedBy.trim() }),
-        ...(externalSource.trim() && { externalSource: externalSource.trim() }),
         ...(example !== undefined && { example }),
       };
       return el;

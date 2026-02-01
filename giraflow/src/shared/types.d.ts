@@ -56,7 +56,6 @@ export interface Event {
     name: string;
     tick: number;
     producedBy?: string;
-    externalSource?: string;
     system?: string;
     example?: unknown;
 }

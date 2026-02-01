@@ -137,7 +137,6 @@
       "name": "ReminderTriggered",
       "tick": 16,
       "system": "Reminders",
-      "externalSource": "Scheduler",
       "example": { "todoId": "t-2", "message": "Don't forget to walk the dog!" }
     },
     {
