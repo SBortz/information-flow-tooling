@@ -126,6 +126,14 @@
 
   let filteredCount = $derived(filteredItems.length);
 
+  // Berechne die optimale Höhe für Lane-Labels basierend auf der längsten Namenslänge
+  let laneLabelHeight = $derived(() => {
+    const allNames = [...laneConfig.eventSystems, ...laneConfig.actorRoles];
+    const maxLength = Math.max(...allNames.map(name => (name || '').length), 0);
+    // Ca. 0.5rem pro Zeichen, Minimum 3rem, Maximum 9rem
+    return Math.min(9, Math.max(3, 1.5 + maxLength * 0.5));
+  });
+
   // Calculate total width for the lane area (using filtered config)
   let totalLaneWidth = $derived(filteredLaneConfig().totalLanes * filteredLaneConfig().laneWidth);
 
@@ -188,6 +196,52 @@
       background-image: ${layers.join(',\n      ')};
       background-position: ${positions.join(',\n      ')};
       background-size: ${sizes.join(',\n      ')};
+      background-repeat: no-repeat;
+    `;
+  }
+
+  // Generate CSS for faded lane backgrounds and lines in the header area
+  function generateLaneLinesFadeCSS(): string {
+    const config = filteredLaneConfig();
+    const laneWidth = config.laneWidth;
+    const eventLanes = config.eventLaneCount;
+    const actorLanes = config.actorLaneCount;
+    const totalLanes = config.totalLanes;
+    const centerLaneIndex = eventLanes;
+
+    const layers: string[] = [];
+    const positions: string[] = [];
+    const sizes: string[] = [];
+
+    // Hatching for center lane
+    layers.push(`repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 3px,
+      rgba(107, 114, 128, 0.18) 3px,
+      rgba(107, 114, 128, 0.18) 4px
+    )`);
+    positions.push(`${centerLaneIndex * laneWidth}px 0`);
+    sizes.push(`${laneWidth}px 100%`);
+
+    // Tint for all lanes
+    for (let i = 0; i < totalLanes; i++) {
+      layers.push(`linear-gradient(rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.05))`);
+      positions.push(`${i * laneWidth}px 0`);
+      sizes.push(`${laneWidth}px 100%`);
+    }
+
+    // Vertical lines (one at each lane boundary + rightmost edge)
+    for (let i = 0; i <= totalLanes; i++) {
+      layers.push(`linear-gradient(rgba(107, 114, 128, 0.4), rgba(107, 114, 128, 0.4))`);
+      positions.push(`${i * laneWidth - 1}px 0`);
+      sizes.push(`2px 100%`);
+    }
+
+    return `
+      background-image: ${layers.join(', ')};
+      background-position: ${positions.join(', ')};
+      background-size: ${sizes.join(', ')};
       background-repeat: no-repeat;
     `;
   }
@@ -336,7 +390,9 @@
       {#if shouldShowLaneHeader()}
         <div class="tl-lane-header">
           <div class="tl-lane-labels-wrapper" style="padding-left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);">
-          <div class="tl-lane-labels" style="width: {totalLaneWidth}px;">
+          <div class="tl-lane-labels" style="width: {totalLaneWidth}px; height: {laneLabelHeight()}rem;">
+            <!-- Faded lane lines extending into header -->
+            <div class="tl-lane-lines-fade" style="width: {totalLaneWidth}px; {generateLaneLinesFadeCSS()}"></div>
             {#each filteredLaneConfig().eventSystems as system, i}
               <div
                 class="tl-lane-label event"
@@ -366,7 +422,8 @@
                 class:has-filters={hasActiveFilters}
                 onclick={() => filterDropdownOpen = !filterDropdownOpen}
               >
-                <span>⚙</span>
+                <span class="tl-filter-icon">⚙</span>
+                <span class="tl-filter-text">Filter</span>
                 {#if hasActiveFilters}
                   <span class="tl-filter-badge">{hiddenSystems.size + hiddenRoles.size}</span>
                 {/if}
@@ -418,8 +475,7 @@
       {/if}
       <div
         class="tl-master-line"
-        class:no-header={!shouldShowLaneHeader()}
-        style="width: {totalLaneWidth}px; {generateLaneBackgroundCSS()}"
+        style="width: {totalLaneWidth}px; {shouldShowLaneHeader() ? `top: calc(0.375rem + 0.375rem + ${laneLabelHeight()}rem + 1px);` : ''} {generateLaneBackgroundCSS()}"
       ></div>
       {#each filteredItems as { element: el, position, laneIndex }}
         <button
@@ -553,7 +609,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    padding: 0.5rem 0.5rem 0.5rem 0;
+    padding: 0.375rem 0.5rem 0.375rem 0;
     gap: 0.5rem;
   }
 
@@ -564,7 +620,17 @@
 
   .tl-lane-labels {
     position: relative;
-    height: 7rem;
+    /* height is set dynamically via inline style based on max label length */
+  }
+
+  .tl-lane-lines-fade {
+    position: absolute;
+    top: 0;
+    bottom: -0.5rem; /* extend past label area to connect with main lane lines */
+    left: 0;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,1) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,1) 100%);
   }
 
   .tl-lane-label {
@@ -596,33 +662,26 @@
   }
 
   .tl-lane-label.event .tl-lane-label-text {
-    background: rgba(249, 115, 22, 0.15);
     color: var(--color-event);
   }
 
   .tl-lane-label.center .tl-lane-label-text {
-    background: rgba(107, 114, 128, 0.15);
     color: var(--text-secondary);
   }
 
   .tl-lane-label.actor .tl-lane-label-text {
-    background: rgba(34, 197, 94, 0.15);
     color: var(--color-actor);
   }
 
   .tl-master-line {
     position: absolute;
-    /* Top offset accounts for lane header: padding (0.5rem + 0.5rem) + labels height (7rem) + border (1px) */
-    top: calc(0.5rem + 0.5rem + 7rem + 1px);
+    /* top is set dynamically via inline style when header is shown */
+    top: 0;
     bottom: 0;
     /* left padding (0.75rem) + tick width (2rem) + gap (0.5rem) + tick margin (0.25rem) = 3.5rem */
     left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);
     pointer-events: none;
     z-index: 2;
-  }
-
-  .tl-master-line.no-header {
-    top: 0;
   }
 
   .tl-master-item {
@@ -878,23 +937,35 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
-    width: 1.75rem;
-    height: 1.75rem;
-    padding: 0;
+    gap: 0.375rem;
+    width: auto;
+    height: 2rem;
+    padding: 0 0.75rem;
     border: 1px solid var(--border);
     background: var(--bg-card);
-    border-radius: 0.25rem;
+    border-radius: 0.375rem;
     font-size: 0.85rem;
     font-family: inherit;
     cursor: pointer;
     transition: all 0.15s;
     color: var(--text-secondary);
+    box-shadow: var(--shadow-card);
   }
 
   .tl-filter-trigger:hover {
     border-color: var(--text-secondary);
     background: var(--bg-secondary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
+  }
+
+  .tl-filter-icon {
+    font-size: 0.85rem;
+  }
+
+  .tl-filter-text {
+    font-size: 0.75rem;
+    font-weight: 500;
   }
 
   .tl-filter-trigger.has-filters {
@@ -1033,6 +1104,16 @@
 
   /* Mobile responsive styles */
   @media (max-width: 900px) {
+    .tl-filter-text {
+      display: none;
+    }
+
+    .tl-filter-trigger {
+      width: 1.75rem;
+      height: 1.75rem;
+      padding: 0;
+    }
+
     .timeline-master {
       position: fixed;
       left: 0;
