@@ -29,7 +29,9 @@
       "name": "Customer",
       "tick": 3,
       "readsView": "InventoriesSV",
-      "sendsCommand": "AddItemCommand"
+      "sendsCommand": "AddItemCommand",
+      "role": "Customer",
+      "wireframes": ["wireframes/customer-inventory-3.html"]
     },
     {
       "type": "command",
@@ -96,7 +98,9 @@
       "name": "Customer",
       "tick": 8,
       "readsView": "CartItemsStateView",
-      "sendsCommand": "SubmitCartCommand"
+      "sendsCommand": "SubmitCartCommand",
+      "role": "Customer",
+      "wireframes": ["wireframes/customer-cart-8.html"]
     },
     {
       "type": "command",
@@ -142,7 +146,8 @@
       "name": "CartPublisherProcessor",
       "tick": 12,
       "readsView": "SubmittedCartDataSV",
-      "sendsCommand": "PublishCartCommand"
+      "sendsCommand": "PublishCartCommand",
+      "role": "system"
     },
     {
       "type": "command",
@@ -202,7 +207,8 @@
       "name": "ArchiveItemSchedulerProcessor",
       "tick": 18,
       "readsView": "ChangedPricesSV",
-      "sendsCommand": "ArchiveItemCommand"
+      "sendsCommand": "ArchiveItemCommand",
+      "role": "system"
     },
     {
       "type": "command",
