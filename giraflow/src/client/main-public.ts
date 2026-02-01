@@ -19,9 +19,9 @@ if (modelStore.model) {
   modelStore.updateSlices(buildSliceViewModel(modelStore.model));
 }
 
-// Set initial view to editor if no hash
+// Set initial view to timeline if no hash
 if (!window.location.hash) {
-  modelStore.view = 'editor';
+  modelStore.view = 'timeline';
 }
 
 // Load expandAll preference from storage

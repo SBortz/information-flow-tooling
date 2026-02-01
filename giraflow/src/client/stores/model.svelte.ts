@@ -95,9 +95,9 @@ class ModelStore {
   handleHashChange() {
     const hash = window.location.hash.slice(1);
 
-    // Default to table view if no hash
+    // Default to timeline view if no hash
     if (!hash) {
-      this.view = 'table';
+      this.view = 'timeline';
       return;
     }
 
