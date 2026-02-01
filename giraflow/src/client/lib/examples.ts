@@ -20,48 +20,9 @@ const exampleModules = import.meta.glob<{ default: GiraflowModel }>(
   { eager: true }
 );
 
-// Empty template for creating new models
-const emptyTemplate: GiraflowModel = {
-  "$schema": "giraflow.schema.json",
-  "name": "New Model",
-  "description": "Start building your information flow model here",
-  "version": "1.0.0",
-  "timeline": [
-    {
-      "type": "state",
-      "name": "InitialState",
-      "tick": 1,
-      "sourcedFrom": [],
-      "example": {}
-    },
-    {
-      "type": "actor",
-      "name": "User",
-      "tick": 2,
-      "readsView": "InitialState",
-      "sendsCommand": "DoSomething"
-    },
-    {
-      "type": "command",
-      "name": "DoSomething",
-      "tick": 3,
-      "example": { "data": "example" }
-    },
-    {
-      "type": "event",
-      "name": "SomethingHappened",
-      "tick": 4,
-      "producedBy": "DoSomething-3",
-      "example": { "result": "success" }
-    }
-  ],
-  "specifications": []
-};
-
 // Build examples array from discovered modules
-export const examples: Example[] = [
-  // Dynamically discovered examples
-  ...Object.entries(exampleModules).map(([path, module]) => {
+export const examples: Example[] = Object.entries(exampleModules)
+  .map(([path, module]) => {
     // Extract folder name from path: "../../../../example-giraflows/simple-todo-app.giraflow.json" -> "simple-todo-app"
     const fileName = path.split('/').pop() || '';
     const folderName = fileName.replace('.giraflow.json', '');
@@ -74,17 +35,13 @@ export const examples: Example[] = [
       model,
       folderName
     };
-  }).sort((a, b) => a.name.localeCompare(b.name)),
-
-  // Empty template (always last)
-  {
-    id: 'empty-template',
-    name: 'Empty Template',
-    description: 'A blank template to start your own model',
-    model: emptyTemplate,
-    folderName: null
-  }
-];
+  })
+  .sort((a, b) => {
+    // Empty template always last
+    if (a.id === 'empty-template') return 1;
+    if (b.id === 'empty-template') return -1;
+    return a.name.localeCompare(b.name);
+  });
 
 export function getExampleById(id: string): Example | undefined {
   return examples.find(e => e.id === id);
