@@ -209,14 +209,13 @@ export function createServer(options: ServerOptions): {
             return;
           }
 
-          // File must already exist (no creating new files)
-          if (!fs.existsSync(resolvedTargetPath)) {
-            res.writeHead(404, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'File not found' }));
-            return;
+          // Ensure parent directory exists for new files
+          const parentDir = path.dirname(resolvedTargetPath);
+          if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
           }
 
-          // Write the file
+          // Write the file (create new or update existing)
           fs.writeFileSync(resolvedTargetPath, content, 'utf-8');
           triggerWireframeReload();
 

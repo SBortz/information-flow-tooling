@@ -8,6 +8,20 @@
   // Register HTML/XML language
   hljs.registerLanguage("xml", xml);
 
+  // Default template for new wireframes in public mode
+  const DEFAULT_WIREFRAME_TEMPLATE = `<!DOCTYPE html>
+<html>
+<head>
+  <script type="module" src="/lib/wired-elements.js"><\/script>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <!-- Wireframe content here -->
+</body>
+</html>`;
+
   interface Props {
     src: string;
     title?: string;
@@ -108,6 +122,12 @@
         code = editedCode;
         hasUnsavedChanges = false;
         saveSuccess = true;
+        isNewFile = false;
+        // Clear blob URL since file now exists on server
+        if (blobUrl) {
+          URL.revokeObjectURL(blobUrl);
+          blobUrl = null;
+        }
         // Clear success message after 2 seconds
         setTimeout(() => { saveSuccess = false; }, 2000);
       }
@@ -125,17 +145,89 @@
     }
   });
 
-  // Initialize blob URL from stored edits in public mode
+  // Track whether the file exists (for showing "new file" indicator)
+  let isNewFile = $state(false);
+
+  // Initialize blob URL from stored edits in public mode, or check if file exists
   $effect(() => {
     if (modelStore.isPublicMode) {
       const edited = modelStore.getEditedWireframe(src);
-      if (edited && !blobUrl) {
-        const blob = new Blob([edited], { type: 'text/html' });
-        blobUrl = URL.createObjectURL(blob);
-        // Also sync the code state
-        code = edited;
-        editedCode = edited;
+      if (edited) {
+        // Use stored edited content
+        if (!blobUrl) {
+          const blob = new Blob([edited], { type: 'text/html' });
+          blobUrl = URL.createObjectURL(blob);
+          code = edited;
+          editedCode = edited;
+        }
+      } else if (!isImage) {
+        // No edited content - fetch the file and check if it's a real wireframe
+        // In public mode, Vite returns 200 with index.html for non-existent files (SPA fallback)
+        // So we need to check the content, not just the status code
+        const currentSrc = src;
+        fetch(src).then(res => res.text()).then(content => {
+          // Guard against race conditions if src changed
+          if (currentSrc !== src) return;
+
+          // Check if the content is the Giraflow app (SPA fallback) rather than a real wireframe
+          // The Giraflow app has <div id="app"> which wireframes don't have
+          const isGiraflowApp = content.includes('<div id="app">') || content.includes('id="app"');
+
+          if (isGiraflowApp) {
+            // File doesn't exist - create default template
+            modelStore.setEditedWireframe(src, DEFAULT_WIREFRAME_TEMPLATE);
+            const blob = new Blob([DEFAULT_WIREFRAME_TEMPLATE], { type: 'text/html' });
+            if (blobUrl) URL.revokeObjectURL(blobUrl);
+            blobUrl = URL.createObjectURL(blob);
+            code = DEFAULT_WIREFRAME_TEMPLATE;
+            editedCode = DEFAULT_WIREFRAME_TEMPLATE;
+            isNewFile = true;
+          }
+        }).catch(() => {
+          // Network error - treat as non-existent
+          if (currentSrc !== src) return;
+          modelStore.setEditedWireframe(src, DEFAULT_WIREFRAME_TEMPLATE);
+          const blob = new Blob([DEFAULT_WIREFRAME_TEMPLATE], { type: 'text/html' });
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+          blobUrl = URL.createObjectURL(blob);
+          code = DEFAULT_WIREFRAME_TEMPLATE;
+          editedCode = DEFAULT_WIREFRAME_TEMPLATE;
+          isNewFile = true;
+        });
       }
+    }
+  });
+
+  // Check if file exists in local mode and use default template for new files
+  $effect(() => {
+    if (!modelStore.isPublicMode && !isImage) {
+      const currentSrc = src;
+      fetch(src, { method: 'HEAD' }).then(res => {
+        // Guard against race conditions if src changed
+        if (currentSrc !== src) return;
+
+        if (!res.ok) {
+          // File doesn't exist - use default template
+          code = DEFAULT_WIREFRAME_TEMPLATE;
+          editedCode = DEFAULT_WIREFRAME_TEMPLATE;
+          hasUnsavedChanges = true;
+          isNewFile = true;
+          // Create blob URL for preview
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+          const blob = new Blob([DEFAULT_WIREFRAME_TEMPLATE], { type: 'text/html' });
+          blobUrl = URL.createObjectURL(blob);
+        }
+      }).catch(() => {
+        // Network error - treat as non-existent
+        if (currentSrc !== src) return;
+        code = DEFAULT_WIREFRAME_TEMPLATE;
+        editedCode = DEFAULT_WIREFRAME_TEMPLATE;
+        hasUnsavedChanges = true;
+        isNewFile = true;
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+        const blob = new Blob([DEFAULT_WIREFRAME_TEMPLATE], { type: 'text/html' });
+        blobUrl = URL.createObjectURL(blob);
+      });
     }
   });
 
@@ -182,15 +274,17 @@
             disabled={!hasUnsavedChanges || isSaving}
           >
             {#if isSaving}
-              Saving...
+              {isNewFile ? 'Creating...' : 'Saving...'}
             {:else if modelStore.isPublicMode}
               Apply
+            {:else if isNewFile}
+              Create
             {:else}
               Save
             {/if}
           </button>
           {#if hasUnsavedChanges}
-            <span class="unsaved-indicator">Unsaved changes</span>
+            <span class="unsaved-indicator">{isNewFile ? 'New file' : 'Unsaved changes'}</span>
           {/if}
           {#if saveError}
             <span class="save-error">{saveError}</span>
