@@ -50,3 +50,7 @@ export function getExampleById(id: string): Example | undefined {
 export function getDefaultExample(): Example {
   return examples[0];
 }
+
+export function getEmptyTemplate(): Example | undefined {
+  return examples.find(e => e.id === 'empty-template');
+}

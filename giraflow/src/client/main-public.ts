@@ -8,13 +8,19 @@ import './styles/global.css';
 // Set public mode
 modelStore.setPublicMode(true);
 
+// Load session giraflows list
+modelStore.loadSessionGiraflows();
+
 // Try to load session from localStorage
 const sessionLoaded = modelStore.loadPublicSession();
 
 if (sessionLoaded) {
-  // Validate that the example still exists
-  const example = getExampleById(modelStore.selectedExampleId);
-  if (!example) {
+  // Session-based IDs (user-created) are always valid
+  const isSessionBased = modelStore.selectedExampleId.startsWith('session-');
+  // For example-based IDs, validate that the example still exists
+  const example = isSessionBased ? null : getExampleById(modelStore.selectedExampleId);
+
+  if (!isSessionBased && !example) {
     // Example no longer exists, clear session and load default
     modelStore.clearPublicSession();
     loadDefaultExample();

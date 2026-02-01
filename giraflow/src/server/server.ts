@@ -199,6 +199,100 @@ export function createServer(options: ServerOptions): {
       return;
     }
 
+    // API endpoint for creating new files
+    if (url.pathname === '/api/create-file' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const { name } = JSON.parse(body);
+          if (!name || typeof name !== 'string') {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Name is required' }));
+            return;
+          }
+
+          // Sanitize name: remove special characters, replace spaces with hyphens
+          const sanitized = name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+
+          if (!sanitized) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid name' }));
+            return;
+          }
+
+          const fileName = `${sanitized}.giraflow.json`;
+          const fileDir = path.dirname(filePath);
+          const newFilePath = path.resolve(fileDir, fileName);
+
+          // Check if file already exists
+          if (fs.existsSync(newFilePath)) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'File already exists' }));
+            return;
+          }
+
+          // Create empty template
+          const emptyTemplate = {
+            "$schema": "./giraflow.schema.json",
+            "name": name,
+            "description": "",
+            "version": "1.0.0",
+            "timeline": [
+              {
+                "type": "state",
+                "name": "InitialState",
+                "tick": 1,
+                "sourcedFrom": [],
+                "example": {}
+              },
+              {
+                "type": "actor",
+                "name": "User",
+                "tick": 2,
+                "readsView": "InitialState",
+                "sendsCommand": "DoSomething"
+              },
+              {
+                "type": "command",
+                "name": "DoSomething",
+                "tick": 3,
+                "example": { "data": "example" }
+              },
+              {
+                "type": "event",
+                "name": "SomethingHappened",
+                "tick": 4,
+                "producedBy": "DoSomething-3",
+                "example": { "result": "success" }
+              }
+            ],
+            "specifications": []
+          };
+
+          fs.writeFileSync(newFilePath, JSON.stringify(emptyTemplate, null, 2), 'utf-8');
+
+          res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          });
+          res.end(JSON.stringify({ success: true, fileName }));
+        } catch (err) {
+          res.writeHead(400, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          });
+          res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Invalid request' }));
+        }
+      });
+      return;
+    }
+
     // API endpoint for slices
     if (url.pathname === '/api/slices') {
       res.writeHead(200, {

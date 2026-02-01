@@ -12,6 +12,15 @@ interface PublicSession {
   lastModified: number;
 }
 
+interface SessionGiraflow {
+  id: string;
+  name: string;
+  rawJson: string;
+  editedWireframes: Record<string, string>;
+}
+
+const SESSION_GIRAFLOWS_KEY = 'giraflow-session-giraflows';
+
 class ModelStore {
   model = $state<GiraflowModel | null>(null);
   slices = $state<SliceViewModel | null>(null);
@@ -32,6 +41,9 @@ class ModelStore {
 
   // Selected example ID (for public mode session persistence)
   selectedExampleId = $state<string>('');
+
+  // Session-based giraflows (user-created, persisted in localStorage)
+  sessionGiraflows = $state<SessionGiraflow[]>([]);
 
   // Wireframe edits (session-only, for public mode)
   editedWireframes = $state<Map<string, string>>(new Map());
@@ -65,6 +77,16 @@ class ModelStore {
         lastModified: Date.now(),
       };
       localStorage.setItem(PUBLIC_SESSION_KEY, JSON.stringify(session));
+
+      // Also update the session giraflow if it's a session-based ID
+      if (this.selectedExampleId.startsWith('session-') && this.model) {
+        this.addOrUpdateSessionGiraflow(
+          this.selectedExampleId,
+          this.model.name || 'Untitled',
+          this.rawJson,
+          this.editedWireframes
+        );
+      }
     } catch (e) {
       console.warn('Failed to save public session to localStorage:', e);
     }
@@ -116,6 +138,57 @@ class ModelStore {
     } catch (e) {
       console.warn('Failed to clear public session:', e);
     }
+  }
+
+  // Session giraflows management
+  saveSessionGiraflows() {
+    if (!this.isPublicMode) return;
+
+    try {
+      localStorage.setItem(SESSION_GIRAFLOWS_KEY, JSON.stringify(this.sessionGiraflows));
+    } catch (e) {
+      console.warn('Failed to save session giraflows:', e);
+    }
+  }
+
+  loadSessionGiraflows() {
+    if (!this.isPublicMode) return;
+
+    try {
+      const stored = localStorage.getItem(SESSION_GIRAFLOWS_KEY);
+      if (stored) {
+        this.sessionGiraflows = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to load session giraflows:', e);
+      this.sessionGiraflows = [];
+    }
+  }
+
+  addOrUpdateSessionGiraflow(id: string, name: string, rawJson: string, editedWireframes: Map<string, string>) {
+    const existing = this.sessionGiraflows.find(s => s.id === id);
+    if (existing) {
+      existing.name = name;
+      existing.rawJson = rawJson;
+      existing.editedWireframes = Object.fromEntries(editedWireframes);
+    } else {
+      this.sessionGiraflows = [...this.sessionGiraflows, {
+        id,
+        name,
+        rawJson,
+        editedWireframes: Object.fromEntries(editedWireframes),
+      }];
+    }
+    this.saveSessionGiraflows();
+  }
+
+  getSessionGiraflow(id: string): SessionGiraflow | undefined {
+    return this.sessionGiraflows.find(s => s.id === id);
+  }
+
+  deleteSessionGiraflow(id: string) {
+    this.sessionGiraflows = this.sessionGiraflows.filter(s => s.id !== id);
+    this.saveSessionGiraflows();
   }
 
   get events(): Event[] {
@@ -252,6 +325,15 @@ class ModelStore {
       body: JSON.stringify({ file: fileName }),
     });
     return res.ok;
+  }
+
+  async createNewFile(name: string): Promise<{ success: boolean; fileName?: string; error?: string }> {
+    const res = await fetch('/api/create-file', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    return res.json();
   }
 
   updateSlices(slices: SliceViewModel | null) {

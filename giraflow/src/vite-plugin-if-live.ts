@@ -316,6 +316,103 @@ export function ifLivePlugin(): Plugin {
           return;
         }
 
+        if (req.url === '/api/create-file' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', () => {
+            try {
+              const { name } = JSON.parse(body);
+              if (!name || typeof name !== 'string') {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Name is required' }));
+                return;
+              }
+
+              // Sanitize name: remove special characters, replace spaces with hyphens
+              const sanitized = name
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim();
+
+              if (!sanitized) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Invalid name' }));
+                return;
+              }
+
+              const fileName = `${sanitized}.giraflow.json`;
+              const newFilePath = path.resolve(process.cwd(), fileName);
+
+              // Check if file already exists
+              if (fs.existsSync(newFilePath)) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'File already exists' }));
+                return;
+              }
+
+              // Create empty template
+              const emptyTemplate = {
+                "$schema": "./giraflow.schema.json",
+                "name": name,
+                "description": "",
+                "version": "1.0.0",
+                "timeline": [
+                  {
+                    "type": "state",
+                    "name": "InitialState",
+                    "tick": 1,
+                    "sourcedFrom": [],
+                    "example": {}
+                  },
+                  {
+                    "type": "actor",
+                    "name": "User",
+                    "tick": 2,
+                    "readsView": "InitialState",
+                    "sendsCommand": "DoSomething"
+                  },
+                  {
+                    "type": "command",
+                    "name": "DoSomething",
+                    "tick": 3,
+                    "example": { "data": "example" }
+                  },
+                  {
+                    "type": "event",
+                    "name": "SomethingHappened",
+                    "tick": 4,
+                    "producedBy": "DoSomething-3",
+                    "example": { "result": "success" }
+                  }
+                ],
+                "specifications": []
+              };
+
+              fs.writeFileSync(newFilePath, JSON.stringify(emptyTemplate, null, 2), 'utf-8');
+
+              // Update available files list
+              availableFiles = findGiraflowFiles();
+
+              // Switch to the new file
+              const success = switchToFile(fileName, scheduleNotify);
+              if (success) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, fileName }));
+                notifyClients('reload');
+              } else {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Failed to switch to new file' }));
+              }
+            } catch (err) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Invalid request' }));
+            }
+          });
+          return;
+        }
+
         if (req.url === '/api/slices') {
           res.writeHead(200, {
             'Content-Type': 'application/json',
