@@ -161,8 +161,9 @@
           The structured format makes it easy to hand off to developers or AI coding assistants.
         </p>
         <div class="tip">
-          <strong>Tip:</strong> Feed your Giraflow JSON to an AI coding assistant along with
-          your tech stack requirements. The structured format helps generate accurate code.
+          <strong>Tip:</strong> Use the download button in the navigation bar to export your
+          Giraflow as a ZIP file. It includes the model JSON, generated slices, wireframes, and
+          the schema file - everything a developer or AI coding assistant needs to implement your design.
         </div>
       </div>
     </div>
