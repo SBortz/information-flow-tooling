@@ -16,6 +16,23 @@ class ModelStore {
   isPublicMode = $state(false);
   jsonError = $state<string | null>(null);
 
+  // Wireframe edits (session-only, for public mode)
+  editedWireframes = $state<Map<string, string>>(new Map());
+
+  getEditedWireframe(src: string): string | null {
+    return this.editedWireframes.get(src) ?? null;
+  }
+
+  setEditedWireframe(src: string, content: string) {
+    const newMap = new Map(this.editedWireframes);
+    newMap.set(src, content);
+    this.editedWireframes = newMap;
+  }
+
+  clearAllEditedWireframes() {
+    this.editedWireframes = new Map();
+  }
+
   get events(): Event[] {
     if (!this.model) return [];
     return this.model.timeline.filter((el): el is Event => el.type === 'event');

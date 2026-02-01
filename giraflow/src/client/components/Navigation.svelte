@@ -19,6 +19,7 @@
     const example = examples.find(ex => ex.id === select.value);
     if (example) {
       selectedExampleId = example.id;
+      modelStore.clearAllEditedWireframes();
       const json = JSON.stringify(example.model, null, 2);
       modelStore.loadFromJson(json);
       if (modelStore.model) {

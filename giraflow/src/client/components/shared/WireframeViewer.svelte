@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from "svelte";
   import { wireframeReloadSignal, modelStore } from "../../stores/model.svelte";
   import hljs from "highlight.js/lib/core";
   import xml from "highlight.js/lib/languages/xml";
@@ -22,6 +23,7 @@
   let isSaving = $state(false);
   let saveError = $state<string | null>(null);
   let saveSuccess = $state(false);
+  let blobUrl = $state<string | null>(null);
 
   // Extract filename for display
   let displayFilename = $derived(src.split("/").pop() || src);
@@ -72,6 +74,22 @@
   async function saveWireframe() {
     if (!hasUnsavedChanges || isSaving) return;
 
+    if (modelStore.isPublicMode) {
+      // Session-only: store in memory and create blob URL for preview
+      modelStore.setEditedWireframe(src, editedCode);
+      code = editedCode;
+      hasUnsavedChanges = false;
+      saveSuccess = true;
+
+      // Create blob URL for preview
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      const blob = new Blob([editedCode], { type: 'text/html' });
+      blobUrl = URL.createObjectURL(blob);
+
+      setTimeout(() => { saveSuccess = false; }, 2000);
+      return;
+    }
+
     isSaving = true;
     saveError = null;
     saveSuccess = false;
@@ -106,6 +124,25 @@
       loadCode();
     }
   });
+
+  // Initialize blob URL from stored edits in public mode
+  $effect(() => {
+    if (modelStore.isPublicMode) {
+      const edited = modelStore.getEditedWireframe(src);
+      if (edited && !blobUrl) {
+        const blob = new Blob([edited], { type: 'text/html' });
+        blobUrl = URL.createObjectURL(blob);
+        // Also sync the code state
+        code = edited;
+        editedCode = edited;
+      }
+    }
+  });
+
+  // Cleanup blob URL on destroy
+  onDestroy(() => {
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+  });
 </script>
 
 <div class="wireframe-container">
@@ -137,14 +174,20 @@
     <div class="code-view">
       {#if loading}
         <span class="loading">Loading...</span>
-      {:else if !modelStore.isPublicMode}
+      {:else}
         <div class="code-toolbar">
           <button
             class="save-button"
             onclick={saveWireframe}
             disabled={!hasUnsavedChanges || isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {#if isSaving}
+              Saving...
+            {:else if modelStore.isPublicMode}
+              Apply
+            {:else}
+              Save
+            {/if}
           </button>
           {#if hasUnsavedChanges}
             <span class="unsaved-indicator">Unsaved changes</span>
@@ -153,20 +196,20 @@
             <span class="save-error">{saveError}</span>
           {/if}
           {#if saveSuccess}
-            <span class="save-success">Saved!</span>
+            <span class="save-success">{modelStore.isPublicMode ? 'Applied!' : 'Saved!'}</span>
           {/if}
-          <span class="save-hint">Ctrl+S to save</span>
+          <span class="save-hint">
+            {modelStore.isPublicMode ? 'Ctrl+S to apply (session only)' : 'Ctrl+S to save'}
+          </span>
         </div>
         <div class="editor-wrapper">
           <HtmlEditor value={editedCode} onChange={handleCodeChange} onSave={saveWireframe} />
         </div>
-      {:else}
-        <pre><code>{@html highlightedCode}</code></pre>
       {/if}
     </div>
   {:else}
-    {#key cacheBustedSrc}
-      <iframe {title} src={cacheBustedSrc} class="wireframe-iframe"></iframe>
+    {#key blobUrl || cacheBustedSrc}
+      <iframe {title} src={blobUrl || cacheBustedSrc} class="wireframe-iframe"></iframe>
     {/key}
   {/if}
 </div>
