@@ -204,7 +204,7 @@ export function ifLivePlugin(): Plugin {
 
       // Middleware for API and SSE
       server.middlewares.use((req, res, next) => {
-        if (req.url === '/api/model') {
+        if (req.url === '/api/model' && req.method === 'GET') {
           res.writeHead(200, {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-cache',
@@ -215,6 +215,36 @@ export function ifLivePlugin(): Plugin {
             watchedFile: filePath ? path.basename(filePath) : null,
             availableFiles,
           }));
+          return;
+        }
+
+        if (req.url === '/api/model' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', () => {
+            try {
+              // Validate JSON
+              const model = JSON.parse(body);
+
+              if (!filePath) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'No file selected' }));
+                return;
+              }
+
+              // Write to file
+              fs.writeFileSync(filePath, JSON.stringify(model, null, 2), 'utf-8');
+
+              // Reload model
+              loadModel();
+
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true }));
+            } catch (err) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Invalid JSON' }));
+            }
+          });
           return;
         }
 

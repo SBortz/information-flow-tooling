@@ -6,12 +6,24 @@
 
   let validationResult = $state<ValidationResult>({ valid: true, errors: [] });
   let copyFeedback = $state('');
+  let isSaving = $state(false);
+  let saveError = $state<string | null>(null);
+  let saveSuccess = $state(false);
+  let hasUnsavedChanges = $state(false);
+  let originalJson = $state('');
 
   // Initialize editor with current model
   $effect(() => {
     if (!modelStore.rawJson && modelStore.model) {
       // Sync from existing model in local mode
       modelStore.syncRawJsonFromModel();
+    }
+  });
+
+  // Track original JSON for unsaved changes detection
+  $effect(() => {
+    if (modelStore.rawJson && !originalJson) {
+      originalJson = modelStore.rawJson;
     }
   });
 
@@ -22,9 +34,44 @@
     // Always update the raw JSON
     modelStore.loadFromJson(newJson);
 
+    // Track unsaved changes
+    hasUnsavedChanges = newJson !== originalJson;
+    saveError = null;
+    saveSuccess = false;
+
     // Rebuild slices if model is valid
     if (modelStore.model && validationResult.valid) {
       modelStore.updateSlices(buildSliceViewModel(modelStore.model));
+    }
+  }
+
+  async function saveModel() {
+    if (!hasUnsavedChanges || isSaving || !validationResult.valid) return;
+
+    isSaving = true;
+    saveError = null;
+    saveSuccess = false;
+
+    try {
+      const res = await fetch('/api/model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: modelStore.rawJson,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        saveError = data.error || 'Failed to save';
+      } else {
+        originalJson = modelStore.rawJson;
+        hasUnsavedChanges = false;
+        saveSuccess = true;
+        setTimeout(() => { saveSuccess = false; }, 2000);
+      }
+    } catch (e) {
+      saveError = e instanceof Error ? e.message : 'Network error';
+    } finally {
+      isSaving = false;
     }
   }
 
@@ -62,6 +109,24 @@
     </div>
 
     <div class="toolbar-right">
+      {#if !modelStore.isPublicMode}
+        <button
+          class="btn btn-primary"
+          onclick={saveModel}
+          disabled={!hasUnsavedChanges || isSaving || !validationResult.valid}
+        >
+          {isSaving ? 'Saving...' : 'Save'}
+        </button>
+        {#if hasUnsavedChanges}
+          <span class="unsaved-indicator">Unsaved changes</span>
+        {/if}
+        {#if saveError}
+          <span class="save-error">{saveError}</span>
+        {/if}
+        {#if saveSuccess}
+          <span class="save-success">Saved!</span>
+        {/if}
+      {/if}
       <button class="btn" onclick={formatJson} title="Format JSON">
         Format
       </button>
@@ -121,7 +186,8 @@
 
   .toolbar-right {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .file-info {
@@ -142,9 +208,44 @@
     transition: border-color 0.15s, background-color 0.15s;
   }
 
-  .btn:hover {
+  .btn:hover:not(:disabled) {
     border-color: var(--text-tertiary);
     background: var(--bg-secondary);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--color-command, #3b82f6);
+    color: white;
+    border-color: var(--color-command, #3b82f6);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    opacity: 0.9;
+    background: var(--color-command, #3b82f6);
+    border-color: var(--color-command, #3b82f6);
+  }
+
+  .unsaved-indicator {
+    font-size: 0.75rem;
+    color: var(--color-event, #f59e0b);
+    font-weight: 500;
+  }
+
+  .save-error {
+    font-size: 0.75rem;
+    color: #dc2626;
+    font-weight: 500;
+  }
+
+  .save-success {
+    font-size: 0.75rem;
+    color: #16a34a;
+    font-weight: 500;
   }
 
   .editor-wrapper {

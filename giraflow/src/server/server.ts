@@ -151,8 +151,8 @@ export function createServer(options: ServerOptions): {
       return;
     }
 
-    // API endpoint for model data
-    if (url.pathname === '/api/model') {
+    // API endpoint for model data (GET)
+    if (url.pathname === '/api/model' && req.method === 'GET') {
       res.writeHead(200, {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
@@ -165,6 +165,37 @@ export function createServer(options: ServerOptions): {
           watchedFile: path.basename(filePath),
         })
       );
+      return;
+    }
+
+    // API endpoint for saving model (POST)
+    if (url.pathname === '/api/model' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          // Validate JSON
+          const model = JSON.parse(body);
+
+          // Write to file
+          fs.writeFileSync(filePath, JSON.stringify(model, null, 2), 'utf-8');
+
+          // Reload model
+          loadModel();
+
+          res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          });
+          res.end(JSON.stringify({ success: true }));
+        } catch (err) {
+          res.writeHead(400, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          });
+          res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Invalid JSON' }));
+        }
+      });
       return;
     }
 

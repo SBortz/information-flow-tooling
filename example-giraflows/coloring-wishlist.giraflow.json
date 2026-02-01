@@ -22,43 +22,74 @@
       "type": "state",
       "name": "ColoringPictureLibrary",
       "tick": 15,
-      "sourcedFrom": ["ImageApproved", "ImageCategorized", "ImageViewed", "ImageDownloaded"],
+      "sourcedFrom": [
+        "ImageApproved",
+        "ImageCategorized",
+        "ImageViewed",
+        "ImageDownloaded"
+      ],
       "example": {
         "images": [
           {
             "imageId": "img-047",
             "title": "Friendly Dinosaur Party",
             "thumbnailUrl": "/images/img-047-thumb.png",
-            "tags": ["Animals", "Dinosaurs", "Party"],
+            "tags": [
+              "Animals",
+              "Dinosaurs",
+              "Party"
+            ],
             "viewCount": 234
           },
           {
             "imageId": "img-042",
             "title": "Magical Rainbow Unicorn",
             "thumbnailUrl": "/images/img-042-thumb.png",
-            "tags": ["Fantasy", "Unicorn", "Rainbow"],
+            "tags": [
+              "Fantasy",
+              "Unicorn",
+              "Rainbow"
+            ],
             "viewCount": 567
           },
           {
             "imageId": "img-038",
             "title": "Princess Castle",
             "thumbnailUrl": "/images/img-038-thumb.png",
-            "tags": ["Fantasy", "Castle", "Princess"],
+            "tags": [
+              "Fantasy",
+              "Castle",
+              "Princess"
+            ],
             "viewCount": 678
           }
         ],
         "totalCount": 156,
-        "availableTags": ["Animals", "Fantasy", "Space", "Nature", "Vehicles", "Dinosaurs", "Unicorn", "Party"]
+        "availableTags": [
+          "Animals",
+          "Fantasy",
+          "Space",
+          "Nature",
+          "Vehicles",
+          "Dinosaurs",
+          "Unicorn",
+          "Party"
+        ]
       }
     },
     {
       "type": "actor",
       "name": "Kid",
       "tick": 20,
-      "readsView": ["WishSubmissionForm", "ColoringPictureLibrary"],
+      "readsView": [
+        "WishSubmissionForm",
+        "ColoringPictureLibrary"
+      ],
       "sendsCommand": "SubmitWish",
       "role": "Kid",
-      "wireframes": ["wireframes/kid-wish-submission-20.html"]
+      "wireframes": [
+        "wireframes/kid-wish-submission-20.html"
+      ]
     },
     {
       "type": "command",
@@ -85,7 +116,9 @@
       "type": "state",
       "name": "PendingWishes",
       "tick": 50,
-      "sourcedFrom": ["WishSubmitted"],
+      "sourcedFrom": [
+        "WishSubmitted"
+      ],
       "example": {
         "wishes": [
           {
@@ -111,7 +144,9 @@
       "readsView": "PendingWishes",
       "sendsCommand": "ApproveWish",
       "role": "Admin",
-      "wireframes": ["wireframes/admin-pending-wishes-60.html"]
+      "wireframes": [
+        "wireframes/admin-pending-wishes-60.html"
+      ]
     },
     {
       "type": "command",
@@ -169,7 +204,9 @@
       "type": "state",
       "name": "PendingWishRejectionNotifications",
       "tick": 120,
-      "sourcedFrom": ["WishRejected"],
+      "sourcedFrom": [
+        "WishRejected"
+      ],
       "example": {
         "notifications": [
           {
@@ -214,7 +251,11 @@
       "type": "state",
       "name": "GenerationQueue",
       "tick": 160,
-      "sourcedFrom": ["WishApproved", "RegenerationRequested", "PromptAdjustedAndRegenerationRequested"],
+      "sourcedFrom": [
+        "WishApproved",
+        "RegenerationRequested",
+        "PromptAdjustedAndRegenerationRequested"
+      ],
       "example": {
         "queue": [
           {
@@ -256,7 +297,10 @@
       "type": "state",
       "name": "ImagesCurrentlyGenerating",
       "tick": 176,
-      "sourcedFrom": ["ImageGenerationStarted", "ImageGenerated"],
+      "sourcedFrom": [
+        "ImageGenerationStarted",
+        "ImageGenerated"
+      ],
       "example": {
         "images": [
           {
@@ -311,7 +355,10 @@
       "type": "state",
       "name": "ImagesToStore",
       "tick": 192,
-      "sourcedFrom": ["ImageGenerated", "ImageStoredLocally"],
+      "sourcedFrom": [
+        "ImageGenerated",
+        "ImageStoredLocally"
+      ],
       "example": {
         "images": [
           {
@@ -349,7 +396,9 @@
       "type": "state",
       "name": "PendingImages",
       "tick": 200,
-      "sourcedFrom": ["ImageStoredLocally"],
+      "sourcedFrom": [
+        "ImageStoredLocally"
+      ],
       "example": {
         "images": [
           {
@@ -379,7 +428,9 @@
       "readsView": "PendingImages",
       "sendsCommand": "ApproveImage",
       "role": "Admin",
-      "wireframes": ["wireframes/admin-pending-images-210.html"]
+      "wireframes": [
+        "wireframes/admin-pending-images-210.html"
+      ]
     },
     {
       "type": "command",
@@ -501,7 +552,9 @@
       "type": "state",
       "name": "PendingImageRejectionNotifications",
       "tick": 300,
-      "sourcedFrom": ["ImagePermanentlyRejected"],
+      "sourcedFrom": [
+        "ImagePermanentlyRejected"
+      ],
       "example": {
         "notifications": [
           {
@@ -549,7 +602,9 @@
       "type": "state",
       "name": "PendingCategorization",
       "tick": 340,
-      "sourcedFrom": ["ImageApproved"],
+      "sourcedFrom": [
+        "ImageApproved"
+      ],
       "example": {
         "images": [
           {
@@ -588,7 +643,12 @@
       "example": {
         "imageId": "img-047",
         "title": "Friendly Dinosaur Party",
-        "tags": ["Animals", "Dinosaurs", "Party", "Birthday"],
+        "tags": [
+          "Animals",
+          "Dinosaurs",
+          "Party",
+          "Birthday"
+        ],
         "categorizedAt": "2026-01-29T10:26:00Z"
       }
     },
@@ -596,7 +656,9 @@
       "type": "state",
       "name": "PendingSuccessNotifications",
       "tick": 380,
-      "sourcedFrom": ["ImageCategorized"],
+      "sourcedFrom": [
+        "ImageCategorized"
+      ],
       "example": {
         "notifications": [
           {
@@ -644,7 +706,12 @@
       "type": "state",
       "name": "ColoringPictureLibrary",
       "tick": 420,
-      "sourcedFrom": ["ImageApproved", "ImageCategorized", "ImageViewed", "ImageDownloaded"],
+      "sourcedFrom": [
+        "ImageApproved",
+        "ImageCategorized",
+        "ImageViewed",
+        "ImageDownloaded"
+      ],
       "example": {
         "images": [
           {
@@ -652,7 +719,12 @@
             "title": "Friendly Dinosaur Party",
             "imageUrl": "/images/img-047.png",
             "thumbnailUrl": "/images/img-047-thumb.png",
-            "tags": ["Animals", "Dinosaurs", "Party", "Birthday"],
+            "tags": [
+              "Animals",
+              "Dinosaurs",
+              "Party",
+              "Birthday"
+            ],
             "viewCount": 234,
             "downloadCount": 89,
             "publishedAt": "2026-01-29T10:26:00Z"
@@ -662,7 +734,12 @@
             "title": "Magical Rainbow Unicorn",
             "imageUrl": "/images/img-042.png",
             "thumbnailUrl": "/images/img-042-thumb.png",
-            "tags": ["Fantasy", "Animals", "Unicorn", "Rainbow"],
+            "tags": [
+              "Fantasy",
+              "Animals",
+              "Unicorn",
+              "Rainbow"
+            ],
             "viewCount": 567,
             "downloadCount": 312,
             "publishedAt": "2026-01-29T05:00:00Z"
@@ -672,14 +749,29 @@
             "title": "Princess Castle",
             "imageUrl": "/images/img-038.png",
             "thumbnailUrl": "/images/img-038-thumb.png",
-            "tags": ["Fantasy", "Castle", "Princess"],
+            "tags": [
+              "Fantasy",
+              "Castle",
+              "Princess"
+            ],
             "viewCount": 678,
             "downloadCount": 423,
             "publishedAt": "2026-01-26T14:00:00Z"
           }
         ],
         "totalCount": 156,
-        "availableTags": ["Animals", "Fantasy", "Space", "Nature", "Vehicles", "Food", "Sports", "Dinosaurs", "Unicorn", "Party"]
+        "availableTags": [
+          "Animals",
+          "Fantasy",
+          "Space",
+          "Nature",
+          "Vehicles",
+          "Food",
+          "Sports",
+          "Dinosaurs",
+          "Unicorn",
+          "Party"
+        ]
       }
     },
     {
@@ -689,7 +781,9 @@
       "readsView": "ColoringPictureLibrary",
       "sendsCommand": "ViewImage",
       "role": "Kid",
-      "wireframes": ["wireframes/kid-library-430.html"]
+      "wireframes": [
+        "wireframes/kid-library-430.html"
+      ]
     },
     {
       "type": "command",
@@ -713,21 +807,41 @@
       "type": "state",
       "name": "ImageDetail",
       "tick": 460,
-      "sourcedFrom": ["ImageApproved", "ImageCategorized"],
+      "sourcedFrom": [
+        "ImageApproved",
+        "ImageCategorized"
+      ],
       "example": {
         "imageId": "img-047",
         "title": "Friendly Dinosaur Party",
         "imageUrl": "/images/img-047.png",
         "printUrl": "/images/img-047-print.png",
-        "tags": ["Animals", "Dinosaurs", "Party", "Birthday"],
+        "tags": [
+          "Animals",
+          "Dinosaurs",
+          "Party",
+          "Birthday"
+        ],
         "originalPrompt": "A big friendly dinosaur wearing a birthday hat, surrounded by balloons and cake",
         "viewCount": 234,
         "downloadCount": 89,
         "publishedAt": "2026-01-29T10:26:00Z",
         "relatedImages": [
-          { "imageId": "img-031", "title": "Dinosaur Adventure", "thumbnailUrl": "/images/img-031-thumb.png" },
-          { "imageId": "img-025", "title": "Birthday Cake Party", "thumbnailUrl": "/images/img-025-thumb.png" },
-          { "imageId": "img-019", "title": "Friendly T-Rex", "thumbnailUrl": "/images/img-019-thumb.png" }
+          {
+            "imageId": "img-031",
+            "title": "Dinosaur Adventure",
+            "thumbnailUrl": "/images/img-031-thumb.png"
+          },
+          {
+            "imageId": "img-025",
+            "title": "Birthday Cake Party",
+            "thumbnailUrl": "/images/img-025-thumb.png"
+          },
+          {
+            "imageId": "img-019",
+            "title": "Friendly T-Rex",
+            "thumbnailUrl": "/images/img-019-thumb.png"
+          }
         ]
       }
     },
@@ -738,7 +852,9 @@
       "readsView": "ImageDetail",
       "sendsCommand": "DownloadImage",
       "role": "Kid",
-      "wireframes": ["wireframes/kid-image-detail-470.html"]
+      "wireframes": [
+        "wireframes/kid-image-detail-470.html"
+      ]
     },
     {
       "type": "command",
@@ -759,7 +875,6 @@
       }
     }
   ],
-
   "specifications": [
     {
       "name": "SubmitWish",
@@ -826,7 +941,6 @@
         }
       ]
     },
-
     {
       "name": "ApproveWish",
       "type": "command",
@@ -918,7 +1032,6 @@
         }
       ]
     },
-
     {
       "name": "RejectWish",
       "type": "command",
@@ -1003,7 +1116,6 @@
         }
       ]
     },
-
     {
       "name": "ApproveImage",
       "type": "command",
@@ -1070,7 +1182,6 @@
         }
       ]
     },
-
     {
       "name": "RequestRegeneration",
       "type": "command",
@@ -1157,7 +1268,6 @@
         }
       ]
     },
-
     {
       "name": "AdjustPromptAndRegenerate",
       "type": "command",
@@ -1219,7 +1329,6 @@
         }
       ]
     },
-
     {
       "name": "RejectImagePermanently",
       "type": "command",
@@ -1276,7 +1385,6 @@
         }
       ]
     },
-
     {
       "name": "CategorizeImage",
       "type": "command",
@@ -1314,7 +1422,12 @@
                   "data": {
                     "imageId": "img-701",
                     "title": "Dinosaur Astronaut on Mars",
-                    "tags": ["Animals", "Dinosaurs", "Space", "Planets"],
+                    "tags": [
+                      "Animals",
+                      "Dinosaurs",
+                      "Space",
+                      "Planets"
+                    ],
                     "categorizedAt": "2026-01-29T10:01:00Z"
                   }
                 }
@@ -1324,7 +1437,6 @@
         }
       ]
     },
-
     {
       "name": "SendSuccessNotification",
       "type": "command",
@@ -1340,7 +1452,10 @@
                   "data": {
                     "imageId": "img-801",
                     "title": "Happy Puppy",
-                    "tags": ["Animals", "Dogs"],
+                    "tags": [
+                      "Animals",
+                      "Dogs"
+                    ],
                     "categorizedAt": "2026-01-29T10:00:00Z"
                   }
                 }
@@ -1379,7 +1494,10 @@
                   "data": {
                     "imageId": "img-802",
                     "title": "Sleepy Cat",
-                    "tags": ["Animals", "Cats"],
+                    "tags": [
+                      "Animals",
+                      "Cats"
+                    ],
                     "categorizedAt": "2026-01-29T10:00:00Z"
                   }
                 }
@@ -1399,7 +1517,6 @@
         }
       ]
     },
-
     {
       "name": "PendingWishes",
       "type": "state",
@@ -1502,7 +1619,6 @@
         }
       ]
     },
-
     {
       "name": "GenerationQueue",
       "type": "state",
@@ -1602,7 +1718,6 @@
         }
       ]
     },
-
     {
       "name": "ColoringPictureLibrary",
       "type": "state",
@@ -1650,7 +1765,11 @@
                 "data": {
                   "imageId": "img-1101",
                   "title": "Superhero Dog",
-                  "tags": ["Animals", "Dogs", "Superheroes"],
+                  "tags": [
+                    "Animals",
+                    "Dogs",
+                    "Superheroes"
+                  ],
                   "categorizedAt": "2026-01-29T10:01:00Z"
                 }
               },
@@ -1660,14 +1779,22 @@
                     "imageId": "img-1101",
                     "title": "Superhero Dog",
                     "imageUrl": "/images/img-1101.png",
-                    "tags": ["Animals", "Dogs", "Superheroes"],
+                    "tags": [
+                      "Animals",
+                      "Dogs",
+                      "Superheroes"
+                    ],
                     "viewCount": 0,
                     "downloadCount": 0,
                     "publishedAt": "2026-01-29T10:00:00Z"
                   }
                 ],
                 "totalCount": 1,
-                "availableTags": ["Animals", "Dogs", "Superheroes"]
+                "availableTags": [
+                  "Animals",
+                  "Dogs",
+                  "Superheroes"
+                ]
               }
             }
           ]
@@ -1680,14 +1807,20 @@
                 "imageId": "img-1102",
                 "title": "Racing Car",
                 "imageUrl": "/images/img-1102.png",
-                "tags": ["Vehicles", "Cars"],
+                "tags": [
+                  "Vehicles",
+                  "Cars"
+                ],
                 "viewCount": 10,
                 "downloadCount": 5,
                 "publishedAt": "2026-01-28T10:00:00Z"
               }
             ],
             "totalCount": 1,
-            "availableTags": ["Vehicles", "Cars"]
+            "availableTags": [
+              "Vehicles",
+              "Cars"
+            ]
           },
           "steps": [
             {
@@ -1704,14 +1837,20 @@
                     "imageId": "img-1102",
                     "title": "Racing Car",
                     "imageUrl": "/images/img-1102.png",
-                    "tags": ["Vehicles", "Cars"],
+                    "tags": [
+                      "Vehicles",
+                      "Cars"
+                    ],
                     "viewCount": 11,
                     "downloadCount": 5,
                     "publishedAt": "2026-01-28T10:00:00Z"
                   }
                 ],
                 "totalCount": 1,
-                "availableTags": ["Vehicles", "Cars"]
+                "availableTags": [
+                  "Vehicles",
+                  "Cars"
+                ]
               }
             }
           ]
@@ -1724,14 +1863,20 @@
                 "imageId": "img-1103",
                 "title": "Space Rocket",
                 "imageUrl": "/images/img-1103.png",
-                "tags": ["Space", "Vehicles"],
+                "tags": [
+                  "Space",
+                  "Vehicles"
+                ],
                 "viewCount": 50,
                 "downloadCount": 20,
                 "publishedAt": "2026-01-27T10:00:00Z"
               }
             ],
             "totalCount": 1,
-            "availableTags": ["Space", "Vehicles"]
+            "availableTags": [
+              "Space",
+              "Vehicles"
+            ]
           },
           "steps": [
             {
@@ -1748,21 +1893,26 @@
                     "imageId": "img-1103",
                     "title": "Space Rocket",
                     "imageUrl": "/images/img-1103.png",
-                    "tags": ["Space", "Vehicles"],
+                    "tags": [
+                      "Space",
+                      "Vehicles"
+                    ],
                     "viewCount": 50,
                     "downloadCount": 21,
                     "publishedAt": "2026-01-27T10:00:00Z"
                   }
                 ],
                 "totalCount": 1,
-                "availableTags": ["Space", "Vehicles"]
+                "availableTags": [
+                  "Space",
+                  "Vehicles"
+                ]
               }
             }
           ]
         }
       ]
     },
-
     {
       "name": "PendingImages",
       "type": "state",
@@ -1875,7 +2025,6 @@
         }
       ]
     },
-
     {
       "name": "ImagesCurrentlyGenerating",
       "type": "state",
