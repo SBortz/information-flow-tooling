@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { wireframeReloadSignal } from "../../stores/model.svelte";
+  import { wireframeReloadSignal, modelStore } from "../../stores/model.svelte";
   import hljs from "highlight.js/lib/core";
   import xml from "highlight.js/lib/languages/xml";
+  import HtmlEditor from "../editor/HtmlEditor.svelte";
 
   // Register HTML/XML language
   hljs.registerLanguage("xml", xml);
@@ -14,11 +15,22 @@
 
   let showCode = $state(false);
   let code = $state("");
+  let editedCode = $state("");
   let highlightedCode = $state("");
   let loading = $state(false);
+  let hasUnsavedChanges = $state(false);
+  let isSaving = $state(false);
+  let saveError = $state<string | null>(null);
+  let saveSuccess = $state(false);
 
-  // Extract filename from src path
-  let filename = $derived(src.split("/").pop() || src);
+  // Extract filename for display
+  let displayFilename = $derived(src.split("/").pop() || src);
+
+  // Extract relative path within wireframes folder (for API calls)
+  // src is like "/wireframes/subdir/file.html" - we need "subdir/file.html"
+  let relativePath = $derived(
+    src.startsWith("/wireframes/") ? src.slice("/wireframes/".length) : src.split("/").pop() || src
+  );
 
   // Add cache-buster query param to force fresh load
   let cacheBustedSrc = $derived(
@@ -33,12 +45,53 @@
     try {
       const res = await fetch(cacheBustedSrc);
       code = await res.text();
+      editedCode = code;
+      hasUnsavedChanges = false;
       highlightedCode = hljs.highlight(code, { language: "xml" }).value;
     } catch (e) {
       code = "// Failed to load source";
+      editedCode = code;
       highlightedCode = code;
     }
     loading = false;
+  }
+
+  function handleCodeChange(newCode: string) {
+    editedCode = newCode;
+    hasUnsavedChanges = editedCode !== code;
+    saveError = null;
+    saveSuccess = false;
+  }
+
+  async function saveWireframe() {
+    if (!hasUnsavedChanges || isSaving) return;
+
+    isSaving = true;
+    saveError = null;
+    saveSuccess = false;
+
+    try {
+      const res = await fetch('/api/wireframe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: relativePath, content: editedCode }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        saveError = data.error || 'Failed to save';
+      } else {
+        code = editedCode;
+        hasUnsavedChanges = false;
+        saveSuccess = true;
+        // Clear success message after 2 seconds
+        setTimeout(() => { saveSuccess = false; }, 2000);
+      }
+    } catch (e) {
+      saveError = e instanceof Error ? e.message : 'Network error';
+    } finally {
+      isSaving = false;
+    }
   }
 
   // Reload code when wireframe changes
@@ -52,7 +105,7 @@
 <div class="wireframe-container">
   <div class="wireframe-header">
     <div class="wireframe-label">
-      <span class="wireframe-filename">{filename}</span>
+      <span class="wireframe-filename">{displayFilename}</span>
     </div>
     <label class="toggle-switch">
       <span class="toggle-label">Preview</span>
@@ -70,6 +123,29 @@
     <div class="code-view">
       {#if loading}
         <span class="loading">Loading...</span>
+      {:else if !modelStore.isPublicMode}
+        <div class="code-toolbar">
+          <button
+            class="save-button"
+            onclick={saveWireframe}
+            disabled={!hasUnsavedChanges || isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
+          {#if hasUnsavedChanges}
+            <span class="unsaved-indicator">Unsaved changes</span>
+          {/if}
+          {#if saveError}
+            <span class="save-error">{saveError}</span>
+          {/if}
+          {#if saveSuccess}
+            <span class="save-success">Saved!</span>
+          {/if}
+          <span class="save-hint">Ctrl+S to save</span>
+        </div>
+        <div class="editor-wrapper">
+          <HtmlEditor value={editedCode} onChange={handleCodeChange} onSave={saveWireframe} />
+        </div>
       {:else}
         <pre><code>{@html highlightedCode}</code></pre>
       {/if}
@@ -168,6 +244,69 @@
     overflow: auto;
     background: var(--bg-card, #fafafa);
     border-top: 1px solid var(--border, #eee);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .code-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary, #f0f0f0);
+    border-bottom: 1px solid var(--border, #ddd);
+    flex-shrink: 0;
+  }
+
+  .save-button {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid var(--border, #ccc);
+    border-radius: 4px;
+    background: var(--color-command, #3b82f6);
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .save-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .save-button:not(:disabled):hover {
+    opacity: 0.9;
+  }
+
+  .unsaved-indicator {
+    font-size: 0.75rem;
+    color: var(--color-event, #f59e0b);
+    font-weight: 500;
+  }
+
+  .save-error {
+    font-size: 0.75rem;
+    color: #dc2626;
+    font-weight: 500;
+  }
+
+  .save-success {
+    font-size: 0.75rem;
+    color: #16a34a;
+    font-weight: 500;
+  }
+
+  .save-hint {
+    font-size: 0.7rem;
+    color: var(--text-tertiary, #999);
+    margin-left: auto;
+  }
+
+  .editor-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .code-view pre {

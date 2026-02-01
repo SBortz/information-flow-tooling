@@ -179,6 +179,57 @@ export function createServer(options: ServerOptions): {
       return;
     }
 
+    // API endpoint for saving wireframes
+    if (url.pathname === '/api/wireframe' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const { filename, content } = JSON.parse(body);
+
+          // Validate filename: no directory traversal, must be .html
+          if (!filename || typeof filename !== 'string' ||
+              filename.includes('..') || filename.includes('\\') ||
+              !filename.endsWith('.html')) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid filename' }));
+            return;
+          }
+
+          // Asset folder is the giraflow file path without .json extension
+          const giraflowDir = filePath.replace(/\.json$/, '');
+          const targetPath = path.join(giraflowDir, filename);
+
+          // Security: ensure the resolved path is within the giraflow dir
+          const resolvedGiraflowDir = path.resolve(giraflowDir);
+          const resolvedTargetPath = path.resolve(targetPath);
+          if (!resolvedTargetPath.startsWith(resolvedGiraflowDir + path.sep)) {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Forbidden' }));
+            return;
+          }
+
+          // File must already exist (no creating new files)
+          if (!fs.existsSync(resolvedTargetPath)) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'File not found' }));
+            return;
+          }
+
+          // Write the file
+          fs.writeFileSync(resolvedTargetPath, content, 'utf-8');
+          triggerWireframeReload();
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true }));
+        } catch {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid request' }));
+        }
+      });
+      return;
+    }
+
     // In development mode, let Vite handle everything except API/events
     if (isDev) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });

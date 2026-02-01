@@ -36,6 +36,7 @@
   "author": "Sebastian Bortz <sebastianbortz@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@codemirror/lang-html": "^6.4.11",
     "@codemirror/lang-json": "^6.0.2",
     "@inquirer/prompts": "^7.2.0",
     "ajv": "^8.17.1",

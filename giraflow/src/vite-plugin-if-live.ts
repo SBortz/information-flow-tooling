@@ -256,6 +256,56 @@ export function ifLivePlugin(): Plugin {
           return;
         }
 
+        if (req.url === '/api/wireframe' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', () => {
+            try {
+              const { filename, content } = JSON.parse(body);
+
+              // Validate filename: no directory traversal, must be .html
+              if (!filename || typeof filename !== 'string' ||
+                  filename.includes('..') || filename.includes('\\') ||
+                  !filename.endsWith('.html')) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Invalid filename' }));
+                return;
+              }
+
+              // Asset folder is the giraflow file path without .json extension
+              const giraflowDir = filePath!.replace(/\.json$/, '');
+              const targetPath = path.join(giraflowDir, filename);
+
+              // Security: ensure the resolved path is within the giraflow dir
+              const resolvedGiraflowDir = path.resolve(giraflowDir);
+              const resolvedTargetPath = path.resolve(targetPath);
+              if (!resolvedTargetPath.startsWith(resolvedGiraflowDir + path.sep)) {
+                res.writeHead(403, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Forbidden' }));
+                return;
+              }
+
+              // File must already exist (no creating new files)
+              if (!fs.existsSync(resolvedTargetPath)) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'File not found' }));
+                return;
+              }
+
+              // Write the file
+              fs.writeFileSync(resolvedTargetPath, content, 'utf-8');
+
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true }));
+              // The watcher will automatically trigger a wireframe reload
+            } catch {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Invalid request' }));
+            }
+          });
+          return;
+        }
+
         if (req.url?.startsWith('/attachments/')) {
           const relativePath = decodeURIComponent(req.url.slice('/attachments/'.length));
           const absolutePath = path.resolve(fileDir, relativePath);
