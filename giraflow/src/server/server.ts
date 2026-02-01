@@ -9,8 +9,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export interface ServerOptions {
-  filePath: string;
+  filePath: string | null;
   port: number;
+  workingDir: string;
 }
 
 const MIME_TYPES: Record<string, string> = {
@@ -30,8 +31,11 @@ export function createServer(options: ServerOptions): {
   stop: () => void;
   triggerReload: () => void;
   triggerWireframeReload: () => void;
+  setFilePath: (newPath: string) => void;
+  getFilePath: () => string | null;
 } {
-  const { filePath, port } = options;
+  const { port, workingDir } = options;
+  let filePath = options.filePath;
   const clients = new Set<http.ServerResponse>();
 
   let currentModel: GiraflowModel | null = null;
@@ -44,7 +48,7 @@ export function createServer(options: ServerOptions): {
   const isDev = !fs.existsSync(clientDistPath);
 
   function writeSlicesJson(): void {
-    if (!currentSlices) return;
+    if (!currentSlices || !filePath) return;
     // Asset folder: hotel.giraflow.json → hotel.giraflow/slices.json
     const giraflowDir = filePath.replace(/\.json$/i, '');
     if (!fs.existsSync(giraflowDir)) {
@@ -55,6 +59,13 @@ export function createServer(options: ServerOptions): {
   }
 
   function loadModel(): void {
+    if (!filePath) {
+      currentModel = null;
+      currentSlices = null;
+      currentError = null;
+      return;
+    }
+
     try {
       const content = fs.readFileSync(filePath, 'utf-8');
       currentModel = JSON.parse(content) as GiraflowModel;
@@ -71,8 +82,15 @@ export function createServer(options: ServerOptions): {
     }
   }
 
+  function findGiraflowFiles(): string[] {
+    const files = fs.readdirSync(workingDir);
+    return files.filter(f => f.endsWith('.giraflow.json')).sort();
+  }
+
   // Initial load
-  loadModel();
+  if (filePath) {
+    loadModel();
+  }
 
   function triggerReload(): void {
     loadModel();
@@ -129,6 +147,12 @@ export function createServer(options: ServerOptions): {
 
     // Wireframe assets endpoint (renamed to avoid conflict with Vite's /assets/)
     if (url.pathname.startsWith('/wireframes/')) {
+      if (!filePath) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('No file selected');
+        return;
+      }
+
       // pathname already excludes query string
       const assetName = decodeURIComponent(url.pathname.slice('/wireframes/'.length));
       // Compute asset folder from giraflow file path (remove .json extension)
@@ -162,14 +186,70 @@ export function createServer(options: ServerOptions): {
         JSON.stringify({
           model: currentModel,
           error: currentError,
-          watchedFile: path.basename(filePath),
+          watchedFile: filePath ? path.basename(filePath) : '',
+          availableFiles: findGiraflowFiles(),
         })
       );
       return;
     }
 
+    // API endpoint for selecting a file
+    if (url.pathname === '/api/select-file' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const { file } = JSON.parse(body);
+          if (!file || typeof file !== 'string') {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'File is required' }));
+            return;
+          }
+
+          const newFilePath = path.resolve(workingDir, file);
+
+          // Security: ensure the file is in the working directory
+          if (!newFilePath.startsWith(path.resolve(workingDir) + path.sep)) {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Forbidden' }));
+            return;
+          }
+
+          if (!fs.existsSync(newFilePath)) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'File not found' }));
+            return;
+          }
+
+          filePath = newFilePath;
+          loadModel();
+
+          res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          });
+          res.end(JSON.stringify({ success: true }));
+
+          // Notify clients to reload
+          for (const client of clients) {
+            client.write('data: reload\n\n');
+          }
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Invalid request' }));
+        }
+      });
+      return;
+    }
+
     // API endpoint for saving model (POST)
     if (url.pathname === '/api/model' && req.method === 'POST') {
+      if (!filePath) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'No file selected' }));
+        return;
+      }
+
       let body = '';
       req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
       req.on('end', () => {
@@ -178,7 +258,7 @@ export function createServer(options: ServerOptions): {
           const model = JSON.parse(body);
 
           // Write to file
-          fs.writeFileSync(filePath, JSON.stringify(model, null, 2), 'utf-8');
+          fs.writeFileSync(filePath!, JSON.stringify(model, null, 2), 'utf-8');
 
           // Reload model
           loadModel();
@@ -227,8 +307,7 @@ export function createServer(options: ServerOptions): {
           }
 
           const fileName = `${sanitized}.giraflow.json`;
-          const fileDir = path.dirname(filePath);
-          const newFilePath = path.resolve(fileDir, fileName);
+          const newFilePath = path.resolve(workingDir, fileName);
 
           // Check if file already exists
           if (fs.existsSync(newFilePath)) {
@@ -306,6 +385,12 @@ export function createServer(options: ServerOptions): {
 
     // API endpoint for saving wireframes
     if (url.pathname === '/api/wireframe' && req.method === 'POST') {
+      if (!filePath) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'No file selected' }));
+        return;
+      }
+
       let body = '';
       req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
       req.on('end', () => {
@@ -322,7 +407,7 @@ export function createServer(options: ServerOptions): {
           }
 
           // Asset folder is the giraflow file path without .json extension
-          const giraflowDir = filePath.replace(/\.json$/, '');
+          const giraflowDir = filePath!.replace(/\.json$/, '');
           const targetPath = path.join(giraflowDir, filename);
 
           // Security: ensure the resolved path is within the giraflow dir
@@ -386,10 +471,14 @@ export function createServer(options: ServerOptions): {
   return {
     start: () => {
       server.listen(port, () => {
-        const fileName = path.basename(filePath);
         console.log(`\n  🦒 Giraflow`);
         console.log(`  ────────────────────────────────`);
-        console.log(`  Watching: ${fileName}`);
+        if (filePath) {
+          console.log(`  Watching: ${path.basename(filePath)}`);
+        } else {
+          console.log(`  No giraflow file found`);
+          console.log(`  Create one with: giraflow create`);
+        }
         console.log(`  Server:   http://localhost:${port}`);
         if (isDev) {
           console.log(`  Mode:     Development (use Vite on port 5173)`);
@@ -405,5 +494,10 @@ export function createServer(options: ServerOptions): {
     },
     triggerReload,
     triggerWireframeReload,
+    setFilePath: (newPath: string) => {
+      filePath = newPath;
+      loadModel();
+    },
+    getFilePath: () => filePath,
   };
 }

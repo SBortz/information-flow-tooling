@@ -57,9 +57,10 @@ ${colors.dim('Symbol Legend:')}
 `);
 
 async function startServer(file?: string, options?: { port: string; open: boolean }): Promise<void> {
-  let filePath = file || '';
+  let filePath: string | null = file || null;
   const port = parseInt(options?.port || '4321', 10);
   const openBrowser = options?.open ?? true;
+  const workingDir = process.cwd();
 
   if (isNaN(port)) {
     console.error(`Invalid port: ${options?.port}`);
@@ -71,8 +72,8 @@ async function startServer(file?: string, options?: { port: string; open: boolea
     const giraflowFiles = findGiraflowFiles();
 
     if (giraflowFiles.length === 0) {
-      console.error('Error: No *.giraflow.json files found in current directory');
-      process.exit(1);
+      // No files found - start server without a file
+      filePath = null;
     } else if (giraflowFiles.length === 1) {
       filePath = path.resolve(giraflowFiles[0]);
     } else {
@@ -81,24 +82,29 @@ async function startServer(file?: string, options?: { port: string; open: boolea
   } else {
     // Resolve to absolute path
     filePath = path.resolve(filePath);
+
+    if (!fs.existsSync(filePath)) {
+      console.error(`Error: File not found: ${filePath}`);
+      process.exit(1);
+    }
   }
 
-  if (!fs.existsSync(filePath)) {
-    console.error(`Error: File not found: ${filePath}`);
-    process.exit(1);
-  }
+  const server = createServer({ filePath, port, workingDir });
 
-  const server = createServer({ filePath, port });
-  const watcher = createWatcher({
-    filePath,
-    onModelChange: () => server.triggerReload(),
-    onWireframeChange: () => server.triggerWireframeReload(),
-  });
+  // Only create watcher if we have a file
+  let watcher: ReturnType<typeof createWatcher> | null = null;
+  if (filePath) {
+    watcher = createWatcher({
+      filePath,
+      onModelChange: () => server.triggerReload(),
+      onWireframeChange: () => server.triggerWireframeReload(),
+    });
+  }
 
   // Handle graceful shutdown
   const shutdown = () => {
     console.log('\n  Shutting down...\n');
-    watcher.stop();
+    watcher?.stop();
     server.stop();
     process.exit(0);
   };
@@ -108,7 +114,7 @@ async function startServer(file?: string, options?: { port: string; open: boolea
 
   // Start services
   server.start();
-  watcher.start();
+  watcher?.start();
 
   // Open browser if requested
   if (openBrowser) {
