@@ -12,19 +12,31 @@
     <div class="step">
       <div class="step-number">1</div>
       <div class="step-content">
-        <h2>Download the Schema</h2>
+        <h2>Download the Schema & AI Instructions</h2>
         <p>
           Get the JSON Schema file to enable autocompletion and validation in your editor.
           Most modern editors (VS Code, IntelliJ, etc.) support JSON Schema for intelligent suggestions.
         </p>
-        <a
-          href="https://raw.githubusercontent.com/sebastianwessel/giraflow/main/giraflow.schema.json"
-          class="download-button"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Download giraflow.schema.json
-        </a>
+        <p>
+          The AI Instructions guide helps you understand how to design event models effectively
+          and can be used as context when working with AI assistants.
+        </p>
+        <div class="download-buttons">
+          <a
+            href="/giraflow.schema.json"
+            class="download-button"
+            download="giraflow.schema.json"
+          >
+            Download Schema
+          </a>
+          <a
+            href="/giraflow-ai-instructions.md"
+            class="download-button download-button-secondary"
+            download="giraflow-ai-instructions.md"
+          >
+            Download AI Instructions
+          </a>
+        </div>
       </div>
     </div>
 
@@ -239,6 +251,12 @@
     margin-bottom: 0.25rem;
   }
 
+  .download-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
   .download-button {
     display: inline-block;
     background: var(--color-command);
@@ -253,6 +271,16 @@
 
   .download-button:hover {
     opacity: 0.9;
+  }
+
+  .download-button-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+
+  .download-button-secondary:hover {
+    background: var(--bg-card);
   }
 
   .inline-link {

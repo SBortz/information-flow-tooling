@@ -1,22 +1,26 @@
 /**
- * Bundled example Giraflow models for public mode
- * Imports the actual JSON files from example-giraflows
+ * Dynamically loaded example Giraflow models for public mode.
+ * Uses Vite's import.meta.glob to automatically discover all examples.
  */
 
 import type { InformationFlowModel } from './types';
-
-// Import actual example files (Vite handles JSON imports)
-import simpleTodoApp from '../../../../example-giraflows/simple-todo-app.giraflow.json';
-import shoppingCart from '../../../../example-giraflows/shopping.giraflow.json';
-import coloringWishlist from '../../../../example-giraflows/coloring-wishlist.giraflow.json';
 
 export interface Example {
   id: string;
   name: string;
   description: string;
   model: InformationFlowModel;
+  /** Folder name in public/examples/ (without .giraflow suffix) */
+  folderName: string | null;
 }
 
+// Dynamically import all .giraflow.json files from example-giraflows
+const exampleModules = import.meta.glob<{ default: InformationFlowModel }>(
+  '../../../../example-giraflows/*.giraflow.json',
+  { eager: true }
+);
+
+// Empty template for creating new models
 const emptyTemplate: InformationFlowModel = {
   "$schema": "giraflow.schema.json",
   "name": "New Model",
@@ -54,30 +58,31 @@ const emptyTemplate: InformationFlowModel = {
   "specifications": []
 };
 
+// Build examples array from discovered modules
 export const examples: Example[] = [
-  {
-    id: 'simple-todo',
-    name: 'Simple Todo App',
-    description: 'A minimal todo app demonstrating basic event sourcing patterns',
-    model: simpleTodoApp as InformationFlowModel
-  },
-  {
-    id: 'shopping-cart',
-    name: 'Shopping Cart',
-    description: 'An event-sourced shopping cart with the decider pattern',
-    model: shoppingCart as InformationFlowModel
-  },
-  {
-    id: 'coloring-wishlist',
-    name: 'Coloring Picture Wishlist',
-    description: 'A complex workflow with moderation, AI generation, and notifications',
-    model: coloringWishlist as InformationFlowModel
-  },
+  // Dynamically discovered examples
+  ...Object.entries(exampleModules).map(([path, module]) => {
+    // Extract folder name from path: "../../../../example-giraflows/simple-todo-app.giraflow.json" -> "simple-todo-app"
+    const fileName = path.split('/').pop() || '';
+    const folderName = fileName.replace('.giraflow.json', '');
+    const model = module.default;
+
+    return {
+      id: folderName,
+      name: model.name || folderName,
+      description: model.description || '',
+      model,
+      folderName
+    };
+  }).sort((a, b) => a.name.localeCompare(b.name)),
+
+  // Empty template (always last)
   {
     id: 'empty-template',
     name: 'Empty Template',
     description: 'A blank template to start your own model',
-    model: emptyTemplate
+    model: emptyTemplate,
+    folderName: null
   }
 ];
 

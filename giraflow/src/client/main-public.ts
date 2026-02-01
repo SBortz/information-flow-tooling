@@ -10,6 +10,7 @@ modelStore.setPublicMode(true);
 
 // Load default example
 const defaultExample = getDefaultExample();
+modelStore.setCurrentExampleFolder(defaultExample.folderName);
 const json = JSON.stringify(defaultExample.model, null, 2);
 modelStore.loadFromJson(json);
 

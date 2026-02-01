@@ -473,7 +473,7 @@
               <div class="tl-wireframes">
                 {#each el.wireframes as wireframe}
                   <WireframeViewer
-                    src="/wireframes/{wireframe}"
+                    src={modelStore.getWireframePath(wireframe)}
                     title="{el.name} - {wireframe}"
                   />
                 {/each}

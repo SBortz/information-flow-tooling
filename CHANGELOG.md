@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2025-02-01
+
+### Added
+
+- **Public Website Mode**: Giraflow can now be hosted as a public website for sharing models without requiring local installation. Run with `npm run dev:public` or deploy the built public version.
+- **JSON Editor**: Integrated JSON editor for editing the model directly in the browser. In local mode, changes can be saved to the file. In public mode, changes are session-only.
+- **Editable Wireframes**: Wireframe HTML files can now be edited directly in the browser with a code editor. In local mode, changes are persisted to disk. In public mode, changes are session-only.
+- **Create New Wireframes**: When adding a new wireframe path in the JSON that doesn't exist yet, a default template is automatically shown. In local mode, clicking "Create" saves the new file to disk.
+- **Save Model to File**: The JSON editor now includes a "Save" button (local mode only) to persist changes directly to the `.giraflow.json` file.
+- **Image Support in Wireframes**: Wireframe viewers now support image files (PNG, JPG, GIF, SVG, WebP) in addition to HTML files.
+- **Extended Shopping example**: Generated wireframes for the shopping example.
+- **How-to Guide**: Added a how-to guide for how to use the giraflow tool in general.
+
+### Changed
+
+- **Removed `externalSource` field from schema**: This field is no longer necessary as the `system` field now handles external system references.
+
 ## [0.3.7] - 2025-01-30
 
 ### Changed

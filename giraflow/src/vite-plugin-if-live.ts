@@ -1,9 +1,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Plugin, ViteDevServer } from 'vite';
 import type { InformationFlowModel } from './server/types.js';
 import type { ServerResponse } from 'node:http';
 import { buildSliceViewModel, type SliceViewModel } from './shared/slice-builder.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html',
@@ -146,6 +150,41 @@ export function ifLivePlugin(): Plugin {
           if (req.url === '/' || req.url === '/index.html') {
             req.url = '/index-public.html';
           }
+
+          // Serve AI instructions in public mode too
+          if (req.url === '/api/ai-instructions') {
+            const aiInstructionsPath = path.join(__dirname, '..', 'giraflow-ai-instructions.md');
+            if (fs.existsSync(aiInstructionsPath)) {
+              const content = fs.readFileSync(aiInstructionsPath, 'utf-8');
+              res.writeHead(200, {
+                'Content-Type': 'text/markdown',
+                'Content-Disposition': 'attachment; filename="giraflow-ai-instructions.md"',
+              });
+              res.end(content);
+              return;
+            }
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('AI instructions not found');
+            return;
+          }
+
+          // Serve schema in public mode too
+          if (req.url === '/api/schema') {
+            const schemaPath = path.join(__dirname, '..', 'giraflow.schema.json');
+            if (fs.existsSync(schemaPath)) {
+              const content = fs.readFileSync(schemaPath, 'utf-8');
+              res.writeHead(200, {
+                'Content-Type': 'application/json',
+                'Content-Disposition': 'attachment; filename="giraflow.schema.json"',
+              });
+              res.end(content);
+              return;
+            }
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('Schema not found');
+            return;
+          }
+
           next();
         });
         return;
@@ -283,6 +322,38 @@ export function ifLivePlugin(): Plugin {
             'Cache-Control': 'no-cache',
           });
           res.end(JSON.stringify(currentSlices));
+          return;
+        }
+
+        if (req.url === '/api/ai-instructions') {
+          const aiInstructionsPath = path.join(__dirname, '..', 'giraflow-ai-instructions.md');
+          if (fs.existsSync(aiInstructionsPath)) {
+            const content = fs.readFileSync(aiInstructionsPath, 'utf-8');
+            res.writeHead(200, {
+              'Content-Type': 'text/markdown',
+              'Content-Disposition': 'attachment; filename="giraflow-ai-instructions.md"',
+            });
+            res.end(content);
+            return;
+          }
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          res.end('AI instructions not found');
+          return;
+        }
+
+        if (req.url === '/api/schema') {
+          const schemaPath = path.join(__dirname, '..', 'giraflow.schema.json');
+          if (fs.existsSync(schemaPath)) {
+            const content = fs.readFileSync(schemaPath, 'utf-8');
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Content-Disposition': 'attachment; filename="giraflow.schema.json"',
+            });
+            res.end(content);
+            return;
+          }
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          res.end('Schema not found');
           return;
         }
 

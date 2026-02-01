@@ -33,8 +33,7 @@
       "sendsCommand": "AddItemCommand",
       "role": "Customer",
       "wireframes": [
-        "wireframes/customer-inventory-3.html",
-        "wireframes/customer-inventory-4.html"
+        "wireframes/customer-inventory-3.html"
       ]
     },
     {

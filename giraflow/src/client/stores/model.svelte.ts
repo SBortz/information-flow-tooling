@@ -16,6 +16,9 @@ class ModelStore {
   isPublicMode = $state(false);
   jsonError = $state<string | null>(null);
 
+  // Current example folder (for wireframe paths in public mode)
+  currentExampleFolder = $state<string | null>(null);
+
   // Wireframe edits (session-only, for public mode)
   editedWireframes = $state<Map<string, string>>(new Map());
 
@@ -200,6 +203,22 @@ class ModelStore {
 
   setPublicMode(isPublic: boolean) {
     this.isPublicMode = isPublic;
+  }
+
+  setCurrentExampleFolder(folder: string | null) {
+    this.currentExampleFolder = folder;
+  }
+
+  /**
+   * Get the URL path for a wireframe based on current mode.
+   * In public mode: /examples/{folder}/{wireframe}
+   * In local mode: /wireframes/{wireframe}
+   */
+  getWireframePath(wireframe: string): string {
+    if (this.isPublicMode && this.currentExampleFolder) {
+      return `/examples/${this.currentExampleFolder}/${wireframe}`;
+    }
+    return `/wireframes/${wireframe}`;
   }
 }
 

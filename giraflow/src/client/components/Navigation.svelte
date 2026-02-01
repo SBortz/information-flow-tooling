@@ -20,6 +20,7 @@
     if (example) {
       selectedExampleId = example.id;
       modelStore.clearAllEditedWireframes();
+      modelStore.setCurrentExampleFolder(example.folderName);
       const json = JSON.stringify(example.model, null, 2);
       modelStore.loadFromJson(json);
       if (modelStore.model) {
