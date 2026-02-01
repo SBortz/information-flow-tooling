@@ -162,14 +162,21 @@
         }
       } else if (!isImage) {
         // No edited content - fetch the file and check if it's a real wireframe
-        // In public mode, Vite returns 200 with index.html for non-existent files (SPA fallback)
-        // So we need to check the content, not just the status code
         const currentSrc = src;
-        fetch(src).then(res => res.text()).then(content => {
+        fetch(src).then(res => {
           // Guard against race conditions if src changed
+          if (currentSrc !== src) return Promise.reject('stale');
+
+          // Check for 404 or other HTTP errors (Vercel returns real 404s)
+          if (!res.ok) {
+            return Promise.reject('not-found');
+          }
+          return res.text();
+        }).then(content => {
           if (currentSrc !== src) return;
 
           // Check if the content is the Giraflow app (SPA fallback) rather than a real wireframe
+          // In dev mode, Vite returns 200 with index.html for non-existent files
           // The Giraflow app has <div id="app"> which wireframes don't have
           const isGiraflowApp = content.includes('<div id="app">') || content.includes('id="app"');
 
@@ -183,9 +190,9 @@
             editedCode = DEFAULT_WIREFRAME_TEMPLATE;
             isNewFile = true;
           }
-        }).catch(() => {
-          // Network error - treat as non-existent
-          if (currentSrc !== src) return;
+        }).catch((err) => {
+          // 404, network error, or stale request - treat as non-existent (except stale)
+          if (err === 'stale' || currentSrc !== src) return;
           modelStore.setEditedWireframe(src, DEFAULT_WIREFRAME_TEMPLATE);
           const blob = new Blob([DEFAULT_WIREFRAME_TEMPLATE], { type: 'text/html' });
           if (blobUrl) URL.revokeObjectURL(blobUrl);
