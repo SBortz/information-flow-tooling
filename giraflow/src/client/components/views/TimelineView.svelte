@@ -27,6 +27,9 @@
   let hiddenRoles = $state(new Set<string>());
   let filterDropdownOpen = $state(false);
 
+  // Hovered lane state for full-column highlight
+  let hoveredLane = $state<{ type: 'event' | 'actor' | 'center'; index: number } | null>(null);
+
   // Check if any filters are active
   let hasActiveFilters = $derived(hiddenSystems.size > 0 || hiddenRoles.size > 0);
 
@@ -393,24 +396,52 @@
           <div class="tl-lane-labels" style="width: {totalLaneWidth}px; height: {laneLabelHeight()}rem;">
             <!-- Faded lane lines extending into header -->
             <div class="tl-lane-lines-fade" style="width: {totalLaneWidth}px; {generateLaneLinesFadeCSS()}"></div>
+            <!-- Lane highlight in header area -->
+            {#if hoveredLane}
+              <div
+                class="tl-lane-highlight-header {hoveredLane.type}"
+                style="left: {(hoveredLane.type === 'event' ? hoveredLane.index : hoveredLane.type === 'center' ? filteredLaneConfig().eventLaneCount : filteredLaneConfig().eventLaneCount + 1 + hoveredLane.index) * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+              ></div>
+            {/if}
             {#each filteredLaneConfig().eventSystems as system, i}
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div
                 class="tl-lane-label event"
                 style="left: {i * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+                onmouseenter={() => hoveredLane = { type: 'event', index: i }}
+                onmouseleave={() => hoveredLane = null}
               >
                 {#if system}<span class="tl-lane-label-text">{system}</span>{/if}
+                <div class="tl-lane-tooltip event">
+                  <span class="tl-lane-tooltip-type">System</span>
+                  <span class="tl-lane-tooltip-name">{system || 'Default'}</span>
+                </div>
               </div>
             {/each}
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
               class="tl-lane-label center"
               style="left: {filteredLaneConfig().eventLaneCount * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
-            ></div>
+              onmouseenter={() => hoveredLane = { type: 'center' as any, index: 0 }}
+              onmouseleave={() => hoveredLane = null}
+            >
+              <div class="tl-lane-tooltip center">
+                <span class="tl-lane-tooltip-name">Commands / State Views</span>
+              </div>
+            </div>
             {#each filteredLaneConfig().actorRoles as role, i}
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div
                 class="tl-lane-label actor"
                 style="left: {(filteredLaneConfig().eventLaneCount + 1 + i) * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+                onmouseenter={() => hoveredLane = { type: 'actor', index: i }}
+                onmouseleave={() => hoveredLane = null}
               >
                 {#if role}<span class="tl-lane-label-text">{role}</span>{/if}
+                <div class="tl-lane-tooltip actor">
+                  <span class="tl-lane-tooltip-type">Rolle</span>
+                  <span class="tl-lane-tooltip-name">{role || 'Default'}</span>
+                </div>
               </div>
             {/each}
           </div>
@@ -476,7 +507,14 @@
       <div
         class="tl-master-line"
         style="width: {totalLaneWidth}px; {shouldShowLaneHeader() ? `top: calc(0.375rem + 0.375rem + ${laneLabelHeight()}rem + 1px);` : ''} {generateLaneBackgroundCSS()}"
-      ></div>
+      >
+        {#if hoveredLane}
+          <div
+            class="tl-lane-highlight {hoveredLane.type}"
+            style="left: {(hoveredLane.type === 'event' ? hoveredLane.index : hoveredLane.type === 'center' ? filteredLaneConfig().eventLaneCount : filteredLaneConfig().eventLaneCount + 1 + hoveredLane.index) * filteredLaneConfig().laneWidth}px; width: {filteredLaneConfig().laneWidth}px;"
+          ></div>
+        {/if}
+      </div>
       {#each filteredItems as { element: el, position, laneIndex }}
         <button
           class="tl-master-item"
@@ -640,8 +678,75 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
     padding-bottom: 0.25rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+
+  .tl-lane-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(0.5rem);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    /* Glassmorphism - light mode */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    text-align: center;
+  }
+
+  /* Arrow pointing up */
+  .tl-lane-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .tl-lane-label:hover .tl-lane-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .tl-lane-tooltip-type {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+  }
+
+  .tl-lane-tooltip-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .tl-lane-tooltip.event .tl-lane-tooltip-name {
+    color: var(--color-event);
+  }
+
+  .tl-lane-tooltip.actor .tl-lane-tooltip-name {
+    color: var(--color-actor);
+  }
+
+  .tl-lane-tooltip.center .tl-lane-tooltip-name {
+    color: var(--text-primary);
   }
 
   .tl-lane-label-text {
@@ -682,6 +787,48 @@
     left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);
     pointer-events: none;
     z-index: 2;
+  }
+
+  .tl-lane-highlight {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+
+  .tl-lane-highlight.event {
+    background: linear-gradient(
+      to bottom,
+      rgba(249, 115, 22, 0.15) 0%,
+      rgba(249, 115, 22, 0.08) 100%
+    );
+  }
+
+  .tl-lane-highlight.actor,
+  .tl-lane-highlight.center {
+    background: linear-gradient(
+      to bottom,
+      rgba(107, 114, 128, 0.15) 0%,
+      rgba(107, 114, 128, 0.08) 100%
+    );
+  }
+
+  .tl-lane-highlight-header {
+    position: absolute;
+    top: 0;
+    bottom: -0.5rem; /* extend to connect with main highlight */
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .tl-lane-highlight-header.event {
+    background: rgba(249, 115, 22, 0.12);
+  }
+
+  .tl-lane-highlight-header.actor,
+  .tl-lane-highlight-header.center {
+    background: rgba(107, 114, 128, 0.12);
   }
 
   .tl-master-item {
