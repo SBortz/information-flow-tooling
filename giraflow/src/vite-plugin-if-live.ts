@@ -194,28 +194,23 @@ export function ifLivePlugin(): Plugin {
       availableFiles = findGiraflowFiles();
       filePath = findFileArg();
 
-      if (!filePath && availableFiles.length === 0) {
+      const noFilesFound = !filePath && availableFiles.length === 0;
+      if (noFilesFound) {
         server.config.logger.warn(
-          '\n  No *.giraflow.json files found. Usage: giraflow <file.giraflow.json>\n'
+          '\n  No *.giraflow.json files found. Create one with the + button or: giraflow create\n'
         );
-        return;
       }
 
       if (filePath && !fs.existsSync(filePath)) {
         server.config.logger.error(`\n  File not found: ${filePath}\n`);
-        return;
+        filePath = null;
       }
 
       if (filePath) {
         fileDir = path.dirname(filePath);
-      }
-
-      // Initial load
-      loadModel();
-
-      const fileName = filePath ? path.basename(filePath) : null;
-      if (fileName) {
-        server.config.logger.info(`\n  Watching: ${fileName}\n`);
+        // Initial load
+        loadModel();
+        server.config.logger.info(`\n  Watching: ${path.basename(filePath)}\n`);
       }
 
       function scheduleNotify(changeType: 'model' | 'wireframe'): void {
@@ -238,8 +233,10 @@ export function ifLivePlugin(): Plugin {
         }, 100);
       }
 
-      // Setup initial watchers
-      setupWatchers(scheduleNotify);
+      // Setup initial watchers (only if we have a file)
+      if (filePath) {
+        setupWatchers(scheduleNotify);
+      }
 
       // Middleware for API and SSE
       server.middlewares.use((req, res, next) => {
