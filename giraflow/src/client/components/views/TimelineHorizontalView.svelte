@@ -282,16 +282,11 @@
   .horizontal-timeline {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 140px);
+    flex: 1;
+    min-height: 0;
     font-family: var(--font-mono);
     position: relative;
     overflow: hidden;
-  }
-
-  @media (max-width: 900px) {
-    .horizontal-timeline {
-      height: calc(100vh - 120px);
-    }
   }
 
   .ht-header {
@@ -407,6 +402,7 @@
 
   .ht-canvas {
     position: relative;
+    padding-bottom: 20px;
   }
 
   .ht-lane-bg {
