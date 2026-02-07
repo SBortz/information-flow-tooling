@@ -837,6 +837,9 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
   }
 
   .ht-detail-symbol {
@@ -851,6 +854,9 @@
   .ht-detail-name {
     font-weight: 600;
     font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .ht-detail-tick {
