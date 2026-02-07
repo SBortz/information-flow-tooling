@@ -2,7 +2,7 @@
   import { modelStore } from "../../stores/model.svelte";
   import { isEvent, isState, isCommand, isActor } from "../../lib/types";
   import type { Event, Actor } from "../../lib/types";
-  import { buildTimelineViewModel } from "../../lib/models";
+  import { buildTimelineViewModel, type TimelineConnection } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
 
@@ -78,6 +78,10 @@
   let viewModel = $derived(buildTimelineViewModel(modelStore.model));
   let timelineItems = $derived(viewModel.items);
   let laneConfig = $derived(viewModel.laneConfig);
+  let connections = $derived(viewModel.connections);
+
+  // Toggle for showing connections
+  let showConnections = $state(true);
 
   // Filtered lane config - excludes hidden systems/roles
   let filteredLaneConfig = $derived(() => {
@@ -128,6 +132,87 @@
   );
 
   let filteredCount = $derived(filteredItems.length);
+
+  // Build tick to index map for filtered items (for connection rendering)
+  let tickToIndex = $derived(() => {
+    const map = new Map<number, number>();
+    filteredItems.forEach((item, index) => {
+      map.set(item.element.tick, index);
+    });
+    return map;
+  });
+
+  // Filter connections to only include those between visible items
+  let filteredConnections = $derived(() => {
+    const tickMap = tickToIndex();
+    return connections.filter(conn => 
+      tickMap.has(conn.fromTick) && tickMap.has(conn.toTick)
+    );
+  });
+
+  // Calculate connection path coordinates
+  // Each item row is approximately 41px high (padding + content)
+  const ITEM_HEIGHT = 41;
+  // Header offset when lane header is shown (calculated dynamically)
+  let connectionHeaderOffset = $derived(() => {
+    if (!shouldShowLaneHeader()) return 0;
+    // 0.375rem top padding + 0.375rem bottom padding + label height + 1px border
+    return 6 + 6 + laneLabelHeight() * 16 + 1;
+  });
+
+  // Get X coordinate for a connection point
+  function getConnectionX(position: string, laneIndex: number): number {
+    const config = filteredLaneConfig();
+    const laneWidth = config.laneWidth;
+    const halfLane = laneWidth / 2;
+    
+    if (position === 'left') {
+      // Events: lane 0 is outermost (leftmost)
+      return laneIndex * laneWidth + halfLane;
+    } else if (position === 'center') {
+      // Commands/States: center lane
+      return config.eventLaneCount * laneWidth + halfLane;
+    } else {
+      // Actors: lane 0 is innermost
+      return (config.eventLaneCount + 1 + laneIndex) * laneWidth + halfLane;
+    }
+  }
+
+  // Get Y coordinate for a tick (based on its index in filtered items)
+  function getConnectionY(tick: number): number {
+    const index = tickToIndex().get(tick);
+    if (index === undefined) return 0;
+    // Center of the item row
+    return connectionHeaderOffset() + index * ITEM_HEIGHT + ITEM_HEIGHT / 2;
+  }
+
+  // Generate SVG path for a connection
+  function getConnectionPath(conn: TimelineConnection): string {
+    const x1 = getConnectionX(conn.fromPosition, conn.fromLaneIndex);
+    const y1 = getConnectionY(conn.fromTick);
+    const x2 = getConnectionX(conn.toPosition, conn.toLaneIndex);
+    const y2 = getConnectionY(conn.toTick);
+    
+    // Simple curved path
+    const midY = (y1 + y2) / 2;
+    return `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+  }
+
+  // Get color for connection type
+  function getConnectionColor(type: string): string {
+    switch (type) {
+      case 'produces': return 'var(--color-event)';
+      case 'sends': return 'var(--color-command)';
+      case 'reads': return 'var(--color-state)';
+      case 'sources': return 'var(--color-state)';
+      default: return 'var(--text-secondary)';
+    }
+  }
+
+  // Check if connection should be dashed
+  function isConnectionDashed(type: string): boolean {
+    return type === 'reads';
+  }
 
   // Berechne die optimale Höhe für Lane-Labels basierend auf der längsten Namenslänge
   let laneLabelHeight = $derived(() => {
@@ -390,6 +475,22 @@
   <!-- Master: Compact timeline on the left -->
   <aside class="timeline-master" class:open={sidePanelOpen}>
     <div class="tl-master-content">
+      <!-- Controls toolbar (always visible) -->
+      <div class="tl-controls" class:with-lanes={shouldShowLaneHeader()}>
+        <button
+          class="tl-connections-toggle"
+          class:active={showConnections}
+          onclick={() => showConnections = !showConnections}
+          title={showConnections ? 'Verbindungen ausblenden' : 'Verbindungen einblenden'}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 6l12 12M6 18L18 6" stroke-linecap="round" stroke-opacity={showConnections ? 0 : 0.5}/>
+            <path d="M4 8c4-4 12 4 16 0" stroke-linecap="round"/>
+            <circle cx="4" cy="8" r="2.5" fill="currentColor"/>
+            <circle cx="20" cy="8" r="2.5" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
       {#if shouldShowLaneHeader()}
         <div class="tl-lane-header">
           <div class="tl-lane-labels-wrapper" style="padding-left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);">
@@ -515,6 +616,36 @@
           ></div>
         {/if}
       </div>
+      <!-- Connection lines SVG overlay -->
+      {#if showConnections && filteredConnections().length > 0}
+        <svg
+          class="tl-connections-svg"
+          style="width: {totalLaneWidth}px; height: {connectionHeaderOffset() + filteredItems.length * ITEM_HEIGHT}px; left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);"
+        >
+          <defs>
+            <marker id="arrowhead-event" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <polygon points="0 0, 6 3, 0 6" fill="var(--color-event)" />
+            </marker>
+            <marker id="arrowhead-command" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <polygon points="0 0, 6 3, 0 6" fill="var(--color-command)" />
+            </marker>
+            <marker id="arrowhead-state" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <polygon points="0 0, 6 3, 0 6" fill="var(--color-state)" />
+            </marker>
+          </defs>
+          {#each filteredConnections() as conn}
+            <path
+              d={getConnectionPath(conn)}
+              fill="none"
+              stroke={getConnectionColor(conn.type)}
+              stroke-width="1.5"
+              stroke-dasharray={isConnectionDashed(conn.type) ? "4,3" : "none"}
+              marker-end="url(#arrowhead-{conn.type === 'produces' ? 'event' : conn.type === 'sends' ? 'command' : 'state'})"
+              opacity="0.6"
+            />
+          {/each}
+        </svg>
+      {/if}
       {#each filteredItems as { element: el, position, laneIndex }}
         <button
           class="tl-master-item"
@@ -792,6 +923,62 @@
     left: calc(0.75rem + 2rem + 0.5rem + 0.25rem);
     pointer-events: none;
     z-index: 2;
+  }
+
+  .tl-connections-svg {
+    position: absolute;
+    top: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: visible;
+  }
+
+  .tl-controls {
+    position: sticky;
+    top: 0;
+    z-index: 11;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.375rem 0.5rem;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tl-controls.with-lanes {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .tl-connections-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-secondary);
+  }
+
+  .tl-connections-toggle svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .tl-connections-toggle:hover {
+    border-color: var(--color-command);
+    color: var(--color-command);
+    transform: translateY(-1px);
+  }
+
+  .tl-connections-toggle.active {
+    border-color: var(--color-command);
+    color: var(--color-command);
+    background: rgba(122, 162, 247, 0.1);
   }
 
   .tl-lane-highlight {

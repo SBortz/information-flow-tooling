@@ -13,8 +13,8 @@
  * - Actors: Default (no role) is innermost. Named roles alphabetically sorted, outermost last.
  */
 
-import type { GiraflowModel, TimelineElement, Event, Actor } from '../types';
-import { isEvent, isActor } from '../types';
+import type { GiraflowModel, TimelineElement, Event, Actor, Command, State } from '../types';
+import { isEvent, isActor, isCommand, isState } from '../types';
 
 export type TimelinePosition = 'left' | 'center' | 'right';
 
@@ -33,10 +33,22 @@ export interface TimelineItem {
   laneIndex: number;       // Which lane (0-based from left within the position group)
 }
 
+export interface TimelineConnection {
+  fromTick: number;
+  toTick: number;
+  fromPosition: TimelinePosition;
+  toPosition: TimelinePosition;
+  fromLaneIndex: number;
+  toLaneIndex: number;
+  type: 'produces' | 'reads' | 'sends' | 'sources';
+  label?: string;
+}
+
 export interface TimelineViewModel {
   items: TimelineItem[];
   count: number;
   laneConfig: LaneConfig;
+  connections: TimelineConnection[];
 }
 
 /**
@@ -156,6 +168,121 @@ export function getElementPosition(type: string): TimelinePosition {
 }
 
 /**
+ * Build connections between timeline elements based on their relationships.
+ */
+function buildConnections(
+  items: TimelineItem[],
+  model: GiraflowModel,
+  laneConfig: LaneConfig
+): TimelineConnection[] {
+  const connections: TimelineConnection[] = [];
+  
+  // Build lookup maps for quick access
+  const elementsByName = new Map<string, TimelineItem>();
+  const commandsByTick = new Map<string, TimelineItem>(); // "CommandName-Tick" → item
+  
+  for (const item of items) {
+    const el = item.element;
+    // Store by name (for states, commands)
+    if (!elementsByName.has(el.name)) {
+      elementsByName.set(el.name, item);
+    }
+    // Store commands by name-tick for producedBy references
+    if (isCommand(el)) {
+      commandsByTick.set(`${el.name}-${el.tick}`, item);
+    }
+  }
+
+  for (const item of items) {
+    const el = item.element;
+
+    // Actor → Command (sendsCommand)
+    if (isActor(el)) {
+      const actor = el as Actor;
+      if (actor.sendsCommand) {
+        const targetItem = elementsByName.get(actor.sendsCommand);
+        if (targetItem) {
+          connections.push({
+            fromTick: el.tick,
+            toTick: targetItem.element.tick,
+            fromPosition: item.position,
+            toPosition: targetItem.position,
+            fromLaneIndex: item.laneIndex,
+            toLaneIndex: targetItem.laneIndex,
+            type: 'sends',
+            label: actor.sendsCommand,
+          });
+        }
+      }
+      // Actor ← State (readsView) - reverse direction, dashed
+      if (actor.readsView) {
+        const targetItem = elementsByName.get(actor.readsView);
+        if (targetItem) {
+          connections.push({
+            fromTick: targetItem.element.tick,
+            toTick: el.tick,
+            fromPosition: targetItem.position,
+            toPosition: item.position,
+            fromLaneIndex: targetItem.laneIndex,
+            toLaneIndex: item.laneIndex,
+            type: 'reads',
+            label: actor.readsView,
+          });
+        }
+      }
+    }
+
+    // Event ← Command (producedBy)
+    if (isEvent(el)) {
+      const event = el as Event;
+      if (event.producedBy) {
+        const targetItem = commandsByTick.get(event.producedBy);
+        if (targetItem) {
+          connections.push({
+            fromTick: targetItem.element.tick,
+            toTick: el.tick,
+            fromPosition: targetItem.position,
+            toPosition: item.position,
+            fromLaneIndex: targetItem.laneIndex,
+            toLaneIndex: item.laneIndex,
+            type: 'produces',
+            label: event.name,
+          });
+        }
+      }
+    }
+
+    // State ← Event (sourcedFrom)
+    if (isState(el)) {
+      const state = el as State;
+      if (state.sourcedFrom && state.sourcedFrom.length > 0) {
+        for (const eventName of state.sourcedFrom) {
+          // Find the most recent event with this name before the state
+          const matchingEvents = items.filter(
+            i => isEvent(i.element) && i.element.name === eventName && i.element.tick < el.tick
+          );
+          if (matchingEvents.length > 0) {
+            const targetItem = matchingEvents[matchingEvents.length - 1];
+            connections.push({
+              fromTick: targetItem.element.tick,
+              toTick: el.tick,
+              fromPosition: targetItem.position,
+              toPosition: item.position,
+              fromLaneIndex: targetItem.laneIndex,
+              toLaneIndex: item.laneIndex,
+              type: 'sources',
+              label: state.name,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return connections;
+}
+
+/**
  * Build the timeline view model from raw model data.
  * Sorts elements by tick and adds position and lane information.
  */
@@ -163,7 +290,7 @@ export function buildTimelineViewModel(model: GiraflowModel | null): TimelineVie
   const laneConfig = buildLaneConfig(model);
 
   if (!model) {
-    return { items: [], count: 0, laneConfig };
+    return { items: [], count: 0, laneConfig, connections: [] };
   }
 
   const sortedElements = [...model.timeline].sort((a, b) => a.tick - b.tick);
@@ -174,9 +301,12 @@ export function buildTimelineViewModel(model: GiraflowModel | null): TimelineVie
     laneIndex: getElementLaneIndex(element, laneConfig),
   }));
 
+  const connections = buildConnections(items, model, laneConfig);
+
   return {
     items,
     count: items.length,
     laneConfig,
+    connections,
   };
 }
