@@ -1247,6 +1247,7 @@
     transition: all 0.15s;
     color: var(--text-secondary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: content-box;
   }
 
   .tl-filter-trigger:hover {
