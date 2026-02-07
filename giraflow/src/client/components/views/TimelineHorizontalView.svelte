@@ -190,11 +190,13 @@
             </div>
           {/if}
         {:else if isActor(selectedElement)}
-          <div class="ht-detail-row">
+          <div class="ht-detail-row ht-actor-flow">
             <span class="ht-detail-label">reads:</span>
-            <span class="state">{selectedElement.readsView}</span>
+            <span class="state ht-wrap">{selectedElement.readsView}</span>
+          </div>
+          <div class="ht-detail-row ht-actor-flow">
             <span class="ht-detail-label">→ triggers:</span>
-            <span class="command">{selectedElement.sendsCommand}</span>
+            <span class="command ht-wrap">{selectedElement.sendsCommand}</span>
           </div>
           {#if selectedElement.role}
             <div class="ht-detail-row">
@@ -480,12 +482,19 @@
 
   .ht-detail-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
     font-size: 0.85rem;
     word-break: break-word;
+    max-width: 100%;
+  }
+
+  .ht-wrap {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: calc(100% - 5rem);
   }
 
   .ht-detail-label {
