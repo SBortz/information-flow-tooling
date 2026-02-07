@@ -341,7 +341,8 @@
           <span class="ht-detail-name">{selectedElement.name}</span>
           <span class="ht-detail-tick">@{selectedElement.tick}</span>
         </div>
-        <button class="ht-detail-close" onclick={closeDetails} title="Schließen">✕</button>
+        <span class="ht-esc-hint">esc</span>
+        <button class="ht-detail-close" onclick={closeDetails} title="Schließen (Esc)">✕</button>
       </div>
       <div class="ht-detail-content">
         {#if isEvent(selectedElement)}
@@ -787,6 +788,15 @@
   .ht-detail-tick {
     color: var(--text-secondary);
     font-size: 0.85rem;
+  }
+
+  .ht-esc-hint {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 0.5rem;
   }
 
   .ht-detail-close {
