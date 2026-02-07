@@ -878,6 +878,12 @@
     letter-spacing: 0.05em;
   }
 
+  @media (max-width: 900px) {
+    .ht-esc-hint {
+      display: none;
+    }
+  }
+
   .ht-detail-close {
     width: 2rem;
     height: 2rem;
