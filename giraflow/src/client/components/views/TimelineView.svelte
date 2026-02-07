@@ -708,16 +708,9 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 0.375rem;
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 50;
     overflow: hidden;
-    transition: all 0.15s;
-  }
-
-  .orientation-toggle-floating:hover {
-    border-color: var(--text-secondary);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
   }
 
   .orientation-btn-floating {
@@ -739,6 +732,7 @@
   }
 
   .orientation-btn-floating:hover {
+    background: var(--bg-secondary);
     color: var(--text-primary);
   }
 
