@@ -257,12 +257,22 @@
           <div class="ht-lane-bg event" style="top: {(laneConfig.actorRoles.length + 1 + i) * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
         {/each}
 
-        <!-- Tick columns (no click handler - drag-to-pan takes priority) -->
+        <!-- Tick columns - click updates route but doesn't open panel -->
         {#each tickColumns() as { tick, items }, tickIndex}
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
             class="ht-tick-column"
-            class:selected={selectedElement?.tick === tick}
+            class:selected={activeTick === tick}
             style="left: {tickIndex * TICK_WIDTH}px; width: {TICK_WIDTH}px; height: {totalHeight}px;"
+            onclick={() => {
+              activeTick = tick;
+              history.replaceState(
+                { view: "timeline", tick },
+                "",
+                `#timeline/tick-${tick}`
+              );
+            }}
           >
             <span class="ht-tick-label">@{tick}</span>
           </div>
