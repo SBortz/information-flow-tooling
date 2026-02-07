@@ -161,6 +161,10 @@
           <span class="icon">+</span>
           <span class="label">New</span>
         </button>
+        <button class="icon-button pptx-button" onclick={handleDownloadPptx} title="Download as PowerPoint">
+          <span class="icon">📊</span>
+          <span class="label">PPTX</span>
+        </button>
       </div>
     {/if}
   </div>
