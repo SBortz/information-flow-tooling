@@ -37,9 +37,9 @@
 
   // Layout constants
   const TICK_WIDTH = 200;
-  const LANE_HEIGHT = 80;
+  const LANE_HEIGHT = 110;
   const BOX_WIDTH = 180;
-  const BOX_HEIGHT = 44;
+  const BOX_HEIGHT = 90;
 
   // Calculate lane Y positions
   // Order: Actors (top) → Commands/States (middle) → Events (bottom)
@@ -128,7 +128,7 @@
               onclick={() => selectedElement = el}
             >
               <span class="ht-symbol">{symbols[el.type]}</span>
-              <span class="ht-name">{el.name.length > 22 ? el.name.slice(0, 21) + '…' : el.name}</span>
+              <span class="ht-name">{el.name}</span>
             </button>
           {/each}
         {/each}
@@ -313,16 +313,18 @@
   .ht-element {
     position: absolute;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    border-radius: 4px;
+    gap: 0.25rem;
+    border-radius: 6px;
     font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     transition: transform 0.1s, box-shadow 0.1s;
     z-index: 1;
-    padding: 0 0.5rem;
+    padding: 0.5rem;
+    text-align: center;
   }
 
   .ht-element:hover {
@@ -361,9 +363,13 @@
   }
 
   .ht-name {
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+    word-break: break-word;
   }
 
   .ht-element.selected {
