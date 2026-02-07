@@ -119,6 +119,50 @@
     (laneConfig.actorRoles.length + 1 + laneConfig.eventSystems.length) * LANE_HEIGHT
   );
 
+  // Drag-to-pan state
+  let isDragging = $state(false);
+  let dragStart = { x: 0, y: 0, scrollLeft: 0, scrollTop: 0 };
+  
+  function handleMouseDown(e: MouseEvent) {
+    // Only drag on background, not on elements
+    const target = e.target as HTMLElement;
+    if (target.closest('.ht-element') || target.closest('button')) return;
+    
+    const scrollArea = e.currentTarget as HTMLElement;
+    isDragging = true;
+    dragStart = {
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: scrollArea.scrollLeft,
+      scrollTop: scrollArea.scrollTop
+    };
+    scrollArea.style.cursor = 'grabbing';
+  }
+  
+  function handleMouseMove(e: MouseEvent) {
+    if (!isDragging) return;
+    const scrollArea = e.currentTarget as HTMLElement;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    scrollArea.scrollLeft = dragStart.scrollLeft - dx;
+    scrollArea.scrollTop = dragStart.scrollTop - dy;
+  }
+  
+  function handleMouseUp(e: MouseEvent) {
+    if (!isDragging) return;
+    isDragging = false;
+    const scrollArea = e.currentTarget as HTMLElement;
+    scrollArea.style.cursor = '';
+  }
+  
+  function handleMouseLeave(e: MouseEvent) {
+    if (isDragging) {
+      isDragging = false;
+      const scrollArea = e.currentTarget as HTMLElement;
+      scrollArea.style.cursor = '';
+    }
+  }
+
   // Handle wheel for horizontal scroll (shift+wheel or when at vertical bounds)
   function handleWheel(e: WheelEvent) {
     const scrollArea = e.currentTarget as HTMLElement;
@@ -172,7 +216,13 @@
 
     <!-- Scrollable timeline area -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="ht-scroll-area" onwheel={handleWheel}
+    <div 
+      class="ht-scroll-area" 
+      onwheel={handleWheel}
+      onmousedown={handleMouseDown}
+      onmousemove={handleMouseMove}
+      onmouseup={handleMouseUp}
+      onmouseleave={handleMouseLeave}
       <div class="ht-canvas" style="width: {tickColumns().length * TICK_WIDTH + 50}px; height: {totalHeight}px;">
         <!-- Lane backgrounds -->
         {#each laneConfig.actorRoles as _, i}
@@ -439,9 +489,13 @@
     flex: 1;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
     touch-action: pan-x pan-y;
     overscroll-behavior-x: contain;
+    cursor: grab;
+  }
+  
+  .ht-scroll-area:active {
+    cursor: grabbing;
   }
 
   /* Thicker scrollbars for desktop */
