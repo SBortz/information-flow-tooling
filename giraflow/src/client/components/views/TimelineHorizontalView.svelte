@@ -282,10 +282,16 @@
   .horizontal-timeline {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 160px);
+    height: calc(100vh - 140px);
     font-family: var(--font-mono);
     position: relative;
     overflow: hidden;
+  }
+
+  @media (max-width: 900px) {
+    .horizontal-timeline {
+      height: calc(100vh - 120px);
+    }
   }
 
   .ht-header {
@@ -401,7 +407,6 @@
 
   .ht-canvas {
     position: relative;
-    min-height: 100%;
   }
 
   .ht-lane-bg {
@@ -686,7 +691,4 @@
     height: 14px;
   }
 
-  .horizontal-timeline {
-    position: relative;
-  }
 </style>
