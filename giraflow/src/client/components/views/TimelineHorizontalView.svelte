@@ -119,6 +119,27 @@
     (laneConfig.actorRoles.length + 1 + laneConfig.eventSystems.length) * LANE_HEIGHT
   );
 
+  // Handle wheel for horizontal scroll (shift+wheel or when at vertical bounds)
+  function handleWheel(e: WheelEvent) {
+    const scrollArea = e.currentTarget as HTMLElement;
+    
+    // Shift+wheel always scrolls horizontally
+    if (e.shiftKey) {
+      e.preventDefault();
+      scrollArea.scrollLeft += e.deltaY;
+      return;
+    }
+    
+    // Regular wheel: convert to horizontal if at vertical bounds
+    const atTop = scrollArea.scrollTop === 0;
+    const atBottom = scrollArea.scrollTop >= scrollArea.scrollHeight - scrollArea.clientHeight - 1;
+    
+    if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
+      e.preventDefault();
+      scrollArea.scrollLeft += e.deltaY;
+    }
+  }
+
   // Close detail panel
   function closeDetails() {
     selectedElement = null;
@@ -150,7 +171,8 @@
     </div>
 
     <!-- Scrollable timeline area -->
-    <div class="ht-scroll-area">
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="ht-scroll-area" onwheel={handleWheel}
       <div class="ht-canvas" style="width: {tickColumns().length * TICK_WIDTH + 50}px; height: {totalHeight}px;">
         <!-- Lane backgrounds -->
         {#each laneConfig.actorRoles as _, i}
@@ -420,6 +442,27 @@
     scroll-behavior: smooth;
     touch-action: pan-x pan-y;
     overscroll-behavior-x: contain;
+  }
+
+  /* Thicker scrollbars for desktop */
+  .ht-scroll-area::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .ht-scroll-area::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 6px;
+  }
+
+  .ht-scroll-area::-webkit-scrollbar-thumb {
+    background: var(--text-secondary);
+    border-radius: 6px;
+    border: 2px solid var(--bg-secondary);
+  }
+
+  .ht-scroll-area::-webkit-scrollbar-thumb:hover {
+    background: var(--text-primary);
   }
 
   .ht-canvas {
