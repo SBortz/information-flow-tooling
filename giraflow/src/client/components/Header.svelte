@@ -3,6 +3,7 @@
   import { examples, getEmptyTemplate } from '../lib/examples';
   import { buildSliceViewModel } from '../lib/models/slice-model';
   import { downloadProjectZip } from '../lib/download-zip';
+  import { downloadSvg } from '../lib/download-svg';
 
   function handleExampleSelect(e: Event) {
     const select = e.currentTarget as HTMLSelectElement;
@@ -97,6 +98,11 @@
       modelStore.currentExampleFolder
     );
   }
+
+  function handleDownloadSvg() {
+    if (!modelStore.model) return;
+    downloadSvg(modelStore.model);
+  }
 </script>
 
 <header class="header">
@@ -127,7 +133,11 @@
         </button>
         <button class="icon-button" onclick={handleDownload} title="Download as ZIP">
           <span class="icon">↓</span>
-          <span class="label">Download</span>
+          <span class="label">ZIP</span>
+        </button>
+        <button class="icon-button svg-button" onclick={handleDownloadSvg} title="Export as SVG diagram">
+          <span class="icon">◇</span>
+          <span class="label">SVG</span>
         </button>
       </div>
     {:else}
@@ -150,6 +160,10 @@
         <button class="icon-button" onclick={handleCreateNew} title="Create new Giraflow">
           <span class="icon">+</span>
           <span class="label">New</span>
+        </button>
+        <button class="icon-button svg-button" onclick={handleDownloadSvg} title="Export as SVG diagram">
+          <span class="icon">◇</span>
+          <span class="label">SVG</span>
         </button>
       </div>
     {/if}
@@ -244,6 +258,12 @@
     background: var(--bg-card);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
+  }
+
+  .svg-button:hover {
+    border-color: var(--color-state);
+    color: var(--color-state);
+    box-shadow: 0 4px 12px rgba(158, 206, 106, 0.25);
   }
 
   .status {
