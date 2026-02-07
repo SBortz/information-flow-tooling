@@ -49,6 +49,7 @@
     "highlight.js": "^11.11.1",
     "jszip": "^3.10.1",
     "open": "^10.1.0",
+    "pptxgenjs": "^4.0.1",
     "wired-elements": "^3.0.0-rc.6"
   },
   "devDependencies": {
