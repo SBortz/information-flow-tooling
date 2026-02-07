@@ -5,6 +5,7 @@
   import { buildTimelineViewModel } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
+  import TimelineHorizontalView from "./TimelineHorizontalView.svelte";
 
   const symbols: Record<string, string> = {
     event: "●",
@@ -12,6 +13,9 @@
     command: "▶",
     actor: "○",
   };
+
+  // Orientation toggle: vertical (default) or horizontal
+  let orientation = $state<'vertical' | 'horizontal'>('vertical');
 
   let activeTick = $state<number | null>(null);
   let detailContainer: HTMLElement | null = $state(null);
@@ -367,6 +371,37 @@
   });
 </script>
 
+<!-- Orientation Toggle Header -->
+<div class="timeline-orientation-bar">
+  <div class="orientation-toggle">
+    <button 
+      class="orientation-btn" 
+      class:active={orientation === 'vertical'}
+      onclick={() => orientation = 'vertical'}
+      title="Vertikal (Zeit ↓)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 4v16M8 16l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Vertikal</span>
+    </button>
+    <button 
+      class="orientation-btn" 
+      class:active={orientation === 'horizontal'}
+      onclick={() => orientation = 'horizontal'}
+      title="Horizontal (Zeit →)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 12h16M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Horizontal</span>
+    </button>
+  </div>
+</div>
+
+{#if orientation === 'horizontal'}
+  <TimelineHorizontalView />
+{:else}
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
   <!-- Mobile toggle button -->
@@ -613,8 +648,73 @@
     {/each}
   </main>
 </div>
+{/if}
 
 <style>
+  .timeline-orientation-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem 2rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .orientation-toggle {
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .orientation-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .orientation-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .orientation-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .orientation-btn.active {
+    background: var(--color-command);
+    color: white;
+  }
+
+  .orientation-btn:first-child {
+    border-right: 1px solid var(--border);
+  }
+
+  .orientation-btn.active:first-child {
+    border-right-color: var(--color-command);
+  }
+
+  @media (max-width: 500px) {
+    .orientation-btn span {
+      display: none;
+    }
+    .orientation-btn {
+      padding: 0.5rem;
+    }
+    .timeline-orientation-bar {
+      padding: 0.5rem 1rem;
+    }
+  }
   .timeline-master-detail {
     display: flex;
     font-family: var(--font-mono);

@@ -4,7 +4,6 @@
 
   const tabs: { id: ViewMode; label: string }[] = [
     { id: 'timeline', label: 'Timeline' },
-    { id: 'timeline-horizontal', label: 'Timeline →' },
     { id: 'slice', label: 'Slices & Scenarios' },
     { id: 'table', label: 'Info' },
     { id: 'editor', label: 'Editor' },

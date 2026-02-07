@@ -122,7 +122,7 @@ export interface GiraflowModel {
   specifications?: Specification[];
 }
 
-export type ViewMode = 'slice' | 'timeline' | 'timeline-horizontal' | 'table' | 'editor' | 'howto';
+export type ViewMode = 'slice' | 'timeline' | 'table' | 'editor' | 'howto';
 
 // Type guards
 export function isEvent(el: TimelineElement): el is Event {
