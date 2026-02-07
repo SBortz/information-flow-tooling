@@ -31,14 +31,19 @@
   // Selected element for detail panel (separate from scroll sync)
   let selectedElement = $state<TimelineElement | null>(null);
   
-  // One-time scroll on mount
-  onMount(() => {
-    // Scroll to activeTick if set (from URL or vertical view)
-    if (activeTick !== null && timelineItems.length > 0) {
-      requestAnimationFrame(() => {
-        scrollToTick(activeTick!);
-      });
-    }
+  // One-time scroll when data is ready
+  let hasScrolledOnce = false;
+  $effect(() => {
+    // Wait for data to be ready
+    if (hasScrolledOnce) return;
+    if (activeTick === null || timelineItems.length === 0) return;
+    
+    // Mark as done and scroll
+    hasScrolledOnce = true;
+    const tick = activeTick; // Capture value
+    requestAnimationFrame(() => {
+      scrollToTick(tick);
+    });
   });
 
   // When user selects element, update activeTick and URL
