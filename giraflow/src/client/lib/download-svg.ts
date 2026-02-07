@@ -35,15 +35,15 @@ const COLORS = {
 
 // Layout constants
 const LAYOUT = {
-  boxWidth: 100,
-  boxHeight: 36,
+  boxWidth: 90,
+  boxHeight: 32,
   boxRadius: 6,
-  tickGap: 50,
-  laneWidth: 110,
-  laneGap: 8,
+  tickGap: 65,  // More space between ticks
+  laneWidth: 100,
+  laneGap: 10,
   padding: 30,
   headerHeight: 50,
-  fontSize: 10,
+  fontSize: 9,
   fontFamily: 'Inter, system-ui, sans-serif',
 };
 
@@ -150,10 +150,16 @@ export function generateSvg(model: GiraflowModel, orientation: SvgOrientation = 
     </svg>`;
   }
 
+  // Calculate max center elements per tick for lane sizing
+  const maxCenterPerTick = Math.max(1, ...tickColumns.map(col => 
+    col.elements.filter(e => isCommand(e) || isState(e)).length
+  ));
+
   // Calculate dimensions based on orientation
   const numEventLanes = laneConfig.eventSystems.length;
   const numActorLanes = laneConfig.actorRoles.length;
-  const centerLaneSize = LAYOUT.laneWidth * 1.2;
+  // Center lane expands based on max stacked elements
+  const centerLaneSize = LAYOUT.laneWidth + (maxCenterPerTick - 1) * (LAYOUT.boxHeight + 4);
   
   const totalLaneSize = 
     numEventLanes * LAYOUT.laneWidth + 
@@ -288,6 +294,10 @@ export function generateSvg(model: GiraflowModel, orientation: SvgOrientation = 
   tickColumns.forEach((column, tickIndex) => {
     const tickPos = laneStart + 20 + tickIndex * LAYOUT.tickGap;
 
+    // Count center lane elements for offset calculation
+    const centerElements = column.elements.filter(e => isCommand(e) || isState(e));
+    let centerIndex = 0;
+
     for (const el of column.elements) {
       let laneP: number;
       let fill: string;
@@ -311,7 +321,13 @@ export function generateSvg(model: GiraflowModel, orientation: SvgOrientation = 
         fill = COLORS.command;
         stroke = COLORS.commandStroke;
 
-        const pos = getPos(laneP, tickPos);
+        // Offset for multiple center elements at same tick
+        const centerOffset = centerElements.length > 1 
+          ? (centerIndex - (centerElements.length - 1) / 2) * (LAYOUT.boxHeight + 4)
+          : 0;
+        centerIndex++;
+
+        const pos = getPos(laneP + centerOffset, tickPos);
         svg += `
   <!-- Command: ${el.name} @${el.tick} -->
   <rect x="${pos.x - LAYOUT.boxWidth / 2}" y="${pos.y}" width="${LAYOUT.boxWidth}" height="${LAYOUT.boxHeight}" rx="${LAYOUT.boxRadius}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
@@ -322,7 +338,13 @@ export function generateSvg(model: GiraflowModel, orientation: SvgOrientation = 
         fill = COLORS.state;
         stroke = COLORS.stateStroke;
 
-        const pos = getPos(laneP, tickPos);
+        // Offset for multiple center elements at same tick
+        const centerOffset = centerElements.length > 1 
+          ? (centerIndex - (centerElements.length - 1) / 2) * (LAYOUT.boxHeight + 4)
+          : 0;
+        centerIndex++;
+
+        const pos = getPos(laneP + centerOffset, tickPos);
         svg += `
   <!-- State: ${el.name} @${el.tick} -->
   <rect x="${pos.x - LAYOUT.boxWidth / 2}" y="${pos.y}" width="${LAYOUT.boxWidth}" height="${LAYOUT.boxHeight}" rx="${LAYOUT.boxRadius}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
