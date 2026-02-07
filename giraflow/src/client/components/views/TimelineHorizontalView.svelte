@@ -36,10 +36,10 @@
   });
 
   // Layout constants
-  const TICK_WIDTH = 120;
-  const LANE_HEIGHT = 60;
-  const BOX_WIDTH = 100;
-  const BOX_HEIGHT = 32;
+  const TICK_WIDTH = 160;
+  const LANE_HEIGHT = 70;
+  const BOX_WIDTH = 140;
+  const BOX_HEIGHT = 40;
 
   // Calculate lane Y positions
   // Order: Actors (top) → Commands/States (middle) → Events (bottom)
@@ -128,7 +128,7 @@
               onclick={() => selectedElement = el}
             >
               <span class="ht-symbol">{symbols[el.type]}</span>
-              <span class="ht-name">{el.name.length > 12 ? el.name.slice(0, 11) + '…' : el.name}</span>
+              <span class="ht-name">{el.name.length > 18 ? el.name.slice(0, 17) + '…' : el.name}</span>
             </button>
           {/each}
         {/each}
@@ -239,7 +239,7 @@
 
   .ht-lane-labels {
     flex-shrink: 0;
-    width: 100px;
+    width: 110px;
     position: relative;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border);
@@ -315,13 +315,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
+    gap: 0.35rem;
     border-radius: 4px;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     transition: transform 0.1s, box-shadow 0.1s;
     z-index: 1;
+    padding: 0 0.5rem;
   }
 
   .ht-element:hover {
