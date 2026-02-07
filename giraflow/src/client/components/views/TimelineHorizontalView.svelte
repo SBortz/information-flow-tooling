@@ -162,10 +162,18 @@
 
         <!-- Tick columns -->
         {#each tickColumns() as { tick, items }, tickIndex}
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
             class="ht-tick-column"
             class:selected={selectedElement?.tick === tick}
             style="left: {tickIndex * TICK_WIDTH}px; width: {TICK_WIDTH}px; height: {totalHeight}px;"
+            onclick={() => {
+              // Select first element in this tick
+              if (items.length > 0) {
+                selectElement(items[0].element);
+              }
+            }}
           >
             <span class="ht-tick-label">@{tick}</span>
           </div>
