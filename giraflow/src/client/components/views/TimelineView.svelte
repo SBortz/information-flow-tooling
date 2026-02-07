@@ -377,34 +377,50 @@
     return () => window.removeEventListener("scroll", updateActiveFromScroll);
   });
 
-  // Handle initial hash on mount - parse tick from URL
+  // Handle initial hash on mount - parse tick from URL (runs once when data loads)
+  let hasInitializedFromHash = false;
   $effect(() => {
+    if (hasInitializedFromHash) return;
+    
     const hash = window.location.hash.slice(1);
     if (hash.startsWith("timeline/tick-") && timelineItems.length > 0) {
       const tick = parseInt(hash.replace("timeline/tick-", ""), 10);
-      if (!isNaN(tick) && activeTick !== tick) {
+      if (!isNaN(tick)) {
+        hasInitializedFromHash = true;
         activeTick = tick;
+        // Scroll to this tick in vertical view
+        if (orientation === 'vertical') {
+          requestAnimationFrame(() => {
+            const el = document.getElementById(`tick-${tick}`);
+            if (el) {
+              isProgrammaticScroll = true;
+              el.scrollIntoView({ behavior: "smooth", block: "start" });
+              setTimeout(() => (isProgrammaticScroll = false), 1000);
+            }
+          });
+        }
       }
     } else if (timelineItems.length > 0 && activeTick === null) {
-      // Set first tick as active by default
+      hasInitializedFromHash = true;
       activeTick = timelineItems[0].element.tick;
     }
   });
   
-  // Scroll to activeTick when in vertical view and tick changes
+  // Scroll to activeTick only when switching from horizontal to vertical
   $effect(() => {
-    if (orientation === 'vertical' && activeTick !== null && timelineItems.length > 0) {
-      isProgrammaticScroll = true;
+    if (prevOrientation === 'horizontal' && orientation === 'vertical' && activeTick !== null) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const el = document.getElementById(`tick-${activeTick}`);
           if (el) {
+            isProgrammaticScroll = true;
             el.scrollIntoView({ behavior: "smooth", block: "start" });
+            setTimeout(() => (isProgrammaticScroll = false), 1000);
           }
-          setTimeout(() => (isProgrammaticScroll = false), 1000);
         });
       });
     }
+    prevOrientation = orientation;
   });
 </script>
 
