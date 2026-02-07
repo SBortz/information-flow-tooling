@@ -400,7 +400,7 @@
 </div>
 
 {#if orientation === 'horizontal'}
-  <TimelineHorizontalView />
+  <TimelineHorizontalView bind:activeTick />
 {:else}
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
@@ -657,6 +657,9 @@
     padding: 0.5rem 2rem;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 95px;
+    z-index: 50;
   }
 
   .orientation-toggle {

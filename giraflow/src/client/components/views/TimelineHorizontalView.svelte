@@ -6,6 +6,9 @@
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
 
+  // Props for syncing with vertical view
+  let { activeTick = $bindable<number | null>(null) }: { activeTick?: number | null } = $props();
+
   const symbols: Record<string, string> = {
     event: "●",
     state: "◆",
@@ -18,8 +21,38 @@
   let timelineItems = $derived(viewModel.items);
   let laneConfig = $derived(viewModel.laneConfig);
 
-  // Selected element (not just tick)
+  // Selected element (not just tick) - sync with activeTick
   let selectedElement = $state<TimelineElement | null>(null);
+  
+  // When activeTick changes from parent, find and select the element
+  $effect(() => {
+    if (activeTick !== null && (!selectedElement || selectedElement.tick !== activeTick)) {
+      const item = timelineItems.find(i => i.element.tick === activeTick);
+      if (item) {
+        selectedElement = item.element;
+        // Scroll to the tick column
+        scrollToTick(activeTick);
+      }
+    }
+  });
+  
+  // When selectedElement changes, update activeTick
+  $effect(() => {
+    if (selectedElement && selectedElement.tick !== activeTick) {
+      activeTick = selectedElement.tick;
+    }
+  });
+  
+  function scrollToTick(tick: number) {
+    const tickIndex = tickColumns().findIndex(col => col.tick === tick);
+    if (tickIndex >= 0) {
+      const scrollArea = document.querySelector('.ht-scroll-area');
+      if (scrollArea) {
+        const targetX = tickIndex * TICK_WIDTH - scrollArea.clientWidth / 2 + TICK_WIDTH / 2;
+        scrollArea.scrollTo({ left: Math.max(0, targetX), behavior: 'smooth' });
+      }
+    }
+  }
 
   // Group items by tick
   let tickColumns = $derived(() => {
