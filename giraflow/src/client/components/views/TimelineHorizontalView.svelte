@@ -223,6 +223,7 @@
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}
+    >
       <div class="ht-canvas" style="width: {tickColumns().length * TICK_WIDTH + 50}px; height: {totalHeight}px;">
         <!-- Lane backgrounds -->
         {#each laneConfig.actorRoles as _, i}
