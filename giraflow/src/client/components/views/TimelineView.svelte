@@ -1246,14 +1246,12 @@
     cursor: pointer;
     transition: all 0.15s;
     color: var(--text-secondary);
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .tl-filter-trigger:hover {
-    border-color: var(--text-secondary);
     background: var(--bg-secondary);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
+    color: var(--text-primary);
   }
 
   .tl-filter-icon {
