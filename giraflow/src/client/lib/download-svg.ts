@@ -167,7 +167,7 @@ export function generateSvg(model: GiraflowModel, orientation: SvgOrientation = 
     numActorLanes * LAYOUT.laneWidth +
     (numEventLanes + numActorLanes + 1) * LAYOUT.laneGap;
 
-  const tickSpan = tickColumns.length * LAYOUT.tickGap + LAYOUT.boxHeight;
+  const tickSpan = tickColumns.length * LAYOUT.tickGap + LAYOUT.boxWidth + 20;
   
   let width: number;
   let height: number;
@@ -326,7 +326,8 @@ export function generateSvg(model: GiraflowModel, orientation: SvgOrientation = 
 
   // Render elements by tick
   tickColumns.forEach((column, tickIndex) => {
-    const tickPos = laneStart + 20 + tickIndex * LAYOUT.tickGap;
+    // Start with more offset to avoid overlap at beginning
+    const tickPos = laneStart + LAYOUT.boxWidth / 2 + 10 + tickIndex * LAYOUT.tickGap;
 
     // Count center lane elements for offset calculation
     const centerElements = column.elements.filter(e => isCommand(e) || isState(e));
@@ -405,7 +406,7 @@ export function generateSvg(model: GiraflowModel, orientation: SvgOrientation = 
   // Tick labels
   svg += `\n  <!-- Tick labels -->`;
   tickColumns.forEach((column, tickIndex) => {
-    const tickPos = laneStart + 20 + tickIndex * LAYOUT.tickGap + LAYOUT.boxHeight / 2;
+    const tickPos = laneStart + LAYOUT.boxWidth / 2 + 10 + tickIndex * LAYOUT.tickGap + LAYOUT.boxHeight / 2;
     if (orientation === 'vertical') {
       // Labels at top
       svg += `
