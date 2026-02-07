@@ -127,7 +127,7 @@
 <div class="horizontal-timeline">
   <header class="ht-header">
     <h2>Timeline</h2>
-    <span class="ht-count">{timelineItems.length} items, {tickColumns().length} ticks</span>
+    <span class="ht-count">{tickColumns().length} ticks</span>
   </header>
 
   <div class="ht-container">
