@@ -6,11 +6,12 @@
  * - Overview slide (slice sequence)
  * - One slide per slice (command flow)
  * - Summary slide (all events)
+ * 
+ * Supports horizontal (timeline left→right) and vertical (timeline top→bottom) layouts.
  */
 
 import PptxGenJS from 'pptxgenjs';
 import type { GiraflowModel, Actor, Command, Event } from './types';
-import { buildSliceViewModel, type Slice } from './models/slice-model';
 
 // Giraflow colors
 const COLORS = {
@@ -32,6 +33,8 @@ interface SliceData {
   stateName: string | undefined;
   stateExample: unknown;
 }
+
+export type PptxOrientation = 'horizontal' | 'vertical';
 
 /**
  * Extract command slices from the model
@@ -89,7 +92,6 @@ function exampleToBullets(example: unknown): string[] {
 
   if (Array.isArray(example)) {
     if (example.length === 0) return ['(empty list)'];
-    // Show first item's structure
     const firstItem = example[0];
     if (typeof firstItem === 'object' && firstItem !== null) {
       return Object.entries(firstItem).map(([key, value]) => {
@@ -113,9 +115,473 @@ function exampleToBullets(example: unknown): string[] {
 }
 
 /**
+ * Add horizontal layout slice (flow left, data right)
+ */
+function addHorizontalSlice(
+  pptx: PptxGenJS,
+  slice: SliceData,
+  sliceIndex: number,
+  totalSlices: number
+): void {
+  const slide = pptx.addSlide();
+
+  // Slide title
+  slide.addText(`${sliceIndex + 1}. ${slice.command.name}`, {
+    x: 0.3, y: 0.2, w: 7, h: 0.6,
+    fontSize: 24, bold: true, color: COLORS.text,
+  });
+
+  // Slice indicator
+  slide.addText(`Slice ${sliceIndex + 1} / ${totalSlices}`, {
+    x: 7.5, y: 0.3, w: 2, h: 0.4,
+    fontSize: 10, color: COLORS.textMuted, align: 'right',
+  });
+
+  // === LEFT: Flow Diagram (vertical lanes) ===
+  const lanes = [
+    { label: 'Actor', y: 1.1 },
+    { label: 'Command', y: 2.1 },
+    { label: 'Event', y: 3.1 },
+    { label: 'Read Model', y: 4.1 },
+  ];
+
+  for (const lane of lanes) {
+    slide.addText(lane.label, {
+      x: 0.2, y: lane.y, w: 1, h: 0.5,
+      fontSize: 9, color: COLORS.textMuted, valign: 'middle',
+    });
+  }
+
+  // Horizontal lane lines
+  for (let i = 0; i < 4; i++) {
+    slide.addShape('line', {
+      x: 0.2, y: 1.65 + i * 1, w: 5.3, h: 0,
+      line: { color: COLORS.line, width: 0.5 },
+    });
+  }
+
+  // Actor box
+  const isAdmin = slice.actor?.role === 'Admin';
+  slide.addShape('ellipse', {
+    x: 1.4, y: 1, w: 1.4, h: 0.55,
+    fill: { color: isAdmin ? COLORS.actorAdmin : COLORS.actor },
+    line: { color: isAdmin ? '7c3aed' : '4b5563', width: 1 },
+  });
+  slide.addText(`👤 ${slice.actor?.name || 'User'}`, {
+    x: 1.4, y: 1, w: 1.4, h: 0.55,
+    fontSize: 10, bold: true, color: COLORS.textLight,
+    align: 'center', valign: 'middle',
+  });
+
+  // Command box
+  slide.addShape('roundRect', {
+    x: 3.2, y: 1.95, w: 1.8, h: 0.6,
+    fill: { color: COLORS.command },
+    line: { color: '5a82d7', width: 1 },
+  });
+  slide.addText(slice.command.name, {
+    x: 3.2, y: 1.95, w: 1.8, h: 0.6,
+    fontSize: 10, bold: true, color: COLORS.text,
+    align: 'center', valign: 'middle',
+  });
+
+  // Arrow: Actor → Command
+  slide.addShape('line', {
+    x: 2.8, y: 1.28, w: 0.4, h: 0.67,
+    line: { color: COLORS.command, width: 2, endArrowType: 'triangle' },
+  });
+
+  // Event box
+  const mainEvent = slice.events[0];
+  if (mainEvent) {
+    slide.addShape('roundRect', {
+      x: 3.2, y: 2.95, w: 1.8, h: 0.6,
+      fill: { color: COLORS.event },
+      line: { color: 'df7e44', width: 1 },
+    });
+    slide.addText(mainEvent.name, {
+      x: 3.2, y: 2.95, w: 1.8, h: 0.6,
+      fontSize: 10, bold: true, color: COLORS.text,
+      align: 'center', valign: 'middle',
+    });
+
+    // Arrow: Command → Event
+    slide.addShape('line', {
+      x: 4.1, y: 2.55, w: 0, h: 0.4,
+      line: { color: COLORS.event, width: 2, endArrowType: 'triangle' },
+    });
+  }
+
+  // State box
+  if (slice.stateName) {
+    slide.addShape('roundRect', {
+      x: 3.2, y: 3.95, w: 1.8, h: 0.6,
+      fill: { color: COLORS.state },
+      line: { color: '7eb356', width: 1 },
+    });
+    slide.addText(slice.stateName, {
+      x: 3.2, y: 3.95, w: 1.8, h: 0.6,
+      fontSize: 10, bold: true, color: COLORS.text,
+      align: 'center', valign: 'middle',
+    });
+
+    // Arrow: Event → State
+    slide.addShape('line', {
+      x: 4.1, y: 3.55, w: 0, h: 0.4,
+      line: { color: COLORS.state, width: 2, endArrowType: 'triangle' },
+    });
+  }
+
+  // Dashed read arrow (state back to actor)
+  slide.addShape('line', {
+    x: 2.1, y: 3.95, w: 0, h: -2.35,
+    line: { color: COLORS.actor, width: 1, dashType: 'dash' },
+  });
+
+  // === RIGHT: Data Fields ===
+  addDataFields(slide, slice, 5.8, 1.0);
+}
+
+/**
+ * Add vertical layout slice (flow top, data bottom)
+ */
+function addVerticalSlice(
+  pptx: PptxGenJS,
+  slice: SliceData,
+  sliceIndex: number,
+  totalSlices: number
+): void {
+  const slide = pptx.addSlide();
+
+  // Slide title
+  slide.addText(`${sliceIndex + 1}. ${slice.command.name}`, {
+    x: 0.3, y: 0.2, w: 7, h: 0.5,
+    fontSize: 22, bold: true, color: COLORS.text,
+  });
+
+  // Slice indicator
+  slide.addText(`Slice ${sliceIndex + 1} / ${totalSlices}`, {
+    x: 7.5, y: 0.25, w: 2, h: 0.4,
+    fontSize: 10, color: COLORS.textMuted, align: 'right',
+  });
+
+  // === TOP: Flow Diagram (horizontal lanes) ===
+  const laneY = 0.75;
+  const laneHeight = 1.6;
+  const boxWidth = 1.6;
+  const boxHeight = 0.5;
+  
+  // Lane positions (left to right)
+  const lanePositions = [
+    { label: 'Actor', x: 0.5 },
+    { label: 'Command', x: 2.6 },
+    { label: 'Event', x: 4.7 },
+    { label: 'Read Model', x: 6.8 },
+  ];
+
+  // Lane labels
+  for (const lane of lanePositions) {
+    slide.addText(lane.label, {
+      x: lane.x, y: laneY, w: boxWidth, h: 0.3,
+      fontSize: 9, color: COLORS.textMuted, align: 'center',
+    });
+  }
+
+  // Vertical lane lines
+  for (let i = 1; i < 4; i++) {
+    slide.addShape('line', {
+      x: 0.5 + i * 2.1, y: laneY + 0.35, w: 0, h: laneHeight - 0.35,
+      line: { color: COLORS.line, width: 0.5 },
+    });
+  }
+
+  // Horizontal baseline
+  slide.addShape('line', {
+    x: 0.3, y: laneY + laneHeight, w: 9.2, h: 0,
+    line: { color: COLORS.line, width: 0.5 },
+  });
+
+  // Actor box
+  const isAdmin = slice.actor?.role === 'Admin';
+  const actorX = 0.5;
+  const flowY = laneY + 0.7;
+  
+  slide.addShape('ellipse', {
+    x: actorX, y: flowY, w: boxWidth, h: boxHeight,
+    fill: { color: isAdmin ? COLORS.actorAdmin : COLORS.actor },
+    line: { color: isAdmin ? '7c3aed' : '4b5563', width: 1 },
+  });
+  slide.addText(`👤 ${slice.actor?.name || 'User'}`, {
+    x: actorX, y: flowY, w: boxWidth, h: boxHeight,
+    fontSize: 9, bold: true, color: COLORS.textLight,
+    align: 'center', valign: 'middle',
+  });
+
+  // Command box
+  const cmdX = 2.6;
+  slide.addShape('roundRect', {
+    x: cmdX, y: flowY, w: boxWidth, h: boxHeight,
+    fill: { color: COLORS.command },
+    line: { color: '5a82d7', width: 1 },
+  });
+  slide.addText(slice.command.name, {
+    x: cmdX, y: flowY, w: boxWidth, h: boxHeight,
+    fontSize: 9, bold: true, color: COLORS.text,
+    align: 'center', valign: 'middle',
+  });
+
+  // Arrow: Actor → Command
+  slide.addShape('line', {
+    x: actorX + boxWidth, y: flowY + boxHeight / 2,
+    w: cmdX - actorX - boxWidth, h: 0,
+    line: { color: COLORS.command, width: 2, endArrowType: 'triangle' },
+  });
+
+  // Event box
+  const mainEvent = slice.events[0];
+  const evtX = 4.7;
+  if (mainEvent) {
+    slide.addShape('roundRect', {
+      x: evtX, y: flowY, w: boxWidth, h: boxHeight,
+      fill: { color: COLORS.event },
+      line: { color: 'df7e44', width: 1 },
+    });
+    slide.addText(mainEvent.name, {
+      x: evtX, y: flowY, w: boxWidth, h: boxHeight,
+      fontSize: 9, bold: true, color: COLORS.text,
+      align: 'center', valign: 'middle',
+    });
+
+    // Arrow: Command → Event
+    slide.addShape('line', {
+      x: cmdX + boxWidth, y: flowY + boxHeight / 2,
+      w: evtX - cmdX - boxWidth, h: 0,
+      line: { color: COLORS.event, width: 2, endArrowType: 'triangle' },
+    });
+  }
+
+  // State box
+  const stateX = 6.8;
+  if (slice.stateName) {
+    slide.addShape('roundRect', {
+      x: stateX, y: flowY, w: boxWidth, h: boxHeight,
+      fill: { color: COLORS.state },
+      line: { color: '7eb356', width: 1 },
+    });
+    slide.addText(slice.stateName, {
+      x: stateX, y: flowY, w: boxWidth, h: boxHeight,
+      fontSize: 9, bold: true, color: COLORS.text,
+      align: 'center', valign: 'middle',
+    });
+
+    // Arrow: Event → State
+    if (mainEvent) {
+      slide.addShape('line', {
+        x: evtX + boxWidth, y: flowY + boxHeight / 2,
+        w: stateX - evtX - boxWidth, h: 0,
+        line: { color: COLORS.state, width: 2, endArrowType: 'triangle' },
+      });
+    }
+  }
+
+  // Dashed read arrow (state back to actor, curved path)
+  const arrowY = flowY + boxHeight + 0.3;
+  // Horizontal part under state
+  slide.addShape('line', {
+    x: stateX + boxWidth / 2, y: flowY + boxHeight,
+    w: 0, h: 0.3,
+    line: { color: COLORS.actor, width: 1, dashType: 'dash' },
+  });
+  // Long horizontal back
+  slide.addShape('line', {
+    x: actorX + boxWidth / 2, y: arrowY,
+    w: stateX - actorX, h: 0,
+    line: { color: COLORS.actor, width: 1, dashType: 'dash' },
+  });
+  // Up to actor
+  slide.addShape('line', {
+    x: actorX + boxWidth / 2, y: arrowY,
+    w: 0, h: -(arrowY - flowY - boxHeight),
+    line: { color: COLORS.actor, width: 1, dashType: 'dash', endArrowType: 'triangle' },
+  });
+
+  // === BOTTOM: Data Fields (3-column layout) ===
+  const dataY = laneY + laneHeight + 0.25;
+  const colWidth = 3.0;
+  
+  // Command fields (left column)
+  addDataColumn(slide, slice.command.name, slice.command.example, COLORS.command, '5a82d7', 0.4, dataY, colWidth);
+
+  // Event fields (middle column)
+  if (mainEvent) {
+    addDataColumn(slide, mainEvent.name, mainEvent.example, COLORS.event, 'df7e44', 3.5, dataY, colWidth);
+  }
+
+  // State fields (right column)
+  if (slice.stateName && slice.stateExample) {
+    addDataColumn(slide, slice.stateName, slice.stateExample, COLORS.state, '7eb356', 6.6, dataY, colWidth);
+  }
+}
+
+/**
+ * Add a data column for vertical layout
+ */
+function addDataColumn(
+  slide: PptxGenJS.Slide,
+  title: string,
+  example: unknown,
+  fillColor: string,
+  lineColor: string,
+  x: number,
+  y: number,
+  width: number
+): void {
+  // Header
+  slide.addShape('roundRect', {
+    x, y, w: width, h: 0.35,
+    fill: { color: fillColor },
+    line: { color: lineColor, width: 1 },
+  });
+  slide.addText(`${title}`, {
+    x, y, w: width, h: 0.35,
+    fontSize: 9, bold: true, color: COLORS.text,
+    align: 'center', valign: 'middle',
+  });
+
+  // Fields
+  const bullets = exampleToBullets(example);
+  let fieldY = y + 0.4;
+  
+  if (bullets.length === 0) {
+    slide.addText('(keine Felder)', {
+      x: x + 0.1, y: fieldY, w: width - 0.2, h: 0.25,
+      fontSize: 8, color: COLORS.textMuted, valign: 'middle', italic: true,
+    });
+  } else {
+    for (const bullet of bullets.slice(0, 6)) {
+      slide.addText(bullet, {
+        x: x + 0.1, y: fieldY, w: width - 0.2, h: 0.25,
+        fontSize: 8, color: '444444', valign: 'middle',
+      });
+      fieldY += 0.25;
+    }
+    if (bullets.length > 6) {
+      slide.addText(`... +${bullets.length - 6} mehr`, {
+        x: x + 0.1, y: fieldY, w: width - 0.2, h: 0.25,
+        fontSize: 8, color: COLORS.textMuted, valign: 'middle', italic: true,
+      });
+    }
+  }
+}
+
+/**
+ * Add data fields panel for horizontal layout
+ */
+function addDataFields(
+  slide: PptxGenJS.Slide,
+  slice: SliceData,
+  dataX: number,
+  startY: number
+): void {
+  let dataY = startY;
+
+  // Command fields
+  slide.addShape('roundRect', {
+    x: dataX, y: dataY, w: 3.8, h: 0.4,
+    fill: { color: COLORS.command },
+    line: { color: '5a82d7', width: 1 },
+  });
+  slide.addText(`${slice.command.name} – Felder`, {
+    x: dataX, y: dataY, w: 3.8, h: 0.4,
+    fontSize: 10, bold: true, color: COLORS.text,
+    align: 'center', valign: 'middle',
+  });
+  dataY += 0.45;
+
+  const cmdBullets = exampleToBullets(slice.command.example);
+  if (cmdBullets.length === 0) {
+    slide.addText('(keine Felder)', {
+      x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
+      fontSize: 9, color: COLORS.textMuted, valign: 'middle', italic: true,
+    });
+    dataY += 0.28;
+  } else {
+    for (const bullet of cmdBullets) {
+      slide.addText(bullet, {
+        x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
+        fontSize: 9, color: '444444', valign: 'middle',
+      });
+      dataY += 0.28;
+    }
+  }
+  dataY += 0.15;
+
+  // Event fields
+  const mainEvent = slice.events[0];
+  if (mainEvent) {
+    slide.addShape('roundRect', {
+      x: dataX, y: dataY, w: 3.8, h: 0.4,
+      fill: { color: COLORS.event },
+      line: { color: 'df7e44', width: 1 },
+    });
+    slide.addText(`${mainEvent.name} – Felder`, {
+      x: dataX, y: dataY, w: 3.8, h: 0.4,
+      fontSize: 10, bold: true, color: COLORS.text,
+      align: 'center', valign: 'middle',
+    });
+    dataY += 0.45;
+
+    const evtBullets = exampleToBullets(mainEvent.example);
+    if (evtBullets.length === 0) {
+      slide.addText('(keine Felder)', {
+        x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
+        fontSize: 9, color: COLORS.textMuted, valign: 'middle', italic: true,
+      });
+      dataY += 0.28;
+    } else {
+      for (const bullet of evtBullets) {
+        slide.addText(bullet, {
+          x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
+          fontSize: 9, color: '444444', valign: 'middle',
+        });
+        dataY += 0.28;
+      }
+    }
+    dataY += 0.15;
+  }
+
+  // State fields
+  if (slice.stateName && slice.stateExample) {
+    slide.addShape('roundRect', {
+      x: dataX, y: dataY, w: 3.8, h: 0.4,
+      fill: { color: COLORS.state },
+      line: { color: '7eb356', width: 1 },
+    });
+    slide.addText(`${slice.stateName} – Felder`, {
+      x: dataX, y: dataY, w: 3.8, h: 0.4,
+      fontSize: 10, bold: true, color: COLORS.text,
+      align: 'center', valign: 'middle',
+    });
+    dataY += 0.45;
+
+    const stateBullets = exampleToBullets(slice.stateExample);
+    for (const bullet of stateBullets) {
+      slide.addText(bullet, {
+        x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
+        fontSize: 9, color: '444444', valign: 'middle',
+      });
+      dataY += 0.28;
+    }
+  }
+}
+
+/**
  * Generate and download PowerPoint presentation
  */
-export async function downloadPptx(model: GiraflowModel): Promise<void> {
+export async function downloadPptx(
+  model: GiraflowModel,
+  orientation: PptxOrientation = 'horizontal'
+): Promise<void> {
   const pptx = new PptxGenJS();
   pptx.title = model.name;
   pptx.author = 'Giraflow';
@@ -142,6 +608,12 @@ export async function downloadPptx(model: GiraflowModel): Promise<void> {
       align: 'center',
     });
   }
+  // Orientation indicator
+  titleSlide.addText(`Layout: ${orientation === 'horizontal' ? '→ Horizontal' : '↓ Vertikal'}`, {
+    x: 0.5, y: 5, w: 9, h: 0.4,
+    fontSize: 11, color: 'aaaaaa',
+    align: 'center',
+  });
 
   // ===== SLIDE 2: Overview =====
   const overviewSlide = pptx.addSlide();
@@ -150,7 +622,6 @@ export async function downloadPptx(model: GiraflowModel): Promise<void> {
     fontSize: 24, bold: true, color: COLORS.text,
   });
 
-  // Timeline visualization
   const timelineY = 1.2;
   const boxWidth = 1.6;
   const boxHeight = 0.5;
@@ -164,13 +635,11 @@ export async function downloadPptx(model: GiraflowModel): Promise<void> {
     const x = startX + col * (boxWidth + gap);
     const y = timelineY + row * 0.9;
 
-    // Slice number
     overviewSlide.addText(`${i + 1}`, {
       x, y: y - 0.35, w: boxWidth, h: 0.3,
       fontSize: 10, color: COLORS.textMuted, align: 'center',
     });
 
-    // Command box
     overviewSlide.addShape('roundRect', {
       x, y, w: boxWidth, h: boxHeight,
       fill: { color: COLORS.command },
@@ -182,7 +651,6 @@ export async function downloadPptx(model: GiraflowModel): Promise<void> {
       align: 'center', valign: 'middle',
     });
 
-    // Arrow to next (except last in row or last overall)
     if (col < 4 && i < slices.length - 1) {
       overviewSlide.addShape('line', {
         x: x + boxWidth, y: y + boxHeight / 2,
@@ -252,212 +720,10 @@ export async function downloadPptx(model: GiraflowModel): Promise<void> {
 
   // ===== SLIDES 3+: One per Slice =====
   for (let sliceIndex = 0; sliceIndex < slices.length; sliceIndex++) {
-    const slice = slices[sliceIndex];
-    const slide = pptx.addSlide();
-
-    // Slide title
-    slide.addText(`${sliceIndex + 1}. ${slice.command.name}`, {
-      x: 0.3, y: 0.2, w: 7, h: 0.6,
-      fontSize: 24, bold: true, color: COLORS.text,
-    });
-
-    // Slice indicator
-    slide.addText(`Slice ${sliceIndex + 1} / ${slices.length}`, {
-      x: 7.5, y: 0.3, w: 2, h: 0.4,
-      fontSize: 10, color: COLORS.textMuted, align: 'right',
-    });
-
-    // === LEFT: Flow Diagram ===
-    const lanes = [
-      { label: 'Actor', y: 1.1 },
-      { label: 'Command', y: 2.1 },
-      { label: 'Event', y: 3.1 },
-      { label: 'Read Model', y: 4.1 },
-    ];
-
-    for (const lane of lanes) {
-      slide.addText(lane.label, {
-        x: 0.2, y: lane.y, w: 1, h: 0.5,
-        fontSize: 9, color: COLORS.textMuted, valign: 'middle',
-      });
-    }
-
-    // Horizontal lines
-    for (let i = 0; i < 4; i++) {
-      slide.addShape('line', {
-        x: 0.2, y: 1.65 + i * 1, w: 5.3, h: 0,
-        line: { color: COLORS.line, width: 0.5 },
-      });
-    }
-
-    // Actor box
-    const isAdmin = slice.actor?.role === 'Admin';
-    slide.addShape('ellipse', {
-      x: 1.4, y: 1, w: 1.4, h: 0.55,
-      fill: { color: isAdmin ? COLORS.actorAdmin : COLORS.actor },
-      line: { color: isAdmin ? '7c3aed' : '4b5563', width: 1 },
-    });
-    slide.addText(`👤 ${slice.actor?.name || 'User'}`, {
-      x: 1.4, y: 1, w: 1.4, h: 0.55,
-      fontSize: 10, bold: true, color: COLORS.textLight,
-      align: 'center', valign: 'middle',
-    });
-
-    // Command box
-    slide.addShape('roundRect', {
-      x: 3.2, y: 1.95, w: 1.8, h: 0.6,
-      fill: { color: COLORS.command },
-      line: { color: '5a82d7', width: 1 },
-    });
-    slide.addText(slice.command.name, {
-      x: 3.2, y: 1.95, w: 1.8, h: 0.6,
-      fontSize: 10, bold: true, color: COLORS.text,
-      align: 'center', valign: 'middle',
-    });
-
-    // Arrow: Actor → Command
-    slide.addShape('line', {
-      x: 2.8, y: 1.28, w: 0.4, h: 0.67,
-      line: { color: COLORS.command, width: 2, endArrowType: 'triangle' },
-    });
-
-    // Event box
-    const mainEvent = slice.events[0];
-    if (mainEvent) {
-      slide.addShape('roundRect', {
-        x: 3.2, y: 2.95, w: 1.8, h: 0.6,
-        fill: { color: COLORS.event },
-        line: { color: 'df7e44', width: 1 },
-      });
-      slide.addText(mainEvent.name, {
-        x: 3.2, y: 2.95, w: 1.8, h: 0.6,
-        fontSize: 10, bold: true, color: COLORS.text,
-        align: 'center', valign: 'middle',
-      });
-
-      // Arrow: Command → Event
-      slide.addShape('line', {
-        x: 4.1, y: 2.55, w: 0, h: 0.4,
-        line: { color: COLORS.event, width: 2, endArrowType: 'triangle' },
-      });
-    }
-
-    // State box
-    if (slice.stateName) {
-      slide.addShape('roundRect', {
-        x: 3.2, y: 3.95, w: 1.8, h: 0.6,
-        fill: { color: COLORS.state },
-        line: { color: '7eb356', width: 1 },
-      });
-      slide.addText(slice.stateName, {
-        x: 3.2, y: 3.95, w: 1.8, h: 0.6,
-        fontSize: 10, bold: true, color: COLORS.text,
-        align: 'center', valign: 'middle',
-      });
-
-      // Arrow: Event → State
-      slide.addShape('line', {
-        x: 4.1, y: 3.55, w: 0, h: 0.4,
-        line: { color: COLORS.state, width: 2, endArrowType: 'triangle' },
-      });
-    }
-
-    // Dashed read arrow
-    slide.addShape('line', {
-      x: 2.1, y: 3.95, w: 0, h: -2.35,
-      line: { color: COLORS.actor, width: 1, dashType: 'dash' },
-    });
-
-    // === RIGHT: Data Fields ===
-    const dataX = 5.8;
-    let dataY = 1.0;
-
-    // Command fields
-    slide.addShape('roundRect', {
-      x: dataX, y: dataY, w: 3.8, h: 0.4,
-      fill: { color: COLORS.command },
-      line: { color: '5a82d7', width: 1 },
-    });
-    slide.addText(`${slice.command.name} – Felder`, {
-      x: dataX, y: dataY, w: 3.8, h: 0.4,
-      fontSize: 10, bold: true, color: COLORS.text,
-      align: 'center', valign: 'middle',
-    });
-    dataY += 0.45;
-
-    const cmdBullets = exampleToBullets(slice.command.example);
-    if (cmdBullets.length === 0) {
-      slide.addText('(keine Felder)', {
-        x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
-        fontSize: 9, color: COLORS.textMuted, valign: 'middle', italic: true,
-      });
-      dataY += 0.28;
+    if (orientation === 'vertical') {
+      addVerticalSlice(pptx, slices[sliceIndex], sliceIndex, slices.length);
     } else {
-      for (const bullet of cmdBullets) {
-        slide.addText(bullet, {
-          x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
-          fontSize: 9, color: '444444', valign: 'middle',
-        });
-        dataY += 0.28;
-      }
-    }
-    dataY += 0.15;
-
-    // Event fields
-    if (mainEvent) {
-      slide.addShape('roundRect', {
-        x: dataX, y: dataY, w: 3.8, h: 0.4,
-        fill: { color: COLORS.event },
-        line: { color: 'df7e44', width: 1 },
-      });
-      slide.addText(`${mainEvent.name} – Felder`, {
-        x: dataX, y: dataY, w: 3.8, h: 0.4,
-        fontSize: 10, bold: true, color: COLORS.text,
-        align: 'center', valign: 'middle',
-      });
-      dataY += 0.45;
-
-      const evtBullets = exampleToBullets(mainEvent.example);
-      if (evtBullets.length === 0) {
-        slide.addText('(keine Felder)', {
-          x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
-          fontSize: 9, color: COLORS.textMuted, valign: 'middle', italic: true,
-        });
-        dataY += 0.28;
-      } else {
-        for (const bullet of evtBullets) {
-          slide.addText(bullet, {
-            x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
-            fontSize: 9, color: '444444', valign: 'middle',
-          });
-          dataY += 0.28;
-        }
-      }
-      dataY += 0.15;
-    }
-
-    // State fields
-    if (slice.stateName && slice.stateExample) {
-      slide.addShape('roundRect', {
-        x: dataX, y: dataY, w: 3.8, h: 0.4,
-        fill: { color: COLORS.state },
-        line: { color: '7eb356', width: 1 },
-      });
-      slide.addText(`${slice.stateName} – Felder`, {
-        x: dataX, y: dataY, w: 3.8, h: 0.4,
-        fontSize: 10, bold: true, color: COLORS.text,
-        align: 'center', valign: 'middle',
-      });
-      dataY += 0.45;
-
-      const stateBullets = exampleToBullets(slice.stateExample);
-      for (const bullet of stateBullets) {
-        slide.addText(bullet, {
-          x: dataX + 0.1, y: dataY, w: 3.6, h: 0.28,
-          fontSize: 9, color: '444444', valign: 'middle',
-        });
-        dataY += 0.28;
-      }
+      addHorizontalSlice(pptx, slices[sliceIndex], sliceIndex, slices.length);
     }
   }
 
@@ -484,12 +750,13 @@ export async function downloadPptx(model: GiraflowModel): Promise<void> {
     });
   }
 
-  // Generate filename
+  // Generate filename with orientation suffix
   const safeName = (model.name || 'giraflow')
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-');
 
-  // Download
-  await pptx.writeFile({ fileName: `${safeName}.pptx` });
+  const orientationSuffix = orientation === 'vertical' ? '-vertical' : '';
+
+  await pptx.writeFile({ fileName: `${safeName}${orientationSuffix}.pptx` });
 }
