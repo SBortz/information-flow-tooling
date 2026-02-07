@@ -15,8 +15,19 @@
   };
 
   // Orientation toggle: vertical (default) or horizontal
-  let orientation = $state<'vertical' | 'horizontal'>('vertical');
-  let prevOrientation = $state<'vertical' | 'horizontal'>('vertical');
+  // Restore from localStorage if available
+  const savedOrientation = typeof localStorage !== 'undefined' 
+    ? localStorage.getItem('giraflow-timeline-orientation') as 'vertical' | 'horizontal' | null
+    : null;
+  let orientation = $state<'vertical' | 'horizontal'>(savedOrientation || 'vertical');
+  let prevOrientation = $state<'vertical' | 'horizontal'>(savedOrientation || 'vertical');
+  
+  // Save orientation to localStorage when it changes
+  $effect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('giraflow-timeline-orientation', orientation);
+    }
+  });
 
   let activeTick = $state<number | null>(null);
   let detailContainer: HTMLElement | null = $state(null);
