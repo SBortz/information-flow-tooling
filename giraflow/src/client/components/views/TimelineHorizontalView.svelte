@@ -36,10 +36,10 @@
   });
 
   // Layout constants
-  const TICK_WIDTH = 160;
-  const LANE_HEIGHT = 70;
-  const BOX_WIDTH = 140;
-  const BOX_HEIGHT = 40;
+  const TICK_WIDTH = 200;
+  const LANE_HEIGHT = 80;
+  const BOX_WIDTH = 180;
+  const BOX_HEIGHT = 44;
 
   // Calculate lane Y positions
   // Order: Actors (top) → Commands/States (middle) → Events (bottom)
@@ -128,7 +128,7 @@
               onclick={() => selectedElement = el}
             >
               <span class="ht-symbol">{symbols[el.type]}</span>
-              <span class="ht-name">{el.name.length > 18 ? el.name.slice(0, 17) + '…' : el.name}</span>
+              <span class="ht-name">{el.name.length > 22 ? el.name.slice(0, 21) + '…' : el.name}</span>
             </button>
           {/each}
         {/each}
@@ -239,7 +239,7 @@
 
   .ht-lane-labels {
     flex-shrink: 0;
-    width: 110px;
+    width: 120px;
     position: relative;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border);
