@@ -30,20 +30,32 @@
   // Selected element for detail panel (separate from scroll sync)
   let selectedElement = $state<TimelineElement | null>(null);
   
-  // Only scroll once on mount
-  let hasMountScrolled = false;
+  // Track the tick we've scrolled to (to avoid re-scrolling)
+  let scrolledToTick = $state<number | null>(null);
+  
+  // Scroll to activeTick on mount only (not when user selects)
   $effect(() => {
-    if (!hasMountScrolled && activeTick !== null && timelineItems.length > 0) {
-      hasMountScrolled = true;
-      requestAnimationFrame(() => {
-        scrollToTick(activeTick!);
-      });
-    }
+    // Only read activeTick once at the start
+    const targetTick = activeTick;
+    const itemCount = timelineItems.length;
+    
+    // Skip if no tick, no items, or we already scrolled to this tick
+    if (targetTick === null || itemCount === 0) return;
+    if (scrolledToTick === targetTick) return;
+    
+    // Mark as scrolled BEFORE actually scrolling
+    scrolledToTick = targetTick;
+    
+    requestAnimationFrame(() => {
+      scrollToTick(targetTick);
+    });
   });
 
-  // When selectedElement changes by user interaction, update activeTick (no scroll)
+  // When selectedElement changes by user interaction, update activeTick
+  // Also update scrolledToTick to prevent the effect from scrolling
   function selectElement(el: TimelineElement) {
     selectedElement = el;
+    scrolledToTick = el.tick; // Prevent effect from scrolling
     activeTick = el.tick;
   }
 
