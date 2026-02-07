@@ -29,21 +29,15 @@
 
   // Selected element for detail panel (separate from scroll sync)
   let selectedElement = $state<TimelineElement | null>(null);
-  let lastSyncedTick = $state<number | null>(null);
-  let hasInitialized = $state(false);
+  let initialScrollDone = false;
   
-  // Scroll to activeTick on mount and when it changes
+  // Scroll to activeTick only on initial mount
   $effect(() => {
-    if (activeTick !== null && timelineItems.length > 0) {
-      // On first render or when tick changes, scroll to it
-      if (!hasInitialized || activeTick !== lastSyncedTick) {
-        hasInitialized = true;
-        lastSyncedTick = activeTick;
-        // Delay scroll to ensure DOM is ready
-        requestAnimationFrame(() => {
-          scrollToTick(activeTick!);
-        });
-      }
+    if (!initialScrollDone && activeTick !== null && timelineItems.length > 0) {
+      initialScrollDone = true;
+      requestAnimationFrame(() => {
+        scrollToTick(activeTick!);
+      });
     }
   });
   
@@ -51,7 +45,6 @@
   function selectElement(el: TimelineElement) {
     selectedElement = el;
     activeTick = el.tick;
-    lastSyncedTick = el.tick;
   }
   
   function scrollToTick(tick: number) {
