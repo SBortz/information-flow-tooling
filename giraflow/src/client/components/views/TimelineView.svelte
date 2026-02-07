@@ -83,8 +83,22 @@
   // Toggle for showing connections
   let showConnections = $state(true);
 
-  // Hovered tick for connection highlighting
+  // Hovered/selected tick for connection highlighting
+  // On desktop: set by hover, on mobile: set by tap
   let hoveredTick = $state<number | null>(null);
+  let selectedConnectionTick = $state<number | null>(null);
+  
+  // Combined: use selected if set, otherwise hovered
+  let connectionHighlightTick = $derived(selectedConnectionTick ?? hoveredTick);
+
+  // Toggle connection highlight on click (for mobile)
+  function toggleConnectionHighlight(tick: number) {
+    if (selectedConnectionTick === tick) {
+      selectedConnectionTick = null; // Deselect on second tap
+    } else {
+      selectedConnectionTick = tick;
+    }
+  }
 
   // Filtered lane config - excludes hidden systems/roles
   let filteredLaneConfig = $derived(() => {
@@ -217,15 +231,15 @@
     return type === 'reads';
   }
 
-  // Check if connection is related to hovered tick
+  // Check if connection is related to highlighted tick
   function isConnectionHighlighted(conn: TimelineConnection): boolean {
-    if (hoveredTick === null) return false;
-    return conn.fromTick === hoveredTick || conn.toTick === hoveredTick;
+    if (connectionHighlightTick === null) return false;
+    return conn.fromTick === connectionHighlightTick || conn.toTick === connectionHighlightTick;
   }
 
-  // Get connection opacity based on hover state
+  // Get connection opacity based on highlight state
   function getConnectionOpacity(conn: TimelineConnection): number {
-    if (hoveredTick === null) return 0.15; // Very faint when nothing hovered
+    if (connectionHighlightTick === null) return 0.15; // Very faint when nothing highlighted
     return isConnectionHighlighted(conn) ? 0.8 : 0.05; // Highlighted vs dimmed
   }
 
@@ -679,9 +693,12 @@
         <button
           class="tl-master-item"
           class:active={activeTick === el.tick}
-          class:hovered={hoveredTick === el.tick}
+          class:hovered={connectionHighlightTick === el.tick}
           data-tick={el.tick}
-          onclick={() => scrollToDetail(el.tick)}
+          onclick={() => {
+            selectedConnectionTick = el.tick; // Show connections on tap
+            scrollToDetail(el.tick);
+          }}
           onmouseenter={() => hoveredTick = el.tick}
           onmouseleave={() => hoveredTick = null}
         >
