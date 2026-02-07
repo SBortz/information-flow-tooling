@@ -3,6 +3,7 @@
   import { examples, getEmptyTemplate } from '../lib/examples';
   import { buildSliceViewModel } from '../lib/models/slice-model';
   import { downloadProjectZip } from '../lib/download-zip';
+  import { downloadPptx } from '../lib/download-pptx';
 
   function handleExampleSelect(e: Event) {
     const select = e.currentTarget as HTMLSelectElement;
@@ -97,6 +98,11 @@
       modelStore.currentExampleFolder
     );
   }
+
+  async function handleDownloadPptx() {
+    if (!modelStore.model) return;
+    await downloadPptx(modelStore.model);
+  }
 </script>
 
 <header class="header">
@@ -127,7 +133,11 @@
         </button>
         <button class="icon-button" onclick={handleDownload} title="Download as ZIP">
           <span class="icon">↓</span>
-          <span class="label">Download</span>
+          <span class="label">ZIP</span>
+        </button>
+        <button class="icon-button pptx-button" onclick={handleDownloadPptx} title="Download as PowerPoint">
+          <span class="icon">📊</span>
+          <span class="label">PPTX</span>
         </button>
       </div>
     {:else}
@@ -244,6 +254,12 @@
     background: var(--bg-card);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
+  }
+
+  .pptx-button:hover {
+    border-color: var(--color-event);
+    color: var(--color-event);
+    box-shadow: 0 4px 12px rgba(255, 158, 100, 0.25);
   }
 
   .status {
