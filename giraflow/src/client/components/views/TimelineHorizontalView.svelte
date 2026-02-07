@@ -356,7 +356,8 @@
     display: flex;
     flex: 1;
     min-width: 0;
-    overflow: visible;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .ht-lane-labels {
@@ -365,6 +366,8 @@
     position: relative;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .ht-lane-label {
@@ -391,8 +394,7 @@
 
   .ht-scroll-area {
     flex: 1;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
