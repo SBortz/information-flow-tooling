@@ -29,29 +29,21 @@
 
   // Selected element for detail panel (separate from scroll sync)
   let selectedElement = $state<TimelineElement | null>(null);
-  let lastScrolledTick: number | null = null;
-  let isInternalChange = false;
   
-  // Scroll to activeTick on mount and when switching views (external change)
+  // Only scroll once on mount
+  let hasMountScrolled = false;
   $effect(() => {
-    const tick = activeTick;
-    const hasItems = timelineItems.length > 0;
-    
-    // Only scroll if tick changed externally (not from user click)
-    if (tick !== null && hasItems && tick !== lastScrolledTick && !isInternalChange) {
-      lastScrolledTick = tick;
+    if (!hasMountScrolled && activeTick !== null && timelineItems.length > 0) {
+      hasMountScrolled = true;
       requestAnimationFrame(() => {
-        scrollToTick(tick);
+        scrollToTick(activeTick!);
       });
     }
-    isInternalChange = false;
   });
 
-  // When selectedElement changes by user interaction, update activeTick
+  // When selectedElement changes by user interaction, update activeTick (no scroll)
   function selectElement(el: TimelineElement) {
     selectedElement = el;
-    isInternalChange = true;
-    lastScrolledTick = el.tick;
     activeTick = el.tick;
   }
 
