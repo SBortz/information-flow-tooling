@@ -252,7 +252,8 @@
   .ht-container {
     display: flex;
     flex: 1;
-    overflow: hidden;
+    min-width: 0;
+    overflow: visible;
   }
 
   .ht-lane-labels {
@@ -289,6 +290,8 @@
     flex: 1;
     overflow-x: auto;
     overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
 
   .ht-canvas {
