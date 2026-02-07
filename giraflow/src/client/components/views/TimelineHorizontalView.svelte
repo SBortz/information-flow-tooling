@@ -570,27 +570,21 @@
     z-index: 10;
   }
 
-  /* Detail Panel */
+  /* Detail Panel - Fullscreen when open */
   .ht-detail-panel {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+    top: 0;
     background: var(--bg-card);
     border-top: 1px solid var(--border);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
     transform: translateY(100%);
     transition: transform 0.25s ease-out;
-    max-height: 40vh;
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 100;
-  }
-
-  @media (max-width: 900px) {
-    .ht-detail-panel {
-      max-height: 70vh;
-    }
   }
 
   .ht-detail-panel.open {
