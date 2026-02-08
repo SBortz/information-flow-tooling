@@ -297,8 +297,8 @@
           const element = document.getElementById(`tick-${activeTick}`);
           if (element) {
             isProgrammaticScroll = true;
-            element.scrollIntoView({ behavior: "smooth", block: "start" });
-            setTimeout(() => (isProgrammaticScroll = false), 1000);
+            element.scrollIntoView({ behavior: "instant", block: "start" });
+            setTimeout(() => (isProgrammaticScroll = false), 100);
           }
         });
       });
@@ -394,8 +394,8 @@
             const el = document.getElementById(`tick-${tick}`);
             if (el) {
               isProgrammaticScroll = true;
-              el.scrollIntoView({ behavior: "smooth", block: "start" });
-              setTimeout(() => (isProgrammaticScroll = false), 1000);
+              el.scrollIntoView({ behavior: "instant", block: "start" });
+              setTimeout(() => (isProgrammaticScroll = false), 100);
             }
           });
         }
@@ -414,8 +414,8 @@
           const el = document.getElementById(`tick-${activeTick}`);
           if (el) {
             isProgrammaticScroll = true;
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-            setTimeout(() => (isProgrammaticScroll = false), 1000);
+            el.scrollIntoView({ behavior: "instant", block: "start" });
+            setTimeout(() => (isProgrammaticScroll = false), 100);
           }
         });
       });
