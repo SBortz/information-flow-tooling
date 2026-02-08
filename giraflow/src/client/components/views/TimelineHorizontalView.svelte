@@ -163,42 +163,37 @@
   let dragStart = { x: 0, y: 0, scrollLeft: 0, scrollTop: 0 };
   
   function handleMouseDown(e: MouseEvent) {
-    // Only drag on background, not on elements
-    const target = e.target as HTMLElement;
-    if (target.closest('.ht-element') || target.closest('button')) return;
-    
-    const scrollArea = e.currentTarget as HTMLElement;
+    if (e.button !== 2 || !scrollAreaEl) return;
+    e.preventDefault();
+
     isDragging = true;
     dragStart = {
       x: e.clientX,
       y: e.clientY,
-      scrollLeft: scrollArea.scrollLeft,
-      scrollTop: scrollArea.scrollTop
+      scrollLeft: scrollAreaEl.scrollLeft,
+      scrollTop: scrollAreaEl.scrollTop
     };
-    scrollArea.style.cursor = 'grabbing';
+    scrollAreaEl.style.cursor = 'grabbing';
   }
-  
+
   function handleMouseMove(e: MouseEvent) {
-    if (!isDragging) return;
-    const scrollArea = e.currentTarget as HTMLElement;
+    if (!isDragging || !scrollAreaEl) return;
     const dx = e.clientX - dragStart.x;
     const dy = e.clientY - dragStart.y;
-    scrollArea.scrollLeft = dragStart.scrollLeft - dx;
-    scrollArea.scrollTop = dragStart.scrollTop - dy;
+    scrollAreaEl.scrollLeft = dragStart.scrollLeft - dx;
+    scrollAreaEl.scrollTop = dragStart.scrollTop - dy;
   }
-  
-  function handleMouseUp(e: MouseEvent) {
-    if (!isDragging) return;
+
+  function handleMouseUp() {
+    if (!isDragging || !scrollAreaEl) return;
     isDragging = false;
-    const scrollArea = e.currentTarget as HTMLElement;
-    scrollArea.style.cursor = '';
+    scrollAreaEl.style.cursor = '';
   }
-  
-  function handleMouseLeave(e: MouseEvent) {
-    if (isDragging) {
+
+  function handleMouseLeave() {
+    if (isDragging && scrollAreaEl) {
       isDragging = false;
-      const scrollArea = e.currentTarget as HTMLElement;
-      scrollArea.style.cursor = '';
+      scrollAreaEl.style.cursor = '';
     }
   }
 
@@ -288,6 +283,7 @@
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}
+      oncontextmenu={(e) => e.preventDefault()}
     >
       <div class="ht-canvas" style="width: {tickColumns.length * TICK_WIDTH + 50}px; height: {totalHeight}px;">
         <!-- Lane backgrounds -->
@@ -450,8 +446,7 @@
   .horizontal-timeline {
     display: flex;
     flex-direction: column;
-    flex: 1;
-    min-height: 0;
+    height: calc(100dvh - 120px);
     font-family: var(--font-mono);
     position: relative;
     overflow: hidden;
@@ -512,51 +507,6 @@
     height: 16px;
   }
 
-  .ht-orientation-toggle {
-    display: flex;
-    margin-left: auto;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    overflow: hidden;
-  }
-
-  .ht-orientation-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .ht-orientation-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .ht-orientation-btn:hover {
-    background: var(--bg-card);
-    color: var(--text-primary);
-  }
-
-  .ht-orientation-btn.active {
-    background: var(--color-command);
-    color: white;
-  }
-
-  .ht-orientation-btn:first-child {
-    border-right: 1px solid var(--border);
-  }
-
-  .ht-orientation-btn.active:first-child {
-    border-right-color: var(--color-command);
-  }
-
   .ht-container {
     display: flex;
     flex: 1;
@@ -603,11 +553,6 @@
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x pan-y;
     overscroll-behavior-x: contain;
-    cursor: grab;
-  }
-  
-  .ht-scroll-area:active {
-    cursor: grabbing;
   }
 
   /* Thicker scrollbars for desktop */
@@ -698,25 +643,25 @@
 
   .ht-element.event {
     background: var(--color-event);
-    border: 1px solid #df7e44;
+    border: 1px solid color-mix(in srgb, var(--color-event), black 20%);
     color: var(--text-primary);
   }
 
   .ht-element.command {
     background: var(--color-command);
-    border: 1px solid #5a82d7;
+    border: 1px solid color-mix(in srgb, var(--color-command), black 20%);
     color: var(--text-primary);
   }
 
   .ht-element.state {
     background: var(--color-state);
-    border: 1px solid #7eb356;
+    border: 1px solid color-mix(in srgb, var(--color-state), black 20%);
     color: var(--text-primary);
   }
 
   .ht-element.actor {
     background: var(--color-actor);
-    border: 1px solid #4b5563;
+    border: 1px solid color-mix(in srgb, var(--color-actor), black 20%);
     color: white;
     border-radius: 16px;
   }
