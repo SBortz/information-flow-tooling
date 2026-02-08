@@ -7,13 +7,15 @@
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
 
-  // Props for syncing with vertical view
+  // Props
   let {
     activeTick = $bindable<number | null>(null),
-    orientation = $bindable<'vertical' | 'horizontal'>('horizontal')
+    orientation = $bindable<'vertical' | 'horizontal'>('horizontal'),
+    wheelMode = 'zoom' as 'zoom' | 'scroll'
   }: {
     activeTick?: number | null,
-    orientation?: 'vertical' | 'horizontal'
+    orientation?: 'vertical' | 'horizontal',
+    wheelMode?: 'zoom' | 'scroll'
   } = $props();
 
   const symbols: Record<string, string> = {
@@ -215,14 +217,25 @@
   function handleWheel(e: WheelEvent) {
     if (!scrollAreaEl) return;
 
-    // Shift+wheel → horizontal scroll
+    if (wheelMode === 'scroll') {
+      // Scroll mode: wheel → horizontal, shift+wheel → vertical
+      e.preventDefault();
+      if (e.shiftKey) {
+        scrollAreaEl.scrollTop += e.deltaY;
+      } else {
+        scrollAreaEl.scrollLeft += e.deltaY;
+      }
+      return;
+    }
+
+    // Zoom mode: shift+wheel → horizontal scroll
     if (e.shiftKey) {
       e.preventDefault();
       scrollAreaEl.scrollLeft += e.deltaY;
       return;
     }
 
-    // Normal wheel → zoom towards cursor
+    // Zoom mode: wheel → zoom towards cursor
     e.preventDefault();
     const rect = scrollAreaEl.getBoundingClientRect();
     const cursorX = e.clientX - rect.left + scrollAreaEl.scrollLeft;

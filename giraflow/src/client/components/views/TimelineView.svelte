@@ -22,10 +22,17 @@
   let orientation = $state<'vertical' | 'horizontal'>(savedOrientation || 'vertical');
   let prevOrientation = $state<'vertical' | 'horizontal'>(savedOrientation || 'vertical');
   
-  // Save orientation to localStorage when it changes
+  // Wheel mode: 'zoom' (default) or 'scroll'
+  const savedWheelMode = typeof localStorage !== 'undefined'
+    ? localStorage.getItem('giraflow-wheel-mode') as 'zoom' | 'scroll' | null
+    : null;
+  let wheelMode = $state<'zoom' | 'scroll'>(savedWheelMode || 'zoom');
+
+  // Save preferences to localStorage
   $effect(() => {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('giraflow-timeline-orientation', orientation);
+      localStorage.setItem('giraflow-wheel-mode', wheelMode);
     }
   });
 
@@ -430,32 +437,52 @@
   });
 </script>
 
-<!-- Floating Orientation Toggle -->
-<div class="orientation-toggle-floating">
-  <button 
-    class="orientation-btn-floating" 
-    class:active={orientation === 'vertical'}
-    onclick={() => orientation = 'vertical'}
-    title="Vertikal (Zeit ↓)"
-  >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 4v16M8 16l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </button>
-  <button 
-    class="orientation-btn-floating" 
-    class:active={orientation === 'horizontal'}
-    onclick={() => orientation = 'horizontal'}
-    title="Horizontal (Zeit →)"
-  >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M4 12h16M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </button>
+<!-- Floating Buttons -->
+<div class="floating-controls">
+  {#if orientation === 'horizontal'}
+    <button
+      class="floating-btn"
+      class:active={wheelMode === 'scroll'}
+      onclick={() => wheelMode = wheelMode === 'zoom' ? 'scroll' : 'zoom'}
+      title={wheelMode === 'zoom' ? 'Mausrad: Zoom (klicken für Scroll)' : 'Mausrad: Scroll (klicken für Zoom)'}
+    >
+      {#if wheelMode === 'zoom'}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M8 11h6M11 8v6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      {:else}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      {/if}
+    </button>
+  {/if}
+  <div class="orientation-toggle-floating">
+    <button
+      class="orientation-btn-floating"
+      class:active={orientation === 'vertical'}
+      onclick={() => orientation = 'vertical'}
+      title="Vertikal (Zeit ↓)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 4v16M8 16l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button
+      class="orientation-btn-floating"
+      class:active={orientation === 'horizontal'}
+      onclick={() => orientation = 'horizontal'}
+      title="Horizontal (Zeit →)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 12h16M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
 </div>
 
 {#if orientation === 'horizontal'}
-  <TimelineHorizontalView bind:activeTick bind:orientation />
+  <TimelineHorizontalView bind:activeTick bind:orientation {wheelMode} />
 {:else}
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
@@ -706,16 +733,53 @@
 {/if}
 
 <style>
-  .orientation-toggle-floating {
+  .floating-controls {
     position: fixed;
     top: 105px;
     right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    z-index: 50;
+  }
+
+  .floating-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .floating-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .floating-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .floating-btn.active {
+    background: var(--color-command);
+    color: white;
+    border-color: var(--color-command);
+  }
+
+  .orientation-toggle-floating {
     display: flex;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 0.375rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 50;
     overflow: hidden;
   }
 
