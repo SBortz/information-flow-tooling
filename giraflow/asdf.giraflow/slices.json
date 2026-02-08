@@ -1,0 +1,104 @@
+[
+  {
+    "name": "InitialState",
+    "type": "state",
+    "ticks": [
+      1
+    ],
+    "sourcedFrom": [],
+    "produces": [],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "steps": [],
+        "initialState": {}
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [
+      {
+        "tick": 1,
+        "state": {
+          "type": "state",
+          "name": "InitialState",
+          "tick": 1,
+          "sourcedFrom": [],
+          "example": {}
+        }
+      }
+    ],
+    "commandOccurrences": [],
+    "example": {}
+  },
+  {
+    "name": "DoSomething",
+    "type": "command",
+    "ticks": [
+      3
+    ],
+    "sourcedFrom": [],
+    "produces": [
+      {
+        "name": "SomethingHappened",
+        "ticks": [
+          4
+        ]
+      }
+    ],
+    "attachments": [],
+    "scenarios": [
+      {
+        "name": "Timeline Scenario",
+        "rows": [
+          {
+            "type": "command",
+            "command": {
+              "name": "DoSomething",
+              "data": {
+                "data": "example"
+              }
+            },
+            "producedEvents": [
+              {
+                "event": "SomethingHappened",
+                "data": {
+                  "result": "success"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "specScenarioCount": 0,
+    "stateOccurrences": [],
+    "commandOccurrences": [
+      {
+        "tick": 3,
+        "command": {
+          "type": "command",
+          "name": "DoSomething",
+          "tick": 3,
+          "example": {
+            "data": "example"
+          }
+        },
+        "producedEvents": [
+          {
+            "type": "event",
+            "name": "SomethingHappened",
+            "tick": 4,
+            "producedBy": "DoSomething-3",
+            "example": {
+              "result": "success"
+            }
+          }
+        ]
+      }
+    ],
+    "example": {
+      "data": "example"
+    }
+  }
+]

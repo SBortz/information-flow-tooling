@@ -448,7 +448,7 @@
 {#if orientation === 'horizontal'}
   <TimelineHorizontalView bind:activeTick bind:orientation bind:zoomLevel bind:wheelMode />
 {:else}
-<TimelineHeader sticky count={filteredCount} totalCount={viewModel.count} countLabel="items">
+<TimelineHeader sticky count={filteredCount} totalCount={viewModel.count} countLabel="elements">
   <div class="toggle-group">
     <button
       class="ctrl-btn"

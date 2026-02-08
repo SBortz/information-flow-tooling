@@ -112,6 +112,7 @@
   });
 
   // Layout — scaled by zoom
+  const LANES_TOP = 24; // Space above lanes for tick labels
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
   const BASE_TICK_WIDTH = 200;
   const BASE_LANE_HEIGHT = isMobile ? 140 : 200;
@@ -155,17 +156,17 @@
     const eventLaneCount = laneConfig.eventSystems.length;
 
     if (position === 'right') { // Actors at top
-      return laneIndex * LANE_HEIGHT + LANE_HEIGHT / 2;
+      return LANES_TOP + laneIndex * LANE_HEIGHT + LANE_HEIGHT / 2;
     } else if (position === 'center') { // Commands/States in middle
-      return actorLaneCount * LANE_HEIGHT + LANE_HEIGHT / 2;
+      return LANES_TOP + actorLaneCount * LANE_HEIGHT + LANE_HEIGHT / 2;
     } else { // Events at bottom
-      return (actorLaneCount + 1 + laneIndex) * LANE_HEIGHT + LANE_HEIGHT / 2;
+      return LANES_TOP + (actorLaneCount + 1 + laneIndex) * LANE_HEIGHT + LANE_HEIGHT / 2;
     }
   }
 
   // Total height
   let totalHeight = $derived(
-    (laneConfig.actorRoles.length + 1 + laneConfig.eventSystems.length) * LANE_HEIGHT
+    LANES_TOP + (laneConfig.actorRoles.length + 1 + laneConfig.eventSystems.length) * LANE_HEIGHT
   );
 
   // Drag-to-pan state
@@ -265,7 +266,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <div class="horizontal-timeline">
-  <TimelineHeader count={tickColumns.length} countLabel="ticks">
+  <TimelineHeader count={timelineItems.length} countLabel="elements">
     <span class="zoom-info mobile-hide">{Math.round(zoomLevel * 100)}%</span>
     {#if Math.round(zoomLevel * 100) !== 100}
       <button
@@ -322,15 +323,15 @@
     <!-- Lane labels (fixed left) -->
     <div class="ht-lane-labels" style="height: {totalHeight}px; font-size: {zoomLevel}em;">
       {#each laneConfig.actorRoles as role, i}
-        <div class="ht-lane-label actor" style="top: {i * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;">
+        <div class="ht-lane-label actor" style="top: {LANES_TOP + i * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;">
           {role || 'Actors'}
         </div>
       {/each}
-      <div class="ht-lane-label center" style="top: {laneConfig.actorRoles.length * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;">
+      <div class="ht-lane-label center" style="top: {LANES_TOP + laneConfig.actorRoles.length * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;">
         Cmd / State
       </div>
       {#each laneConfig.eventSystems as system, i}
-        <div class="ht-lane-label event" style="top: {(laneConfig.actorRoles.length + 1 + i) * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;">
+        <div class="ht-lane-label event" style="top: {LANES_TOP + (laneConfig.actorRoles.length + 1 + i) * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;">
           {system || 'Events'}
         </div>
       {/each}
@@ -351,11 +352,11 @@
       <div class="ht-canvas" style="width: {tickColumns.length * TICK_WIDTH + 50}px; height: {totalHeight}px; font-size: {zoomLevel}em;">
         <!-- Lane backgrounds -->
         {#each laneConfig.actorRoles as _, i}
-          <div class="ht-lane-bg actor" style="top: {i * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
+          <div class="ht-lane-bg actor" style="top: {LANES_TOP + i * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
         {/each}
-        <div class="ht-lane-bg center" style="top: {laneConfig.actorRoles.length * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
+        <div class="ht-lane-bg center" style="top: {LANES_TOP + laneConfig.actorRoles.length * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
         {#each laneConfig.eventSystems as _, i}
-          <div class="ht-lane-bg event" style="top: {(laneConfig.actorRoles.length + 1 + i) * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
+          <div class="ht-lane-bg event" style="top: {LANES_TOP + (laneConfig.actorRoles.length + 1 + i) * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
         {/each}
 
         <!-- Tick columns - click updates route but doesn't open panel -->
@@ -618,7 +619,7 @@
 
   .ht-tick-label {
     position: absolute;
-    top: -20px;
+    top: 4px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.8em;
@@ -671,7 +672,6 @@
     background: var(--color-actor);
     border: 1px solid color-mix(in srgb, var(--color-actor), black 20%);
     color: white;
-    border-radius: 16px;
   }
 
   .ht-element-header {

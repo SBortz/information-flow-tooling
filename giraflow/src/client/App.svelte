@@ -8,6 +8,20 @@
   import EditorView from "./components/views/EditorView.svelte";
   import HowtoView from "./components/views/HowtoView.svelte";
 
+  // Measure page header height and set CSS variable dynamically
+  let stickyHeaderEl: HTMLDivElement;
+  $effect(() => {
+    if (!stickyHeaderEl) return;
+    const update = () => {
+      const h = Math.round(stickyHeaderEl.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--page-header-height', `${h}px`);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(stickyHeaderEl);
+    return () => observer.disconnect();
+  });
+
   // Handle browser back/forward navigation and hash changes
   $effect(() => {
     const handleHashChange = () => {
@@ -30,7 +44,7 @@
   });
 </script>
 
-<div class="sticky-header">
+<div class="sticky-header" bind:this={stickyHeaderEl}>
   <Header />
   <Navigation />
 </div>
