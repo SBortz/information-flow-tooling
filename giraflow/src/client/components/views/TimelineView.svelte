@@ -5,6 +5,8 @@
   import { buildTimelineViewModel } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
+  import TimelineHorizontalView from "./TimelineHorizontalView.svelte";
+  import TimelineHeader from "../shared/TimelineHeader.svelte";
 
   const symbols: Record<string, string> = {
     event: "●",
@@ -12,6 +14,35 @@
     command: "▶",
     actor: "○",
   };
+
+  // Orientation toggle: vertical (default) or horizontal
+  // Restore from localStorage if available
+  const savedOrientation = typeof localStorage !== 'undefined' 
+    ? localStorage.getItem('giraflow-timeline-orientation') as 'vertical' | 'horizontal' | null
+    : null;
+  let orientation = $state<'vertical' | 'horizontal'>(savedOrientation || 'vertical');
+  let prevOrientation = $state<'vertical' | 'horizontal'>(savedOrientation || 'vertical');
+  
+  // Wheel mode: 'zoom' (default) or 'scroll'
+  const savedWheelMode = typeof localStorage !== 'undefined'
+    ? localStorage.getItem('giraflow-wheel-mode') as 'zoom' | 'scroll' | null
+    : null;
+  let wheelMode = $state<'zoom' | 'scroll'>(savedWheelMode || 'zoom');
+
+  // Zoom level
+  const savedZoom = typeof localStorage !== 'undefined'
+    ? parseFloat(localStorage.getItem('giraflow-zoom') || '1')
+    : 1;
+  let zoomLevel = $state(Math.max(0.3, Math.min(2.0, savedZoom)));
+
+  // Save preferences to localStorage
+  $effect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('giraflow-timeline-orientation', orientation);
+      localStorage.setItem('giraflow-wheel-mode', wheelMode);
+      localStorage.setItem('giraflow-zoom', String(zoomLevel));
+    }
+  });
 
   let activeTick = $state<number | null>(null);
   let detailContainer: HTMLElement | null = $state(null);
@@ -272,6 +303,24 @@
     }
   }
 
+  // Scroll to activeTick when switching from horizontal to vertical
+  $effect(() => {
+    if (prevOrientation === 'horizontal' && orientation === 'vertical' && activeTick !== null) {
+      // Wait for DOM to render vertical view
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const element = document.getElementById(`tick-${activeTick}`);
+          if (element) {
+            isProgrammaticScroll = true;
+            element.scrollIntoView({ behavior: "instant", block: "start" });
+            setTimeout(() => (isProgrammaticScroll = false), 100);
+          }
+        });
+      });
+    }
+    prevOrientation = orientation;
+  });
+
   // Register detail elements for intersection observer
   function registerDetailElement(el: HTMLElement, tick: number) {
     detailElements.set(tick, el);
@@ -292,7 +341,7 @@
       // Skip during programmatic scrolling to avoid race conditions
       if (isProgrammaticScroll) return;
 
-      const headerOffset = 120; // Sticky header height
+      const headerOffset = 168; // Page header (118px) + timeline header (~50px)
       let closestTick: number | null = null;
       let closestDistance = Infinity;
 
@@ -318,22 +367,6 @@
           `#timeline/tick-${closestTick}`,
         );
 
-        // Scroll master item into view if needed (use scrollTo to avoid affecting window scroll)
-        const masterItem = document.querySelector(
-          `.tl-master-item[data-tick="${closestTick}"]`,
-        ) as HTMLElement | null;
-        const masterContainer = document.querySelector(".timeline-master");
-        if (masterItem && masterContainer) {
-          const containerRect = masterContainer.getBoundingClientRect();
-          const itemRect = masterItem.getBoundingClientRect();
-          // Only scroll if item is outside visible area of master
-          if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
-            masterContainer.scrollTo({
-              top: masterItem.offsetTop - masterContainer.clientHeight / 2 + masterItem.clientHeight / 2,
-              behavior: "smooth",
-            });
-          }
-        }
       }
     }
 
@@ -343,30 +376,102 @@
     return () => window.removeEventListener("scroll", updateActiveFromScroll);
   });
 
-  // Handle initial hash on mount
+  // Keep master list in sync with activeTick
   $effect(() => {
-    const hash = window.location.hash.slice(1);
-    if (hash.startsWith("timeline/tick-")) {
-      const tick = parseInt(hash.replace("timeline/tick-", ""), 10);
-      if (!isNaN(tick) && timelineItems.length > 0) {
-        activeTick = tick;
-        isProgrammaticScroll = true;
-        requestAnimationFrame(() => {
-          const el = document.getElementById(`tick-${tick}`);
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-          // Re-enable scroll handler after animation completes
-          setTimeout(() => (isProgrammaticScroll = false), 1000);
+    if (activeTick === null || orientation !== 'vertical') return;
+    // tick() to defer until after DOM updates
+    requestAnimationFrame(() => {
+      const masterItem = document.querySelector(
+        `.tl-master-item[data-tick="${activeTick}"]`,
+      ) as HTMLElement | null;
+      const masterContainer = document.querySelector(".timeline-master");
+      if (!masterItem || !masterContainer) return;
+      const containerRect = masterContainer.getBoundingClientRect();
+      const itemRect = masterItem.getBoundingClientRect();
+      if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
+        masterContainer.scrollTo({
+          top: masterItem.offsetTop - masterContainer.clientHeight / 2 + masterItem.clientHeight / 2,
+          behavior: "instant",
         });
       }
+    });
+  });
+
+  // Handle initial hash on mount - parse tick from URL (runs once when data loads)
+  let hasInitializedFromHash = false;
+  $effect(() => {
+    if (hasInitializedFromHash) return;
+    
+    const hash = window.location.hash.slice(1);
+    if (hash.startsWith("timeline/tick-") && timelineItems.length > 0) {
+      const tick = parseInt(hash.replace("timeline/tick-", ""), 10);
+      if (!isNaN(tick)) {
+        hasInitializedFromHash = true;
+        activeTick = tick;
+        // Scroll to this tick in vertical view
+        if (orientation === 'vertical') {
+          requestAnimationFrame(() => {
+            const el = document.getElementById(`tick-${tick}`);
+            if (el) {
+              isProgrammaticScroll = true;
+              el.scrollIntoView({ behavior: "instant", block: "start" });
+              setTimeout(() => (isProgrammaticScroll = false), 100);
+            }
+          });
+        }
+      }
     } else if (timelineItems.length > 0 && activeTick === null) {
-      // Set first tick as active by default
+      hasInitializedFromHash = true;
       activeTick = timelineItems[0].element.tick;
     }
   });
+  
+  // Scroll to activeTick only when switching from horizontal to vertical
+  $effect(() => {
+    if (prevOrientation === 'horizontal' && orientation === 'vertical' && activeTick !== null) {
+      const tick = activeTick;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = document.getElementById(`tick-${tick}`);
+          if (el) {
+            isProgrammaticScroll = true;
+            el.scrollIntoView({ behavior: "instant", block: "start" });
+            setTimeout(() => (isProgrammaticScroll = false), 100);
+          }
+        });
+      });
+    }
+    prevOrientation = orientation;
+  });
 </script>
 
+{#if orientation === 'horizontal'}
+  <TimelineHorizontalView bind:activeTick bind:orientation bind:zoomLevel bind:wheelMode />
+{:else}
+<TimelineHeader sticky count={filteredCount} totalCount={viewModel.count} countLabel="items">
+  <div class="toggle-group">
+    <button
+      class="ctrl-btn"
+      class:active={orientation === 'vertical'}
+      onclick={() => orientation = 'vertical'}
+      title="Vertikal (Zeit ↓)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 4v16M8 16l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button
+      class="ctrl-btn"
+      class:active={orientation === 'horizontal'}
+      onclick={() => orientation = 'horizontal'}
+      title="Horizontal (Zeit →)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 12h16M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+</TimelineHeader>
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
   <!-- Mobile toggle button -->
@@ -540,12 +645,6 @@
 
   <!-- Detail: Continuous stream on the right -->
   <main class="timeline-detail" bind:this={detailContainer}>
-    <header class="tl-detail-title">
-      <h2>Timeline</h2>
-      <span class="tl-detail-count">
-          {filteredCount}{filteredCount !== viewModel.count ? ` of ${viewModel.count}` : ''} items
-        </span>
-    </header>
     {#each filteredItems as { element: el, position }}
       <section
         class="tl-detail-item tl-{position}"
@@ -613,12 +712,13 @@
     {/each}
   </main>
 </div>
+{/if}
 
 <style>
   .timeline-master-detail {
     display: flex;
     font-family: var(--font-mono);
-    min-height: calc(100vh - 120px);
+    min-height: calc(100vh - var(--page-header-height) - 45px);
   }
 
   /* Master sidebar */
@@ -626,9 +726,9 @@
     width: 30%;
     min-width: 280px;
     position: sticky;
-    top: 120px;
+    top: calc(var(--page-header-height) + 45px);
     align-self: flex-start;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - var(--page-header-height) - 45px);
     overflow-y: auto;
     overflow-x: hidden;
     background: var(--bg-card);
@@ -909,29 +1009,7 @@
   /* Detail area */
   .timeline-detail {
     flex: 1;
-    padding: 1.5rem 2rem 50vh 1rem;
-    overflow-y: auto;
-  }
-
-  .tl-detail-title {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-    margin-bottom: 3rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .tl-detail-title h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-    color: var(--text-primary);
-  }
-
-  .tl-detail-count {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    padding: 3rem 2rem 50vh 1rem;
   }
 
   .tl-detail-item {
@@ -941,7 +1019,7 @@
     margin-bottom: 1rem;
     box-shadow: var(--shadow-card);
     overflow: hidden;
-    scroll-margin-top: calc(95px + 1.5rem);
+    scroll-margin-top: calc(var(--page-header-height) + 50px);
   }
 
   .tl-detail-item:last-child {
@@ -1113,14 +1191,13 @@
     cursor: pointer;
     transition: all 0.15s;
     color: var(--text-secondary);
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: content-box;
   }
 
   .tl-filter-trigger:hover {
-    border-color: var(--text-secondary);
     background: var(--bg-secondary);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
+    color: var(--text-primary);
   }
 
   .tl-filter-icon {
@@ -1281,7 +1358,7 @@
     .timeline-master {
       position: fixed;
       left: 0;
-      top: 120px;
+      top: calc(var(--page-header-height) + 45px);
       bottom: 0;
       width: 300px;
       max-width: 85vw;
@@ -1303,7 +1380,7 @@
       display: block;
       position: fixed;
       inset: 0;
-      top: 120px;
+      top: calc(var(--page-header-height) + 45px);
       background: rgba(0, 0, 0, 0.5);
       z-index: 100;
     }

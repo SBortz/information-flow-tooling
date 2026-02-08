@@ -165,7 +165,7 @@
   .editor-view {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 120px);
+    height: calc(100vh - var(--page-header-height));
     padding: 1rem 2rem;
     gap: 1rem;
   }
