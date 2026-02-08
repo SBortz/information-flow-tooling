@@ -529,7 +529,7 @@
 <style>
   .slice-explorer {
     display: flex;
-    height: calc(100vh - 120px); /* Adjust based on App header/nav */
+    height: calc(100vh - var(--page-header-height));
     width: 100%;
     overflow: hidden;
     background: var(--bg-primary);
@@ -1094,7 +1094,7 @@
     .sidebar {
       position: fixed;
       left: 0;
-      top: 120px;
+      top: var(--page-header-height);
       bottom: 0;
       width: 320px;
       max-width: 85vw;
@@ -1115,7 +1115,7 @@
       display: block;
       position: fixed;
       inset: 0;
-      top: 120px;
+      top: var(--page-header-height);
       background: rgba(0, 0, 0, 0.5);
       z-index: 100;
     }

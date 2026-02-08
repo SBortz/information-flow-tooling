@@ -6,6 +6,7 @@
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
   import TimelineHorizontalView from "./TimelineHorizontalView.svelte";
+  import TimelineHeader from "../shared/TimelineHeader.svelte";
 
   const symbols: Record<string, string> = {
     event: "●",
@@ -340,7 +341,7 @@
       // Skip during programmatic scrolling to avoid race conditions
       if (isProgrammaticScroll) return;
 
-      const headerOffset = 120; // Sticky header height
+      const headerOffset = 168; // Page header (118px) + timeline header (~50px)
       let closestTick: number | null = null;
       let closestDistance = Infinity;
 
@@ -444,35 +445,13 @@
   });
 </script>
 
-<!-- Floating Buttons -->
-<div class="floating-controls">
-  {#if orientation === 'horizontal'}
-    <span class="floating-zoom-info">
-      {Math.round(zoomLevel * 100)}%
-      {#if Math.round(zoomLevel * 100) !== 100}
-        <button class="floating-zoom-reset" onclick={() => zoomLevel = 1}>Reset</button>
-      {/if}
-    </span>
+{#if orientation === 'horizontal'}
+  <TimelineHorizontalView bind:activeTick bind:orientation bind:zoomLevel bind:wheelMode />
+{:else}
+<TimelineHeader sticky count={filteredCount} totalCount={viewModel.count} countLabel="items">
+  <div class="toggle-group">
     <button
-      class="floating-btn"
-      class:active={wheelMode === 'scroll'}
-      onclick={() => wheelMode = wheelMode === 'zoom' ? 'scroll' : 'zoom'}
-      title={wheelMode === 'zoom' ? 'Mausrad: Zoom (klicken für Scroll)' : 'Mausrad: Scroll (klicken für Zoom)'}
-    >
-      {#if wheelMode === 'zoom'}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M8 11h6M11 8v6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      {:else}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      {/if}
-    </button>
-  {/if}
-  <div class="orientation-toggle-floating">
-    <button
-      class="orientation-btn-floating"
+      class="ctrl-btn"
       class:active={orientation === 'vertical'}
       onclick={() => orientation = 'vertical'}
       title="Vertikal (Zeit ↓)"
@@ -482,7 +461,7 @@
       </svg>
     </button>
     <button
-      class="orientation-btn-floating"
+      class="ctrl-btn"
       class:active={orientation === 'horizontal'}
       onclick={() => orientation = 'horizontal'}
       title="Horizontal (Zeit →)"
@@ -492,11 +471,7 @@
       </svg>
     </button>
   </div>
-</div>
-
-{#if orientation === 'horizontal'}
-  <TimelineHorizontalView bind:activeTick bind:orientation bind:zoomLevel {wheelMode} />
-{:else}
+</TimelineHeader>
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
   <!-- Mobile toggle button -->
@@ -670,12 +645,6 @@
 
   <!-- Detail: Continuous stream on the right -->
   <main class="timeline-detail" bind:this={detailContainer}>
-    <header class="tl-detail-title">
-      <h2>Timeline</h2>
-      <span class="tl-detail-count">
-          {filteredCount}{filteredCount !== viewModel.count ? ` of ${viewModel.count}` : ''} items
-        </span>
-    </header>
     {#each filteredItems as { element: el, position }}
       <section
         class="tl-detail-item tl-{position}"
@@ -746,126 +715,10 @@
 {/if}
 
 <style>
-  .floating-controls {
-    position: fixed;
-    top: 105px;
-    right: 1rem;
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    z-index: 50;
-  }
-
-  .floating-zoom-info {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .floating-zoom-reset {
-    padding: 0.1rem 0.4rem;
-    font-size: 0.7rem;
-    border: 1px solid var(--border);
-    border-radius: 0.25rem;
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    cursor: pointer;
-  }
-
-  .floating-zoom-reset:hover {
-    background: var(--bg-card);
-    color: var(--text-primary);
-    border-color: var(--text-secondary);
-  }
-
-  @media (max-width: 900px) {
-    .floating-zoom-info,
-    .floating-btn {
-      display: none;
-    }
-  }
-
-  .floating-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    background: var(--bg-card);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .floating-btn svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .floating-btn:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-  }
-
-  .floating-btn.active {
-    background: var(--color-command);
-    color: white;
-    border-color: var(--color-command);
-  }
-
-  .orientation-toggle-floating {
-    display: flex;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-  }
-
-  .orientation-btn-floating {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .orientation-btn-floating svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .orientation-btn-floating:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-  }
-
-  .orientation-btn-floating.active {
-    background: var(--color-command);
-    color: white;
-  }
-
-  .orientation-btn-floating:first-child {
-    border-right: 1px solid var(--border);
-  }
-
-  .orientation-btn-floating.active:first-child {
-    border-right-color: var(--color-command);
-  }
   .timeline-master-detail {
     display: flex;
     font-family: var(--font-mono);
-    min-height: calc(100vh - 120px);
+    min-height: calc(100vh - var(--page-header-height) - 45px);
   }
 
   /* Master sidebar */
@@ -873,9 +726,9 @@
     width: 30%;
     min-width: 280px;
     position: sticky;
-    top: 120px;
+    top: calc(var(--page-header-height) + 45px);
     align-self: flex-start;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - var(--page-header-height) - 45px);
     overflow-y: auto;
     overflow-x: hidden;
     background: var(--bg-card);
@@ -1156,29 +1009,7 @@
   /* Detail area */
   .timeline-detail {
     flex: 1;
-    padding: 1.5rem 2rem 50vh 1rem;
-    overflow-y: auto;
-  }
-
-  .tl-detail-title {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-    margin-bottom: 3rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .tl-detail-title h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-    color: var(--text-primary);
-  }
-
-  .tl-detail-count {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    padding: 3rem 2rem 50vh 1rem;
   }
 
   .tl-detail-item {
@@ -1188,7 +1019,7 @@
     margin-bottom: 1rem;
     box-shadow: var(--shadow-card);
     overflow: hidden;
-    scroll-margin-top: calc(95px + 1.5rem);
+    scroll-margin-top: calc(var(--page-header-height) + 50px);
   }
 
   .tl-detail-item:last-child {
@@ -1527,7 +1358,7 @@
     .timeline-master {
       position: fixed;
       left: 0;
-      top: 120px;
+      top: calc(var(--page-header-height) + 45px);
       bottom: 0;
       width: 300px;
       max-width: 85vw;
@@ -1549,7 +1380,7 @@
       display: block;
       position: fixed;
       inset: 0;
-      top: 120px;
+      top: calc(var(--page-header-height) + 45px);
       background: rgba(0, 0, 0, 0.5);
       z-index: 100;
     }

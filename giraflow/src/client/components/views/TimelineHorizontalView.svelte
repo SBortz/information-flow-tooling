@@ -6,13 +6,14 @@
   import { buildTimelineViewModel } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
+  import TimelineHeader from "../shared/TimelineHeader.svelte";
 
   // Props
   let {
     activeTick = $bindable<number | null>(null),
     orientation = $bindable<'vertical' | 'horizontal'>('horizontal'),
     zoomLevel = $bindable(1),
-    wheelMode = 'zoom' as 'zoom' | 'scroll'
+    wheelMode = $bindable<'zoom' | 'scroll'>('zoom')
   }: {
     activeTick?: number | null,
     orientation?: 'vertical' | 'horizontal',
@@ -264,10 +265,58 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <div class="horizontal-timeline">
-  <header class="ht-header">
-    <h2>Timeline</h2>
-    <span class="ht-count">{tickColumns.length} ticks</span>
-  </header>
+  <TimelineHeader count={tickColumns.length} countLabel="ticks">
+    <span class="zoom-info mobile-hide">{Math.round(zoomLevel * 100)}%</span>
+    {#if Math.round(zoomLevel * 100) !== 100}
+      <button
+        class="ctrl-btn mobile-hide"
+        onclick={() => zoomLevel = 1}
+        title="Zoom zurücksetzen"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 1 3 6.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 22v-6h6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    {/if}
+    <button
+      class="ctrl-btn mobile-hide"
+      class:active={wheelMode === 'scroll'}
+      onclick={() => { wheelMode = wheelMode === 'zoom' ? 'scroll' : 'zoom'; }}
+      title={wheelMode === 'zoom' ? 'Mausrad: Zoom (klicken für Scroll)' : 'Mausrad: Scroll (klicken für Zoom)'}
+    >
+      {#if wheelMode === 'zoom'}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M8 11h6M11 8v6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      {:else}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      {/if}
+    </button>
+    <div class="toggle-group">
+      <button
+        class="ctrl-btn"
+        class:active={orientation === 'vertical'}
+        onclick={() => orientation = 'vertical'}
+        title="Vertikal (Zeit ↓)"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 4v16M8 16l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button
+        class="ctrl-btn"
+        class:active={orientation === 'horizontal'}
+        onclick={() => orientation = 'horizontal'}
+        title="Horizontal (Zeit →)"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 12h16M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </TimelineHeader>
 
   <div class="ht-container">
     <!-- Lane labels (fixed left) -->
@@ -460,29 +509,10 @@
   .horizontal-timeline {
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - 120px);
+    height: calc(100dvh - var(--page-header-height));
     font-family: var(--font-mono);
     position: relative;
     overflow: hidden;
-  }
-
-  .ht-header {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-    padding: 1rem 2rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .ht-header h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-  }
-
-  .ht-count {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
   }
 
   .ht-container {
