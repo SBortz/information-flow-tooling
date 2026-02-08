@@ -11,10 +11,12 @@
   let {
     activeTick = $bindable<number | null>(null),
     orientation = $bindable<'vertical' | 'horizontal'>('horizontal'),
+    zoomLevel = $bindable(1),
     wheelMode = 'zoom' as 'zoom' | 'scroll'
   }: {
     activeTick?: number | null,
     orientation?: 'vertical' | 'horizontal',
+    zoomLevel?: number,
     wheelMode?: 'zoom' | 'scroll'
   } = $props();
 
@@ -25,20 +27,10 @@
     actor: "○",
   };
 
-  // Zoom
+  // Zoom constants
   const ZOOM_MIN = 0.3;
   const ZOOM_MAX = 2.0;
   const ZOOM_STEP = 0.1;
-  const savedZoom = typeof localStorage !== 'undefined'
-    ? parseFloat(localStorage.getItem('giraflow-zoom') || '1')
-    : 1;
-  let zoomLevel = $state(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, savedZoom)));
-
-  $effect(() => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('giraflow-zoom', String(zoomLevel));
-    }
-  });
 
   let viewModel = $derived(buildTimelineViewModel(modelStore.model));
   let timelineItems = $derived(viewModel.items);
@@ -274,7 +266,7 @@
 <div class="horizontal-timeline">
   <header class="ht-header">
     <h2>Timeline</h2>
-    <span class="ht-count">{tickColumns.length} ticks · {Math.round(zoomLevel * 100)}%</span>
+    <span class="ht-count">{tickColumns.length} ticks</span>
   </header>
 
   <div class="ht-container">
@@ -503,7 +495,7 @@
 
   .ht-lane-labels {
     flex-shrink: 0;
-    width: 120px;
+    width: 28px;
     position: relative;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border);
@@ -518,14 +510,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85em;
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    font-size: 0.65em;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
     border-bottom: 1px solid var(--border);
     text-align: center;
-    word-break: break-word;
-    padding: 0.5rem;
+    padding: 0.25rem 0;
     line-height: 1.3;
   }
 

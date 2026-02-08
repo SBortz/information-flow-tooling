@@ -28,11 +28,18 @@
     : null;
   let wheelMode = $state<'zoom' | 'scroll'>(savedWheelMode || 'zoom');
 
+  // Zoom level
+  const savedZoom = typeof localStorage !== 'undefined'
+    ? parseFloat(localStorage.getItem('giraflow-zoom') || '1')
+    : 1;
+  let zoomLevel = $state(Math.max(0.3, Math.min(2.0, savedZoom)));
+
   // Save preferences to localStorage
   $effect(() => {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('giraflow-timeline-orientation', orientation);
       localStorage.setItem('giraflow-wheel-mode', wheelMode);
+      localStorage.setItem('giraflow-zoom', String(zoomLevel));
     }
   });
 
@@ -440,6 +447,12 @@
 <!-- Floating Buttons -->
 <div class="floating-controls">
   {#if orientation === 'horizontal'}
+    <span class="floating-zoom-info">
+      {Math.round(zoomLevel * 100)}%
+      {#if Math.round(zoomLevel * 100) !== 100}
+        <button class="floating-zoom-reset" onclick={() => zoomLevel = 1}>Reset</button>
+      {/if}
+    </span>
     <button
       class="floating-btn"
       class:active={wheelMode === 'scroll'}
@@ -482,7 +495,7 @@
 </div>
 
 {#if orientation === 'horizontal'}
-  <TimelineHorizontalView bind:activeTick bind:orientation {wheelMode} />
+  <TimelineHorizontalView bind:activeTick bind:orientation bind:zoomLevel {wheelMode} />
 {:else}
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="timeline-master-detail" role="presentation" onclick={handleClickOutside}>
@@ -741,6 +754,37 @@
     gap: 0.5rem;
     align-items: center;
     z-index: 50;
+  }
+
+  .floating-zoom-info {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .floating-zoom-reset {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .floating-zoom-reset:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+  }
+
+  @media (max-width: 900px) {
+    .floating-zoom-info,
+    .floating-btn {
+      display: none;
+    }
   }
 
   .floating-btn {
