@@ -23,6 +23,18 @@
   --page-header-height: 108px;
 }
 
+@media (max-width: 900px) {
+  :root {
+    --page-header-height: 85px;
+  }
+}
+
+@media (max-width: 500px) {
+  :root {
+    --page-header-height: 78px;
+  }
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
