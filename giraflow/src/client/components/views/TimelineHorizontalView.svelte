@@ -23,22 +23,20 @@
     actor: "○",
   };
 
-  // Wheel scroll mode: 'vertical' (default) or 'horizontal'
-  const savedWheelMode = typeof localStorage !== 'undefined' 
-    ? localStorage.getItem('giraflow-wheel-mode') as 'vertical' | 'horizontal' | null
-    : null;
-  let wheelMode = $state<'vertical' | 'horizontal'>(savedWheelMode || 'vertical');
-  
-  // Save wheel mode to localStorage
+  // Zoom
+  const ZOOM_MIN = 0.3;
+  const ZOOM_MAX = 2.0;
+  const ZOOM_STEP = 0.1;
+  const savedZoom = typeof localStorage !== 'undefined'
+    ? parseFloat(localStorage.getItem('giraflow-zoom') || '1')
+    : 1;
+  let zoomLevel = $state(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, savedZoom)));
+
   $effect(() => {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('giraflow-wheel-mode', wheelMode);
+      localStorage.setItem('giraflow-zoom', String(zoomLevel));
     }
   });
-  
-  function toggleWheelMode() {
-    wheelMode = wheelMode === 'vertical' ? 'horizontal' : 'vertical';
-  }
 
   let viewModel = $derived(buildTimelineViewModel(modelStore.model));
   let timelineItems = $derived(viewModel.items);
@@ -83,6 +81,18 @@
     );
   }
 
+  function updateActiveTickFromScroll() {
+    if (!scrollAreaEl || tickColumns.length === 0) return;
+    const centerX = scrollAreaEl.scrollLeft + scrollAreaEl.clientWidth / 2;
+    const tickIndex = Math.round(centerX / TICK_WIDTH - 0.5);
+    const clamped = Math.max(0, Math.min(tickColumns.length - 1, tickIndex));
+    const tick = tickColumns[clamped].tick;
+    if (tick !== activeTick) {
+      activeTick = tick;
+      history.replaceState({ view: "timeline", tick }, "", `#timeline/tick-${tick}`);
+    }
+  }
+
   function scrollToTick(tick: number) {
     const tickIndex = tickColumns.findIndex(col => col.tick === tick);
     if (tickIndex >= 0 && scrollAreaEl) {
@@ -106,14 +116,19 @@
       .map(([tick, items]) => ({ tick, items }));
   });
 
-  // Layout constants - responsive
-  const TICK_WIDTH = 200;
+  // Layout — scaled by zoom
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
-  const LANE_HEIGHT = isMobile ? 140 : 200;
-  const BOX_WIDTH = 180;
-  const BOX_HEIGHT = isMobile ? 120 : 180;
-  const MAX_FIELDS = 4; // Max fields to show before truncating
-  const MAX_VALUE_LENGTH = 15; // Max chars for value display
+  const BASE_TICK_WIDTH = 200;
+  const BASE_LANE_HEIGHT = isMobile ? 140 : 200;
+  const BASE_BOX_WIDTH = 180;
+  const BASE_BOX_HEIGHT = isMobile ? 120 : 180;
+
+  let TICK_WIDTH = $derived(Math.round(BASE_TICK_WIDTH * zoomLevel));
+  let LANE_HEIGHT = $derived(Math.round(BASE_LANE_HEIGHT * zoomLevel));
+  let BOX_WIDTH = $derived(Math.round(BASE_BOX_WIDTH * zoomLevel));
+  let BOX_HEIGHT = $derived(Math.round(BASE_BOX_HEIGHT * zoomLevel));
+  let MAX_FIELDS = $derived(zoomLevel < 0.6 ? 2 : 4);
+  const MAX_VALUE_LENGTH = 15;
 
   // Format a value for display
   function formatValue(value: any): string {
@@ -197,27 +212,37 @@
     }
   }
 
-  // Handle wheel scroll based on wheelMode setting
   function handleWheel(e: WheelEvent) {
     if (!scrollAreaEl) return;
 
-    // Shift+wheel always toggles the opposite direction
+    // Shift+wheel → horizontal scroll
     if (e.shiftKey) {
       e.preventDefault();
-      if (wheelMode === 'horizontal') {
-        scrollAreaEl.scrollTop += e.deltaY;
-      } else {
-        scrollAreaEl.scrollLeft += e.deltaY;
-      }
+      scrollAreaEl.scrollLeft += e.deltaY;
       return;
     }
 
-    // Use wheelMode setting
-    if (wheelMode === 'horizontal') {
-      e.preventDefault();
-      scrollAreaEl.scrollLeft += e.deltaY;
+    // Normal wheel → zoom towards cursor
+    e.preventDefault();
+    const rect = scrollAreaEl.getBoundingClientRect();
+    const cursorX = e.clientX - rect.left + scrollAreaEl.scrollLeft;
+    const cursorY = e.clientY - rect.top + scrollAreaEl.scrollTop;
+    const fractionX = cursorX / scrollAreaEl.scrollWidth;
+    const fractionY = cursorY / scrollAreaEl.scrollHeight;
+
+    const oldZoom = zoomLevel;
+    const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+    zoomLevel = Math.round(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoomLevel + delta)) * 100) / 100;
+
+    if (zoomLevel !== oldZoom) {
+      requestAnimationFrame(() => {
+        if (!scrollAreaEl) return;
+        const newX = fractionX * scrollAreaEl.scrollWidth - (e.clientX - rect.left);
+        const newY = fractionY * scrollAreaEl.scrollHeight - (e.clientY - rect.top);
+        scrollAreaEl.scrollLeft = newX;
+        scrollAreaEl.scrollTop = newY;
+      });
     }
-    // vertical mode: default browser behavior (no preventDefault)
   }
 
   function closeDetails() {
@@ -233,32 +258,15 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<!-- Floating wheel mode toggle (left of orientation toggle) -->
-<button 
-  class="ht-wheel-toggle-floating"
-  onclick={toggleWheelMode}
-  title={wheelMode === 'vertical' ? 'Mausrad: Vertikal scrollen (klicken für Horizontal)' : 'Mausrad: Horizontal scrollen (klicken für Vertikal)'}
->
-  {#if wheelMode === 'vertical'}
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  {:else}
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  {/if}
-</button>
-
 <div class="horizontal-timeline">
   <header class="ht-header">
     <h2>Timeline</h2>
-    <span class="ht-count">{tickColumns.length} ticks</span>
+    <span class="ht-count">{tickColumns.length} ticks · {Math.round(zoomLevel * 100)}%</span>
   </header>
 
   <div class="ht-container">
     <!-- Lane labels (fixed left) -->
-    <div class="ht-lane-labels" style="height: {totalHeight}px;">
+    <div class="ht-lane-labels" style="height: {totalHeight}px; font-size: {zoomLevel}em;">
       {#each laneConfig.actorRoles as role, i}
         <div class="ht-lane-label actor" style="top: {i * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;">
           {role || 'Actors'}
@@ -284,8 +292,9 @@
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}
       oncontextmenu={(e) => e.preventDefault()}
+      onscroll={updateActiveTickFromScroll}
     >
-      <div class="ht-canvas" style="width: {tickColumns.length * TICK_WIDTH + 50}px; height: {totalHeight}px;">
+      <div class="ht-canvas" style="width: {tickColumns.length * TICK_WIDTH + 50}px; height: {totalHeight}px; font-size: {zoomLevel}em;">
         <!-- Lane backgrounds -->
         {#each laneConfig.actorRoles as _, i}
           <div class="ht-lane-bg actor" style="top: {i * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
@@ -469,42 +478,6 @@
   .ht-count {
     font-size: 0.85rem;
     color: var(--text-secondary);
-  }
-
-  .ht-wheel-toggle-floating {
-    position: fixed;
-    top: 105px;
-    right: calc(1rem + 4.5rem);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    background: var(--bg-card);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-    z-index: 50;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  @media (max-width: 900px) {
-    .ht-wheel-toggle-floating {
-      display: none;
-    }
-  }
-
-  .ht-wheel-toggle-floating:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    border-color: var(--text-secondary);
-  }
-
-  .ht-wheel-toggle-floating svg {
-    width: 16px;
-    height: 16px;
   }
 
   .ht-container {
