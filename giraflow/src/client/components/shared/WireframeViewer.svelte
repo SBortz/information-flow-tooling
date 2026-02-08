@@ -485,18 +485,6 @@
     overflow: hidden;
   }
 
-  .code-view pre {
-    margin: 0;
-    padding: 1rem;
-  }
-
-  .code-view code {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.8rem;
-    color: var(--text-primary, #333);
-    white-space: pre;
-  }
-
   .loading {
     display: block;
     padding: 1rem;

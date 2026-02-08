@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { modelStore } from "../../stores/model.svelte";
   import { isEvent, isState, isCommand, isActor } from "../../lib/types";
-  import type { Event, Actor, Command, StateView, TimelineElement } from "../../lib/types";
+  import type { Event, Actor, TimelineElement } from "../../lib/types";
   import { buildTimelineViewModel } from "../../lib/models";
   import JsonDisplay from "../shared/JsonDisplay.svelte";
   import WireframeViewer from "../shared/WireframeViewer.svelte";
@@ -40,14 +40,22 @@
     wheelMode = wheelMode === 'vertical' ? 'horizontal' : 'vertical';
   }
 
-  // Build view model
   let viewModel = $derived(buildTimelineViewModel(modelStore.model));
   let timelineItems = $derived(viewModel.items);
   let laneConfig = $derived(viewModel.laneConfig);
 
   // Selected element for detail panel (separate from scroll sync)
   let selectedElement = $state<TimelineElement | null>(null);
-  
+  let scrollAreaEl: HTMLDivElement | undefined = $state();
+
+  // Register wheel handler with { passive: false } so preventDefault works in Chrome
+  onMount(() => {
+    if (scrollAreaEl) {
+      scrollAreaEl.addEventListener('wheel', handleWheel, { passive: false });
+      return () => scrollAreaEl?.removeEventListener('wheel', handleWheel);
+    }
+  });
+
   // One-time scroll when data is ready
   let hasScrolledOnce = false;
   $effect(() => {
@@ -76,18 +84,15 @@
   }
 
   function scrollToTick(tick: number) {
-    const tickIndex = tickColumns().findIndex(col => col.tick === tick);
-    if (tickIndex >= 0) {
-      const scrollArea = document.querySelector('.ht-scroll-area');
-      if (scrollArea) {
-        const targetX = tickIndex * TICK_WIDTH - scrollArea.clientWidth / 2 + TICK_WIDTH / 2;
-        scrollArea.scrollTo({ left: Math.max(0, targetX), behavior: 'smooth' });
-      }
+    const tickIndex = tickColumns.findIndex(col => col.tick === tick);
+    if (tickIndex >= 0 && scrollAreaEl) {
+      const targetX = tickIndex * TICK_WIDTH - scrollAreaEl.clientWidth / 2 + TICK_WIDTH / 2;
+      scrollAreaEl.scrollTo({ left: Math.max(0, targetX), behavior: 'smooth' });
     }
   }
 
   // Group items by tick
-  let tickColumns = $derived(() => {
+  let tickColumns = $derived.by(() => {
     const tickMap = new Map<number, typeof timelineItems>();
     for (const item of timelineItems) {
       const tick = item.element.tick;
@@ -131,12 +136,6 @@
     return Object.entries(example).map(([key, value]) => {
       return `${key}: ${formatValue(value)}`;
     });
-  }
-
-  // Get actor description
-  function getActorDescription(el: TimelineElement): string {
-    if (!isActor(el)) return '';
-    return `reads: ${el.readsView || '?'}\n→ ${el.sendsCommand || '?'}`;
   }
 
   // Calculate lane Y positions
@@ -205,33 +204,31 @@
 
   // Handle wheel scroll based on wheelMode setting
   function handleWheel(e: WheelEvent) {
-    const scrollArea = e.currentTarget as HTMLElement;
-    
+    if (!scrollAreaEl) return;
+
     // Shift+wheel always toggles the opposite direction
     if (e.shiftKey) {
       e.preventDefault();
       if (wheelMode === 'horizontal') {
-        scrollArea.scrollTop += e.deltaY;
+        scrollAreaEl.scrollTop += e.deltaY;
       } else {
-        scrollArea.scrollLeft += e.deltaY;
+        scrollAreaEl.scrollLeft += e.deltaY;
       }
       return;
     }
-    
+
     // Use wheelMode setting
     if (wheelMode === 'horizontal') {
       e.preventDefault();
-      scrollArea.scrollLeft += e.deltaY;
+      scrollAreaEl.scrollLeft += e.deltaY;
     }
     // vertical mode: default browser behavior (no preventDefault)
   }
 
-  // Close detail panel
   function closeDetails() {
     selectedElement = null;
   }
   
-  // Handle keyboard events
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && selectedElement !== null) {
       closeDetails();
@@ -261,7 +258,7 @@
 <div class="horizontal-timeline">
   <header class="ht-header">
     <h2>Timeline</h2>
-    <span class="ht-count">{tickColumns().length} ticks</span>
+    <span class="ht-count">{tickColumns.length} ticks</span>
   </header>
 
   <div class="ht-container">
@@ -284,15 +281,15 @@
 
     <!-- Scrollable timeline area -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div 
-      class="ht-scroll-area" 
-      onwheel={handleWheel}
+    <div
+      class="ht-scroll-area"
+      bind:this={scrollAreaEl}
       onmousedown={handleMouseDown}
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}
     >
-      <div class="ht-canvas" style="width: {tickColumns().length * TICK_WIDTH + 50}px; height: {totalHeight}px;">
+      <div class="ht-canvas" style="width: {tickColumns.length * TICK_WIDTH + 50}px; height: {totalHeight}px;">
         <!-- Lane backgrounds -->
         {#each laneConfig.actorRoles as _, i}
           <div class="ht-lane-bg actor" style="top: {i * LANE_HEIGHT}px; height: {LANE_HEIGHT}px;"></div>
@@ -303,7 +300,7 @@
         {/each}
 
         <!-- Tick columns - click updates route but doesn't open panel -->
-        {#each tickColumns() as { tick, items }, tickIndex}
+        {#each tickColumns as { tick, items }, tickIndex}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
@@ -946,7 +943,6 @@
   .ht-detail-content .event { color: var(--color-event); }
   .ht-detail-content .state { color: var(--color-state); }
   .ht-detail-content .command { color: var(--color-command); }
-  .ht-detail-content .actor { color: var(--color-actor); }
 
   .ht-wireframes {
     margin-top: 0.75rem;
