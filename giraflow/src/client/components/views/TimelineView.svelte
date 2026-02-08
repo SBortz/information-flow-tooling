@@ -352,22 +352,6 @@
           `#timeline/tick-${closestTick}`,
         );
 
-        // Scroll master item into view if needed (use scrollTo to avoid affecting window scroll)
-        const masterItem = document.querySelector(
-          `.tl-master-item[data-tick="${closestTick}"]`,
-        ) as HTMLElement | null;
-        const masterContainer = document.querySelector(".timeline-master");
-        if (masterItem && masterContainer) {
-          const containerRect = masterContainer.getBoundingClientRect();
-          const itemRect = masterItem.getBoundingClientRect();
-          // Only scroll if item is outside visible area of master
-          if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
-            masterContainer.scrollTo({
-              top: masterItem.offsetTop - masterContainer.clientHeight / 2 + masterItem.clientHeight / 2,
-              behavior: "smooth",
-            });
-          }
-        }
       }
     }
 
@@ -375,6 +359,27 @@
     // No initial call - hash effect handles initialization
 
     return () => window.removeEventListener("scroll", updateActiveFromScroll);
+  });
+
+  // Keep master list in sync with activeTick
+  $effect(() => {
+    if (activeTick === null || orientation !== 'vertical') return;
+    // tick() to defer until after DOM updates
+    requestAnimationFrame(() => {
+      const masterItem = document.querySelector(
+        `.tl-master-item[data-tick="${activeTick}"]`,
+      ) as HTMLElement | null;
+      const masterContainer = document.querySelector(".timeline-master");
+      if (!masterItem || !masterContainer) return;
+      const containerRect = masterContainer.getBoundingClientRect();
+      const itemRect = masterItem.getBoundingClientRect();
+      if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
+        masterContainer.scrollTo({
+          top: masterItem.offsetTop - masterContainer.clientHeight / 2 + masterItem.clientHeight / 2,
+          behavior: "instant",
+        });
+      }
+    });
   });
 
   // Handle initial hash on mount - parse tick from URL (runs once when data loads)
@@ -409,9 +414,10 @@
   // Scroll to activeTick only when switching from horizontal to vertical
   $effect(() => {
     if (prevOrientation === 'horizontal' && orientation === 'vertical' && activeTick !== null) {
+      const tick = activeTick;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          const el = document.getElementById(`tick-${activeTick}`);
+          const el = document.getElementById(`tick-${tick}`);
           if (el) {
             isProgrammaticScroll = true;
             el.scrollIntoView({ behavior: "instant", block: "start" });
