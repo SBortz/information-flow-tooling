@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { GiraflowModel } from '../../lib/types';
   import { generateDrawioXml, downloadDrawio } from '../../lib/download-drawio';
+  import pako from 'pako';
 
   interface Props {
     model: GiraflowModel;
@@ -15,13 +16,21 @@
   // Generate the XML and create viewer URL
   const xml = $derived(generateDrawioXml(model));
   
-  // Create the viewer URL with URL-encoded XML
-  // Note: We use a data URL approach for larger diagrams
+  // Create the viewer URL with deflate-compressed base64 XML
   const viewerUrl = $derived(() => {
     try {
-      // Base64 encode the XML for the viewer
-      const base64Xml = btoa(unescape(encodeURIComponent(xml)));
-      return `https://viewer.diagrams.net/?highlight=0000ff&edit=_blank&layers=1&nav=1&title=${encodeURIComponent(model.name || 'Giraflow')}.drawio#R${base64Xml}`;
+      // Deflate compress the XML, then base64 encode
+      const encoder = new TextEncoder();
+      const data = encoder.encode(xml);
+      const compressed = pako.deflateRaw(data, { level: 9 });
+      
+      // Convert to base64 (URL-safe)
+      const base64 = btoa(String.fromCharCode.apply(null, Array.from(compressed)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+      
+      const title = encodeURIComponent(model.name || 'Giraflow');
+      return `https://viewer.diagrams.net/?tags=%7B%7D&highlight=0000ff&edit=_blank&layers=1&nav=1&title=${title}.drawio#R${base64}`;
     } catch (e) {
       console.error('Failed to create viewer URL:', e);
       viewerError = true;
