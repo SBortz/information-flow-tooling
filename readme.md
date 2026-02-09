@@ -1,72 +1,107 @@
-<img src="docs/images/Gira.png" alt="Giraflow" width="300">
+<p align="center">
+  <img src="docs/images/Gira.png" alt="Giraflow Logo" width="300">
+</p>
 
-# Giraflow
+<h1 align="center">Giraflow</h1>
 
+<p align="center">
+  <strong>A human-readable JSON format for Event Modeling with live visualization</strong>
+</p>
 
-A human-readable JSON format for describing event-driven systems using [Event Modeling](https://eventmodeling.org/) methodology – with a live-reloading web preview and a terminal CLI to visualize and analyze models.
+<p align="center">
+  <a href="https://www.npmjs.com/package/giraflow"><img src="https://img.shields.io/npm/v/giraflow?color=orange&label=npm" alt="npm version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+  <a href="https://giraflow.vercel.app"><img src="https://img.shields.io/badge/demo-live-brightgreen.svg" alt="Live Demo"></a>
+</p>
 
-![Timeline View](docs/images/web-timeline.png)
-
----
-
-## 1. Why
-
-Modeling information flows is a powerful methodology for designing software systems. But where do you store the model? 
-
-**The Problem:**
-- Proprietary tools lock your designs into their platforms
-- Visual-only formats can't be version controlled meaningfully
-
-**The Solution:**
-A simple, human-readable JSON format that:
--  Can be checked into Git alongside your code
--  Is easy to read and manually edit
--  Follows the natural flow of Information Flow (Timeline → Events → Views → Commands)
--  Supports tooling while remaining tool-agnostic
+<p align="center">
+  <a href="https://giraflow.vercel.app">Live Demo</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-format-specification">Format Spec</a> •
+  <a href="#-features">Features</a>
+</p>
 
 ---
 
-## 2. Philosophy
+<p align="center">
+  <img src="docs/images/web-timeline.png" alt="Giraflow Timeline View" width="800">
+</p>
 
-- **Information Flow is a continuous process.**  
-  The format must allow incomplete systems to be saved. Since the methodology helps to develop the system design, the format itself should allow work-in-progress models that might be invalid in the beginning.
+## 🎯 What is Giraflow?
 
-- **Validation belongs in tools, not the format.**  
-  The file specification stays simple. Applications derive insights and validates.
+Giraflow is a **JSON-based format** for describing event-driven systems using [Event Modeling](https://eventmodeling.org/) methodology. It comes with a **live-reloading web preview** that visualizes your models instantly.
 
-- **No Slices in the file.**  
-  Slices are implementation/project management concerns. They belong in a separate view, not the design file. They can also easily be derived from the model if necessary.
+### The Problem
 
-- **Human-readable above all.**  
-  The file should be human readable and be able to correct manually with a text editor if necessary. Therefore this file format keeps a clean flow of what happens sequentially in the system.
+- 🔒 Proprietary tools lock your designs into their platforms
+- 📊 Visual-only formats can't be version controlled meaningfully
+- 🤝 Collaboration on system design requires expensive tooling
 
----
+### The Solution
 
-## 3. Simple Example
+A simple, **human-readable JSON format** that:
 
-A minimal information flow model showing the core flow: **Event → StateView → Actor → Command → Event**
+- ✅ Lives in Git alongside your code
+- ✅ Is easy to read and manually edit
+- ✅ Follows the natural flow of Event Modeling
+- ✅ Supports tooling while remaining tool-agnostic
+
+## 🚀 Quick Start
+
+### Try the Live Demo
+
+Visit **[giraflow.vercel.app](https://giraflow.vercel.app)** to explore Giraflow without installation.
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/SBortz/giraflow.git
+cd giraflow/giraflow
+
+# Install dependencies
+npm install
+
+# Start the dev server with an example model
+npm run dev -- ../example-giraflows/shopping.giraflow.json
+```
+
+Open `http://localhost:3000` – the browser auto-refreshes when you edit the file!
+
+### Using the npm Package
+
+```bash
+# Install globally
+npm install -g giraflow
+
+# Start the preview server
+giraflow your-model.giraflow.json
+```
+
+## 📝 Format Specification
+
+A Giraflow model is a JSON file describing the **timeline** of an event-driven system.
+
+### Minimal Example
 
 ```json
 {
-  "$schema": "./giraflow.schema.json",
+  "$schema": "https://raw.githubusercontent.com/SBortz/giraflow/main/giraflow.schema.json",
   "name": "Simple Order Flow",
-  "description": "Minimal example showing the core cycle: Event → State → Actor → Command → Event",
+  "description": "Minimal example: Event → State → Actor → Command → Event",
   "version": "1.0.0",
   "timeline": [
     {
       "type": "event",
       "name": "OrderPlaced",
       "tick": 10,
-      "example": { "orderId": "ord-123", "customerId": "cust-456", "amount": 99.99 }
+      "example": { "orderId": "ord-123", "amount": 99.99 }
     },
     {
       "type": "state",
       "name": "PendingOrders",
       "tick": 20,
-      "sourcedFrom": ["OrderPlaced", "OrderShipped"],
-      "example": {
-        "orders": [{ "orderId": "ord-123", "status": "pending", "amount": 99.99 }]
-      }
+      "sourcedFrom": ["OrderPlaced", "OrderShipped"]
     },
     {
       "type": "actor",
@@ -78,15 +113,13 @@ A minimal information flow model showing the core flow: **Event → StateView �
     {
       "type": "command",
       "name": "ShipOrder",
-      "tick": 40,
-      "example": { "orderId": "ord-123", "trackingNumber": "DHL-789", "carrier": "DHL" }
+      "tick": 40
     },
     {
       "type": "event",
       "name": "OrderShipped",
       "tick": 50,
-      "producedBy": "ShipOrder-40",
-      "example": { "orderId": "ord-123", "trackingNumber": "DHL-789", "shippedAt": "2024-01-15T14:30:00Z" }
+      "producedBy": "ShipOrder-40"
     }
   ]
 }
@@ -94,8 +127,8 @@ A minimal information flow model showing the core flow: **Event → StateView �
 
 ### Timeline Elements
 
-| Type | Symbol | Naming | Description |
-|------|--------|--------|-------------|
+| Type | Symbol | Naming Convention | Description |
+|------|:------:|-------------------|-------------|
 | `event` | ● | Past tense (`OrderShipped`) | Something that happened |
 | `state` | ◆ | Noun (`PendingOrders`) | Read model built from events |
 | `actor` | ○ | Role (`WarehouseWorker`) | Who reads views and sends commands |
@@ -103,171 +136,121 @@ A minimal information flow model showing the core flow: **Event → StateView �
 
 ### The `tick` Property
 
-The `tick` determines position on the timeline. Elements display in ascending order.
+The `tick` determines position on the timeline. Elements display in ascending order, allowing you to insert new elements between existing ones.
 
-### Example Files
+## ✨ Features
 
-See the `example-giraflows/` folder for example models:
-- `order-system.giraflow.json` - E-commerce order flow with scenarios
-- `shopping.giraflow.json` - Shopping cart with inventory and archiving
-- `todo-app.giraflow.json` - Simple todo application
-- `library-management.giraflow.json` - Library with loans, reservations, reminders
+### 🌐 Web Preview
 
----
-
-## 4. Challenges
-
-There are still some challenges to be solved. I will write more about them soon.
-
-- **Duplicate definitions** - How to handle elements that appear multiple times with diverging details? The current approach is to simply keep duplication.
-- **Model validation** - Detecting errors and inconsistencies in the model.
-
----
-
-## 5. Giraflow Web
-
-A lightweight dev server that watches `.giraflow.json` files and provides a live-updating browser preview.
-
-### Features
-
-- **Live Reload** – Browser refreshes automatically on file changes
-- **Three Views** – Info, Timeline, Slices & Scenarios
-- **Expand All** – Toggle to show/hide JSON data and details
-- **Scenario Display** – Given-When-Then scenarios for Commands and State Views
-
-### Quick Start
-
-```bash
-cd giraflow
-npm install
-npm run build
-npm start ../example-giraflows/shopping.giraflow.json
-```
-
-The browser opens at `http://localhost:3000`.
-
-### Views
-
-#### Info
-
-Consolidated overview showing model name, description, and tables for all element types (Events, State Views, Commands, Actors) with their relationships.
-
-![Info View](docs/images/web-consolidated.png)
-
-#### Timeline
-
-Swimlane-style timeline with color-coded symbols. Events, Commands, State Views, and Actors are arranged chronologically along a vertical axis.
-
-![Timeline View](docs/images/web-timeline.png)
-
-#### Slices & Scenarios
-
-Expandable cards for Commands and State Views. Each card shows JSON examples, relationships (sourced from, read by), and Given-When-Then scenarios when expanded.
-
-![Slices & Scenarios](docs/images/web-slices.png)
-
-![Expanded Slice with Scenario](docs/images/web-slice-expanded.png)
-
----
-
-## 6. Giraflow CLI
-
-The **Giraflow CLI** (`giraflow-cli`) is a Node.js/TypeScript CLI tool to visualize `.giraflow.json` files in the terminal. Requires Node.js 18+.
-
-### Installation
-
-```bash
-cd giraflow-cli
-npm install
-npm run build
-```
-
-### Usage
-
-```bash
-node dist/index.js <file> [options]
-```
-
-Or link globally:
-```bash
-npm link
-giraflow-cli <file> [options]
-```
-
-### Examples
-
-```bash
-# Interactive mode - prompts for view selection
-node dist/index.js model.giraflow.json
-
-# Timeline view with example data
-node dist/index.js model.giraflow.json -v timeline -e
-
-# Table view for documentation
-node dist/index.js model.giraflow.json -v table
-
-# Validate against schema first
-node dist/index.js model.giraflow.json -s giraflow.schema.json -v slice
-
-# Export to file
-node dist/index.js model.giraflow.json -v timeline -e -o output.txt
-```
-
-### Options
-
-| Option | Description |
-|--------|-------------|
-| `-v, --view <mode>` | Display mode (see below) |
-| `-e, --example` | Show example data in output |
-| `-o, --output <file>` | Export output to a text file (without header) |
-| `-s, --schema <path>` | Validate against JSON schema first |
-| `-h, --help` | Show help |
-
-### View Modes
-
-| Mode | Best For | Description |
-|------|----------|-------------|
-| `timeline` | Quick overview | Vertical chronological view with symbols |
-| `slice` | Detailed analysis | Panels with JSON examples and relationships |
-| `table` | Documentation | Tables per type with data flow tree |
-
-### Output Example (Timeline)
-
-```
-    ●  │       @10  OrderPlaced
-       │            {
-       │              "orderId": "ord-123",
-       │              "customerId": "cust-456"
-       │            }
-       │
-       ◆       @20  PendingOrders
-       │            sourcedFrom: OrderPlaced, OrderShipped
-       │
-       │  ○    @30  WarehouseWorker
-       │            readsView: PendingOrders
-       │            sendsCommand: ShipOrder
-       │
-       ▶       @40  ShipOrder
-       │
-    ●  │       @50  OrderShipped
-       │            producedBy: ShipOrder-40
-```
-
-### Screenshots
+<table>
+<tr>
+<td width="50%">
 
 **Timeline View**
 
-![Timeline View](docs/images/timeline-view.png)
+Swimlane-style visualization with color-coded symbols. Events, Commands, State Views, and Actors arranged chronologically.
 
-**Timeline View with Example Data**
+</td>
+<td width="50%">
 
-![Timeline View with Data](docs/images/timeline-view-with-data.png)
+<img src="docs/images/web-timeline.png" alt="Timeline View" width="400">
 
-**Slice View**
+</td>
+</tr>
+<tr>
+<td>
 
-![Slice View](docs/images/slice-view.png)
+**Info View**
 
-**Table View**
+Consolidated overview showing all element types with their relationships in structured tables.
 
-![Table View](docs/images/table-view.png)
+</td>
+<td>
 
+<img src="docs/images/web-consolidated.png" alt="Info View" width="400">
+
+</td>
+</tr>
+<tr>
+<td>
+
+**Slices & Scenarios**
+
+Expandable cards for Commands and State Views with Given-When-Then scenarios.
+
+</td>
+<td>
+
+<img src="docs/images/web-slices.png" alt="Slices View" width="400">
+
+</td>
+</tr>
+</table>
+
+### 🔥 Live Reload
+
+Edit your `.giraflow.json` file and see changes instantly in the browser – no manual refresh needed.
+
+### 📋 JSON Schema Validation
+
+Full JSON Schema support for IDE autocompletion and validation:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/SBortz/giraflow/main/giraflow.schema.json"
+}
+```
+
+### 📦 Export Options
+
+Export your models to various formats (draw.io export coming soon).
+
+## 📁 Example Models
+
+The `example-giraflows/` folder contains ready-to-use examples:
+
+| Model | Description |
+|-------|-------------|
+| `shopping.giraflow.json` | Shopping cart with inventory management |
+| `simple-todo-app.giraflow.json` | Basic todo application |
+| `habit-tracker.giraflow.json` | Habit tracking system |
+| `coloring-wishlist.giraflow.json` | Wishlist management |
+
+## 🧠 Design Philosophy
+
+1. **Event Modeling is a continuous process**  
+   The format allows incomplete, work-in-progress models.
+
+2. **Validation belongs in tools, not the format**  
+   The file specification stays simple. Applications validate.
+
+3. **No slices in the file**  
+   Slices are project management concerns – they can be derived from the model.
+
+4. **Human-readable above all**  
+   Files should be readable and editable with any text editor.
+
+## 🛠️ Development
+
+```bash
+cd giraflow
+
+# Development with hot reload
+npm run dev -- ../example-giraflows/shopping.giraflow.json
+
+# Build for production
+npm run build
+
+# Start production server
+npm start ../example-giraflows/shopping.giraflow.json
+```
+
+## 📄 License
+
+[MIT](LICENSE) © Sebastian Bortz
+
+---
+
+<p align="center">
+  <sub>Built with ❤️ for the Event Modeling community</sub>
+</p>
