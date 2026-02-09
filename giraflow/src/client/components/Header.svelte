@@ -3,6 +3,8 @@
   import { examples, getEmptyTemplate } from '../lib/examples';
   import { buildSliceViewModel } from '../lib/models/slice-model';
   import { downloadProjectZip } from '../lib/download-zip';
+  import { downloadExcel } from '../lib/download-excel';
+  import { downloadSlicesPdf } from '../lib/download-pdf';
 
   function handleExampleSelect(e: Event) {
     const select = e.currentTarget as HTMLSelectElement;
@@ -97,6 +99,16 @@
       modelStore.currentExampleFolder
     );
   }
+
+  async function handleExcelDownload() {
+    if (!modelStore.model) return;
+    await downloadExcel(modelStore.model);
+  }
+
+  async function handlePdfDownload() {
+    if (!modelStore.model) return;
+    await downloadSlicesPdf(modelStore.model);
+  }
 </script>
 
 <header class="header">
@@ -127,7 +139,15 @@
         </button>
         <button class="icon-button" onclick={handleDownload} title="Download as ZIP">
           <span class="icon">↓</span>
-          <span class="label">Download</span>
+          <span class="label">ZIP</span>
+        </button>
+        <button class="icon-button" onclick={handleExcelDownload} title="Download as Excel">
+          <span class="icon">📊</span>
+          <span class="label">Excel</span>
+        </button>
+        <button class="icon-button" onclick={handlePdfDownload} title="Download Slices as PDF">
+          <span class="icon">📄</span>
+          <span class="label">PDF</span>
         </button>
       </div>
     {:else}
