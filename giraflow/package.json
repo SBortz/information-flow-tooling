@@ -46,6 +46,7 @@
     "cli-table3": "^0.6.5",
     "codemirror": "^6.0.2",
     "commander": "^12.1.0",
+    "exceljs": "^4.4.0",
     "highlight.js": "^11.11.1",
     "jszip": "^3.10.1",
     "open": "^10.1.0",
