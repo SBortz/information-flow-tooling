@@ -2,13 +2,9 @@
   import { modelStore } from '../stores/model.svelte';
   import { examples, getEmptyTemplate } from '../lib/examples';
   import { buildSliceViewModel } from '../lib/models/slice-model';
-  import { downloadProjectZip } from '../lib/download-zip';
-  import { downloadPptx, type PptxOrientation } from '../lib/download-pptx';
-  import { downloadSvg, type SvgOrientation } from '../lib/download-svg';
   import DrawioPreview from './shared/DrawioPreview.svelte';
+  import ExportMenu from './shared/ExportMenu.svelte';
 
-  let pptxOrientation: PptxOrientation = $state('horizontal');
-  let svgOrientation: SvgOrientation = $state('horizontal');
   let showDrawioPreview = $state(false);
 
   function handleExampleSelect(e: Event) {
@@ -95,38 +91,7 @@
     }
   }
 
-  async function handleDownload() {
-    if (!modelStore.model) return;
-    await downloadProjectZip(
-      modelStore.model,
-      modelStore.rawJson,
-      modelStore.editedWireframes,
-      modelStore.currentExampleFolder
-    );
-  }
-
-  async function handleDownloadPptx() {
-    if (!modelStore.model) return;
-    await downloadPptx(modelStore.model, pptxOrientation);
-  }
-
-  function handlePptxOrientationChange(e: Event) {
-    const select = e.currentTarget as HTMLSelectElement;
-    pptxOrientation = select.value as PptxOrientation;
-  }
-
-  function handleDownloadSvg() {
-    if (!modelStore.model) return;
-    downloadSvg(modelStore.model, svgOrientation);
-  }
-
-  function handleSvgOrientationChange(e: Event) {
-    const select = e.currentTarget as HTMLSelectElement;
-    svgOrientation = select.value as SvgOrientation;
-  }
-
   function handleDrawioExport() {
-    if (!modelStore.model) return;
     showDrawioPreview = true;
   }
 
@@ -161,40 +126,15 @@
           <span class="icon">+</span>
           <span class="label">New</span>
         </button>
-        <button class="icon-button" onclick={handleDownload} title="Download as ZIP">
-          <span class="icon">↓</span>
-          <span class="label">ZIP</span>
-        </button>
-        <select
-          class="orientation-select pptx-orientation"
-          value={pptxOrientation}
-          onchange={handlePptxOrientationChange}
-          title="PPTX Layout"
-        >
-          <option value="horizontal">→</option>
-          <option value="vertical">↓</option>
-        </select>
-        <button class="icon-button pptx-button" onclick={handleDownloadPptx} title="Download as PowerPoint">
-          <span class="icon">📊</span>
-          <span class="label">PPTX</span>
-        </button>
-        <select
-          class="orientation-select svg-orientation"
-          value={svgOrientation}
-          onchange={handleSvgOrientationChange}
-          title="SVG Layout"
-        >
-          <option value="horizontal">→</option>
-          <option value="vertical">↓</option>
-        </select>
-        <button class="icon-button svg-button" onclick={handleDownloadSvg} title="Export as SVG diagram">
-          <span class="icon">◇</span>
-          <span class="label">SVG</span>
-        </button>
-        <button class="icon-button drawio-button" onclick={handleDrawioExport} title="Export as Draw.io">
-          <span class="icon">⬡</span>
-          <span class="label">Draw.io</span>
-        </button>
+        {#if modelStore.model}
+          <ExportMenu
+            model={modelStore.model}
+            rawJson={modelStore.rawJson}
+            editedWireframes={modelStore.editedWireframes}
+            currentExampleFolder={modelStore.currentExampleFolder}
+            onDrawioExport={handleDrawioExport}
+          />
+        {/if}
       </div>
     {:else}
       <div class="file-selector">
@@ -217,36 +157,15 @@
           <span class="icon">+</span>
           <span class="label">New</span>
         </button>
-        <select
-          class="orientation-select pptx-orientation"
-          value={pptxOrientation}
-          onchange={handlePptxOrientationChange}
-          title="PPTX Layout"
-        >
-          <option value="horizontal">→</option>
-          <option value="vertical">↓</option>
-        </select>
-        <button class="icon-button pptx-button" onclick={handleDownloadPptx} title="Download as PowerPoint">
-          <span class="icon">📊</span>
-          <span class="label">PPTX</span>
-        </button>
-        <select
-          class="orientation-select svg-orientation"
-          value={svgOrientation}
-          onchange={handleSvgOrientationChange}
-          title="SVG Layout"
-        >
-          <option value="horizontal">→</option>
-          <option value="vertical">↓</option>
-        </select>
-        <button class="icon-button svg-button" onclick={handleDownloadSvg} title="Export as SVG diagram">
-          <span class="icon">◇</span>
-          <span class="label">SVG</span>
-        </button>
-        <button class="icon-button drawio-button" onclick={handleDrawioExport} title="Export as Draw.io">
-          <span class="icon">⬡</span>
-          <span class="label">Draw.io</span>
-        </button>
+        {#if modelStore.model}
+          <ExportMenu
+            model={modelStore.model}
+            rawJson={modelStore.rawJson}
+            editedWireframes={modelStore.editedWireframes}
+            currentExampleFolder={modelStore.currentExampleFolder}
+            onDrawioExport={handleDrawioExport}
+          />
+        {/if}
       </div>
     {/if}
   </div>
@@ -346,59 +265,6 @@
     box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
   }
 
-  .pptx-button:hover {
-    border-color: var(--color-event);
-    color: var(--color-event);
-    box-shadow: 0 4px 12px rgba(255, 158, 100, 0.25);
-  }
-
-  .svg-button:hover {
-    border-color: var(--color-state);
-    color: var(--color-state);
-    box-shadow: 0 4px 12px rgba(158, 206, 106, 0.25);
-  }
-
-  .drawio-button:hover {
-    border-color: var(--color-command);
-    color: var(--color-command);
-    box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
-  }
-
-  .orientation-select {
-    padding: 0.35rem 0.5rem;
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
-    background: var(--bg-primary);
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-family: inherit;
-    cursor: pointer;
-    appearance: none;
-    text-align: center;
-    transition: all 0.15s;
-    width: 2.5rem;
-  }
-
-  .pptx-orientation:hover,
-  .pptx-orientation:focus {
-    border-color: var(--color-event);
-    outline: none;
-  }
-
-  .pptx-orientation:focus {
-    box-shadow: 0 0 0 2px rgba(255, 158, 100, 0.2);
-  }
-
-  .svg-orientation:hover,
-  .svg-orientation:focus {
-    border-color: var(--color-state);
-    outline: none;
-  }
-
-  .svg-orientation:focus {
-    box-shadow: 0 0 0 2px rgba(158, 206, 106, 0.2);
-  }
-
   .status {
     display: flex;
     align-items: center;
@@ -435,12 +301,6 @@
       padding: 0.35rem 1.5rem 0.35rem 0.5rem;
       font-size: 0.8rem;
       box-shadow: none;
-    }
-
-    .orientation-select {
-      width: 2rem;
-      padding: 0.25rem 0.3rem;
-      font-size: 0.8rem;
     }
 
     .icon-button {
