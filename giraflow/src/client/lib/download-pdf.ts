@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { GiraflowModel } from './types';
-import { buildSliceViewModel } from './models/slice-model';
+import { buildSliceViewModel, type Slice } from './models/slice-model';
 
 // Colors matching Giraflow theme (RGB)
 const COLORS = {
@@ -31,16 +31,10 @@ function drawRoundedRect(
   width: number,
   height: number,
   radius: number,
-  fillColor: [number, number, number],
-  strokeColor?: [number, number, number]
+  fillColor: [number, number, number]
 ) {
   doc.setFillColor(...fillColor);
-  if (strokeColor) {
-    doc.setDrawColor(...strokeColor);
-    doc.roundedRect(x, y, width, height, radius, radius, 'FD');
-  } else {
-    doc.roundedRect(x, y, width, height, radius, radius, 'F');
-  }
+  doc.roundedRect(x, y, width, height, radius, radius, 'F');
 }
 
 /**
@@ -72,6 +66,7 @@ function drawArrow(doc: jsPDF, fromX: number, fromY: number, toX: number, toY: n
  * Truncate text to fit width
  */
 function truncateText(doc: jsPDF, text: string, maxWidth: number): string {
+  if (!text) return '';
   if (doc.getTextWidth(text) <= maxWidth) return text;
   let truncated = text;
   while (truncated.length > 0 && doc.getTextWidth(truncated + '...') > maxWidth) {
@@ -100,6 +95,162 @@ function formatExample(example: unknown): string[] {
 }
 
 /**
+ * Draw a slice page
+ */
+function drawSlicePage(
+  doc: jsPDF,
+  slice: Slice,
+  actors: { name: string; role?: string }[],
+  pageIndex: number,
+  totalPages: number
+) {
+  const isCommand = slice.type === 'command';
+  
+  // Title
+  doc.setFontSize(18);
+  doc.setTextColor(...COLORS.text);
+  const typeLabel = isCommand ? 'Command' : 'State';
+  doc.text(`${typeLabel}: ${slice.name}`, MARGIN, MARGIN + 5);
+
+  // Subtitle - show related actors
+  const relatedActors = actors.filter(a => a.name);
+  if (relatedActors.length > 0) {
+    doc.setFontSize(10);
+    doc.setTextColor(...COLORS.textLight);
+    const actorNames = relatedActors.map(a => a.role ? `${a.name} (${a.role})` : a.name).join(', ');
+    doc.text(`Actors: ${actorNames}`, MARGIN, MARGIN + 12);
+  }
+
+  // Calculate positions for the flow
+  const flowY = PAGE_HEIGHT / 2 - BOX_HEIGHT / 2;
+  const startX = MARGIN + 20;
+  const spacing = BOX_WIDTH + ARROW_LENGTH + 10;
+
+  let currentX = startX;
+
+  if (isCommand) {
+    // Command flow: Actor → Command → Events → State
+    
+    // Draw Actor box (if we have actors)
+    if (relatedActors.length > 0) {
+      drawRoundedRect(doc, currentX, flowY, BOX_WIDTH, BOX_HEIGHT, 15, COLORS.actor);
+      doc.setFontSize(10);
+      doc.setTextColor(...COLORS.white);
+      doc.text('○ Actor', currentX + BOX_WIDTH / 2, flowY + 12, { align: 'center' });
+      doc.setFontSize(9);
+      const actorName = truncateText(doc, relatedActors[0].name, BOX_WIDTH - 6);
+      doc.text(actorName, currentX + BOX_WIDTH / 2, flowY + 22, { align: 'center' });
+      
+      drawArrow(doc, currentX + BOX_WIDTH + 2, flowY + BOX_HEIGHT / 2, currentX + spacing - 2, flowY + BOX_HEIGHT / 2);
+      currentX += spacing;
+    }
+
+    // Draw Command box
+    drawRoundedRect(doc, currentX, flowY, BOX_WIDTH, BOX_HEIGHT, 3, COLORS.command);
+    doc.setFontSize(10);
+    doc.setTextColor(...COLORS.white);
+    doc.text('▶ Command', currentX + BOX_WIDTH / 2, flowY + 12, { align: 'center' });
+    doc.setFontSize(9);
+    const cmdName = truncateText(doc, slice.name, BOX_WIDTH - 6);
+    doc.text(cmdName, currentX + BOX_WIDTH / 2, flowY + 22, { align: 'center' });
+
+    // Draw produced events
+    const producedEvents = slice.produces || [];
+    if (producedEvents.length > 0) {
+      drawArrow(doc, currentX + BOX_WIDTH + 2, flowY + BOX_HEIGHT / 2, currentX + spacing - 2, flowY + BOX_HEIGHT / 2);
+      currentX += spacing;
+
+      producedEvents.slice(0, 3).forEach((eventRef, i) => {
+        const eventX = currentX + (i * (BOX_WIDTH * 0.7 + 5));
+        drawRoundedRect(doc, eventX, flowY, BOX_WIDTH * 0.7, BOX_HEIGHT, 3, COLORS.event);
+        doc.setFontSize(9);
+        doc.setTextColor(...COLORS.white);
+        doc.text('● Event', eventX + (BOX_WIDTH * 0.7) / 2, flowY + 12, { align: 'center' });
+        doc.setFontSize(8);
+        const eventName = truncateText(doc, eventRef.name, BOX_WIDTH * 0.7 - 6);
+        doc.text(eventName, eventX + (BOX_WIDTH * 0.7) / 2, flowY + 22, { align: 'center' });
+      });
+    }
+
+  } else {
+    // State flow: Events → State
+    
+    // Draw source events
+    const sourceEvents = slice.sourcedFrom || [];
+    if (sourceEvents.length > 0) {
+      sourceEvents.slice(0, 3).forEach((eventRef, i) => {
+        const eventX = currentX + (i * (BOX_WIDTH * 0.7 + 5));
+        drawRoundedRect(doc, eventX, flowY, BOX_WIDTH * 0.7, BOX_HEIGHT, 3, COLORS.event);
+        doc.setFontSize(9);
+        doc.setTextColor(...COLORS.white);
+        doc.text('● Event', eventX + (BOX_WIDTH * 0.7) / 2, flowY + 12, { align: 'center' });
+        doc.setFontSize(8);
+        const eventName = truncateText(doc, eventRef.name, BOX_WIDTH * 0.7 - 6);
+        doc.text(eventName, eventX + (BOX_WIDTH * 0.7) / 2, flowY + 22, { align: 'center' });
+      });
+      currentX += sourceEvents.slice(0, 3).length * (BOX_WIDTH * 0.7 + 5) + ARROW_LENGTH;
+      drawArrow(doc, currentX - ARROW_LENGTH - 5, flowY + BOX_HEIGHT / 2, currentX - 2, flowY + BOX_HEIGHT / 2);
+    }
+
+    // Draw State box
+    drawRoundedRect(doc, currentX, flowY, BOX_WIDTH, BOX_HEIGHT, 3, COLORS.state);
+    doc.setFontSize(10);
+    doc.setTextColor(...COLORS.white);
+    doc.text('◆ State', currentX + BOX_WIDTH / 2, flowY + 12, { align: 'center' });
+    doc.setFontSize(9);
+    const stateName = truncateText(doc, slice.name, BOX_WIDTH - 6);
+    doc.text(stateName, currentX + BOX_WIDTH / 2, flowY + 22, { align: 'center' });
+
+    // Draw reading actors
+    if (relatedActors.length > 0) {
+      drawArrow(doc, currentX + BOX_WIDTH + 2, flowY + BOX_HEIGHT / 2, currentX + spacing - 2, flowY + BOX_HEIGHT / 2);
+      currentX += spacing;
+
+      drawRoundedRect(doc, currentX, flowY, BOX_WIDTH, BOX_HEIGHT, 15, COLORS.actor);
+      doc.setFontSize(10);
+      doc.setTextColor(...COLORS.white);
+      doc.text('○ Actor', currentX + BOX_WIDTH / 2, flowY + 12, { align: 'center' });
+      doc.setFontSize(9);
+      const actorName = truncateText(doc, relatedActors[0].name, BOX_WIDTH - 6);
+      doc.text(actorName, currentX + BOX_WIDTH / 2, flowY + 22, { align: 'center' });
+    }
+  }
+
+  // Draw example data below the flow
+  const exampleY = flowY + BOX_HEIGHT + 25;
+  
+  if (slice.example) {
+    doc.setFontSize(10);
+    doc.setTextColor(...COLORS.text);
+    doc.text('Example:', MARGIN, exampleY);
+
+    const exampleBoxWidth = 120;
+    const exampleBoxHeight = 50;
+    const color = isCommand ? COLORS.command : COLORS.state;
+    
+    doc.setFillColor(...color);
+    doc.roundedRect(MARGIN, exampleY + 5, exampleBoxWidth, exampleBoxHeight, 2, 2, 'F');
+    
+    doc.setFontSize(8);
+    doc.setTextColor(...COLORS.white);
+    const exampleLines = formatExample(slice.example);
+    exampleLines.forEach((line, i) => {
+      doc.text(truncateText(doc, line, exampleBoxWidth - 10), MARGIN + 5, exampleY + 15 + (i * 6));
+    });
+  }
+
+  // Page number
+  doc.setFontSize(9);
+  doc.setTextColor(...COLORS.textLight);
+  doc.text(`${pageIndex + 1} / ${totalPages}`, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - MARGIN, { align: 'right' });
+  
+  // Ticks info
+  if (slice.ticks && slice.ticks.length > 0) {
+    doc.text(`Ticks: @${slice.ticks.join(', @')}`, MARGIN, PAGE_HEIGHT - MARGIN);
+  }
+}
+
+/**
  * Export Giraflow model to PDF - one slice per page
  */
 export function downloadSlicesPdf(model: GiraflowModel): void {
@@ -111,6 +262,7 @@ export function downloadSlicesPdf(model: GiraflowModel): void {
 
   const sliceViewModel = buildSliceViewModel(model);
   const slices = sliceViewModel.slices;
+  const actors = sliceViewModel.actors;
 
   if (slices.length === 0) {
     // No slices - create a title page only
@@ -126,139 +278,21 @@ export function downloadSlicesPdf(model: GiraflowModel): void {
         doc.addPage();
       }
 
-      // Title
-      doc.setFontSize(18);
-      doc.setTextColor(...COLORS.text);
-      doc.text(`Slice: ${slice.command}`, MARGIN, MARGIN + 5);
-
-      // Subtitle with trigger info
-      doc.setFontSize(10);
-      doc.setTextColor(...COLORS.textLight);
-      const triggerInfo = slice.trigger 
-        ? `Triggered by: ${slice.trigger.name} (${slice.trigger.role || 'User'})`
-        : '';
-      if (triggerInfo) {
-        doc.text(triggerInfo, MARGIN, MARGIN + 12);
-      }
-
-      // Calculate positions for the flow
-      const flowY = PAGE_HEIGHT / 2 - BOX_HEIGHT / 2;
-      const startX = MARGIN + 20;
-      const spacing = BOX_WIDTH + ARROW_LENGTH + 10;
-
-      let currentX = startX;
-
-      // Draw Actor (if exists)
-      if (slice.trigger) {
-        drawRoundedRect(doc, currentX, flowY, BOX_WIDTH, BOX_HEIGHT, 15, COLORS.actor);
-        doc.setFontSize(10);
-        doc.setTextColor(...COLORS.white);
-        doc.text('○ Actor', currentX + BOX_WIDTH / 2, flowY + 10, { align: 'center' });
-        doc.setFontSize(9);
-        const actorName = truncateText(doc, slice.trigger.name, BOX_WIDTH - 6);
-        doc.text(actorName, currentX + BOX_WIDTH / 2, flowY + 18, { align: 'center' });
-        if (slice.trigger.role) {
-          doc.setFontSize(8);
-          doc.text(`(${slice.trigger.role})`, currentX + BOX_WIDTH / 2, flowY + 25, { align: 'center' });
+      // Find actors related to this slice
+      const relatedActors = actors.filter(a => {
+        if (slice.type === 'command') {
+          return a.sendsCommand === slice.name;
+        } else {
+          return a.readsView === slice.name;
         }
+      }).map(a => ({ name: a.name, role: a.role }));
 
-        // Arrow
-        drawArrow(doc, currentX + BOX_WIDTH + 2, flowY + BOX_HEIGHT / 2, currentX + spacing - 2, flowY + BOX_HEIGHT / 2);
-        currentX += spacing;
-      }
+      // Remove duplicates
+      const uniqueActors = relatedActors.filter((actor, idx, arr) => 
+        arr.findIndex(a => a.name === actor.name) === idx
+      );
 
-      // Draw Command
-      if (slice.commandElement) {
-        drawRoundedRect(doc, currentX, flowY, BOX_WIDTH, BOX_HEIGHT, 3, COLORS.command);
-        doc.setFontSize(10);
-        doc.setTextColor(...COLORS.white);
-        doc.text('▶ Command', currentX + BOX_WIDTH / 2, flowY + 10, { align: 'center' });
-        doc.setFontSize(9);
-        const cmdName = truncateText(doc, slice.command, BOX_WIDTH - 6);
-        doc.text(cmdName, currentX + BOX_WIDTH / 2, flowY + 18, { align: 'center' });
-
-        // Arrow
-        drawArrow(doc, currentX + BOX_WIDTH + 2, flowY + BOX_HEIGHT / 2, currentX + spacing - 2, flowY + BOX_HEIGHT / 2);
-        currentX += spacing;
-      }
-
-      // Draw Events
-      const events = slice.events || [];
-      if (events.length > 0) {
-        const eventBoxWidth = events.length > 1 ? BOX_WIDTH * 0.8 : BOX_WIDTH;
-        events.forEach((event, i) => {
-          const eventX = currentX + (i * (eventBoxWidth + 5));
-          drawRoundedRect(doc, eventX, flowY, eventBoxWidth, BOX_HEIGHT, 3, COLORS.event);
-          doc.setFontSize(10);
-          doc.setTextColor(...COLORS.white);
-          doc.text('● Event', eventX + eventBoxWidth / 2, flowY + 10, { align: 'center' });
-          doc.setFontSize(9);
-          const eventName = truncateText(doc, event.name, eventBoxWidth - 6);
-          doc.text(eventName, eventX + eventBoxWidth / 2, flowY + 18, { align: 'center' });
-        });
-
-        currentX += (events.length * (BOX_WIDTH * 0.8 + 5)) + ARROW_LENGTH;
-        // Arrow to state
-        drawArrow(doc, currentX - ARROW_LENGTH - 5, flowY + BOX_HEIGHT / 2, currentX - 2, flowY + BOX_HEIGHT / 2);
-      }
-
-      // Draw State (read model)
-      if (slice.stateElement) {
-        drawRoundedRect(doc, currentX, flowY, BOX_WIDTH, BOX_HEIGHT, 3, COLORS.state);
-        doc.setFontSize(10);
-        doc.setTextColor(...COLORS.white);
-        doc.text('◆ State', currentX + BOX_WIDTH / 2, flowY + 10, { align: 'center' });
-        doc.setFontSize(9);
-        const stateName = truncateText(doc, slice.stateElement.name, BOX_WIDTH - 6);
-        doc.text(stateName, currentX + BOX_WIDTH / 2, flowY + 18, { align: 'center' });
-      }
-
-      // Draw example data below the flow
-      const exampleY = flowY + BOX_HEIGHT + 20;
-      doc.setFontSize(10);
-      doc.setTextColor(...COLORS.text);
-      doc.text('Example Data:', MARGIN, exampleY);
-
-      let exampleX = MARGIN;
-      const exampleBoxWidth = 65;
-      const exampleBoxHeight = 40;
-
-      // Command example
-      if (slice.commandElement?.example) {
-        doc.setFillColor(...COLORS.command);
-        doc.setDrawColor(...COLORS.border);
-        doc.roundedRect(exampleX, exampleY + 5, exampleBoxWidth, exampleBoxHeight, 2, 2, 'FD');
-        doc.setFontSize(8);
-        doc.setTextColor(...COLORS.white);
-        doc.text('Command:', exampleX + 3, exampleY + 12);
-        const cmdLines = formatExample(slice.commandElement.example);
-        cmdLines.forEach((line, i) => {
-          doc.text(truncateText(doc, line, exampleBoxWidth - 6), exampleX + 3, exampleY + 19 + (i * 5));
-        });
-        exampleX += exampleBoxWidth + 5;
-      }
-
-      // Event examples
-      events.forEach((event) => {
-        if (event.example) {
-          doc.setFillColor(...COLORS.event);
-          doc.setDrawColor(...COLORS.border);
-          doc.roundedRect(exampleX, exampleY + 5, exampleBoxWidth, exampleBoxHeight, 2, 2, 'FD');
-          doc.setFontSize(8);
-          doc.setTextColor(...COLORS.white);
-          doc.text(truncateText(doc, event.name + ':', exampleBoxWidth - 6), exampleX + 3, exampleY + 12);
-          const eventLines = formatExample(event.example);
-          eventLines.forEach((line, i) => {
-            doc.text(truncateText(doc, line, exampleBoxWidth - 6), exampleX + 3, exampleY + 19 + (i * 5));
-          });
-          exampleX += exampleBoxWidth + 5;
-        }
-      });
-
-      // Page number
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.textLight);
-      doc.text(`${index + 1} / ${slices.length}`, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - MARGIN, { align: 'right' });
+      drawSlicePage(doc, slice, uniqueActors, index, slices.length);
     });
   }
 
