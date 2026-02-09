@@ -225,7 +225,14 @@ function createDetailedBox(
     'spacingBottom=6',
   ].join(';');
 
-  return `      <mxCell id="${id}" value="${content}" style="${style}" vertex="1" parent="1">
+  // Content contains HTML tags which must be XML-escaped for the attribute
+  const escapedContent = content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+  return `      <mxCell id="${id}" value="${escapedContent}" style="${style}" vertex="1" parent="1">
         <mxGeometry x="${x}" y="${y}" width="${width}" height="${height}" as="geometry"/>
       </mxCell>`;
 }
