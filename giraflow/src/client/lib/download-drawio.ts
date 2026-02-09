@@ -39,8 +39,9 @@ const MAX_FIELDS_TO_SHOW = 8;
 /**
  * Escape XML special characters
  */
-function escapeXml(str: string): string {
-  return str
+function escapeXml(str: string | undefined | null): string {
+  if (str == null) return '';
+  return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
