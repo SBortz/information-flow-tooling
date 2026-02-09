@@ -3,6 +3,7 @@
   import { examples, getEmptyTemplate } from '../lib/examples';
   import { buildSliceViewModel } from '../lib/models/slice-model';
   import { downloadProjectZip } from '../lib/download-zip';
+  import { downloadDrawio } from '../lib/download-drawio';
 
   function handleExampleSelect(e: Event) {
     const select = e.currentTarget as HTMLSelectElement;
@@ -97,6 +98,11 @@
       modelStore.currentExampleFolder
     );
   }
+
+  function handleDrawioExport() {
+    if (!modelStore.model) return;
+    downloadDrawio(modelStore.model);
+  }
 </script>
 
 <header class="header">
@@ -127,7 +133,11 @@
         </button>
         <button class="icon-button" onclick={handleDownload} title="Download as ZIP">
           <span class="icon">↓</span>
-          <span class="label">Download</span>
+          <span class="label">ZIP</span>
+        </button>
+        <button class="icon-button" onclick={handleDrawioExport} title="Export as Draw.io">
+          <span class="icon">⬡</span>
+          <span class="label">Draw.io</span>
         </button>
       </div>
     {:else}
