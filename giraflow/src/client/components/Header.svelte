@@ -5,9 +5,11 @@
   import { downloadProjectZip } from '../lib/download-zip';
   import { downloadPptx, type PptxOrientation } from '../lib/download-pptx';
   import { downloadSvg, type SvgOrientation } from '../lib/download-svg';
+  import DrawioPreview from './shared/DrawioPreview.svelte';
 
   let pptxOrientation: PptxOrientation = $state('horizontal');
   let svgOrientation: SvgOrientation = $state('horizontal');
+  let showDrawioPreview = $state(false);
 
   function handleExampleSelect(e: Event) {
     const select = e.currentTarget as HTMLSelectElement;
@@ -122,6 +124,15 @@
     const select = e.currentTarget as HTMLSelectElement;
     svgOrientation = select.value as SvgOrientation;
   }
+
+  function handleDrawioExport() {
+    if (!modelStore.model) return;
+    showDrawioPreview = true;
+  }
+
+  function closeDrawioPreview() {
+    showDrawioPreview = false;
+  }
 </script>
 
 <header class="header">
@@ -180,6 +191,10 @@
           <span class="icon">◇</span>
           <span class="label">SVG</span>
         </button>
+        <button class="icon-button drawio-button" onclick={handleDrawioExport} title="Export as Draw.io">
+          <span class="icon">⬡</span>
+          <span class="label">Draw.io</span>
+        </button>
       </div>
     {:else}
       <div class="file-selector">
@@ -228,10 +243,18 @@
           <span class="icon">◇</span>
           <span class="label">SVG</span>
         </button>
+        <button class="icon-button drawio-button" onclick={handleDrawioExport} title="Export as Draw.io">
+          <span class="icon">⬡</span>
+          <span class="label">Draw.io</span>
+        </button>
       </div>
     {/if}
   </div>
 </header>
+
+{#if showDrawioPreview && modelStore.model}
+  <DrawioPreview model={modelStore.model} onClose={closeDrawioPreview} />
+{/if}
 
 <style>
   .header {
@@ -333,6 +356,12 @@
     border-color: var(--color-state);
     color: var(--color-state);
     box-shadow: 0 4px 12px rgba(158, 206, 106, 0.25);
+  }
+
+  .drawio-button:hover {
+    border-color: var(--color-command);
+    color: var(--color-command);
+    box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
   }
 
   .orientation-select {
