@@ -3,7 +3,9 @@
   import { examples, getEmptyTemplate } from '../lib/examples';
   import { buildSliceViewModel } from '../lib/models/slice-model';
   import { downloadProjectZip } from '../lib/download-zip';
-  import { downloadDrawio } from '../lib/download-drawio';
+  import DrawioPreview from './shared/DrawioPreview.svelte';
+
+  let showDrawioPreview = $state(false);
 
   function handleExampleSelect(e: Event) {
     const select = e.currentTarget as HTMLSelectElement;
@@ -101,7 +103,11 @@
 
   function handleDrawioExport() {
     if (!modelStore.model) return;
-    downloadDrawio(modelStore.model);
+    showDrawioPreview = true;
+  }
+
+  function closeDrawioPreview() {
+    showDrawioPreview = false;
   }
 </script>
 
@@ -165,6 +171,10 @@
     {/if}
   </div>
 </header>
+
+{#if showDrawioPreview && modelStore.model}
+  <DrawioPreview model={modelStore.model} onClose={closeDrawioPreview} />
+{/if}
 
 <style>
   .header {
