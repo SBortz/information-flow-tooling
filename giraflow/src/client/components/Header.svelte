@@ -3,6 +3,9 @@
   import { examples, getEmptyTemplate } from '../lib/examples';
   import { buildSliceViewModel } from '../lib/models/slice-model';
   import { downloadProjectZip } from '../lib/download-zip';
+  import { downloadPptx, type PptxOrientation } from '../lib/download-pptx';
+
+  let pptxOrientation: PptxOrientation = $state('horizontal');
 
   function handleExampleSelect(e: Event) {
     const select = e.currentTarget as HTMLSelectElement;
@@ -97,6 +100,16 @@
       modelStore.currentExampleFolder
     );
   }
+
+  async function handleDownloadPptx() {
+    if (!modelStore.model) return;
+    await downloadPptx(modelStore.model, pptxOrientation);
+  }
+
+  function handleOrientationChange(e: Event) {
+    const select = e.currentTarget as HTMLSelectElement;
+    pptxOrientation = select.value as PptxOrientation;
+  }
 </script>
 
 <header class="header">
@@ -127,7 +140,20 @@
         </button>
         <button class="icon-button" onclick={handleDownload} title="Download as ZIP">
           <span class="icon">↓</span>
-          <span class="label">Download</span>
+          <span class="label">ZIP</span>
+        </button>
+        <select
+          class="orientation-select"
+          value={pptxOrientation}
+          onchange={handleOrientationChange}
+          title="PPTX Layout"
+        >
+          <option value="horizontal">→ Horizontal</option>
+          <option value="vertical">↓ Vertikal</option>
+        </select>
+        <button class="icon-button pptx-button" onclick={handleDownloadPptx} title="Download as PowerPoint">
+          <span class="icon">📊</span>
+          <span class="label">PPTX</span>
         </button>
       </div>
     {:else}
@@ -150,6 +176,19 @@
         <button class="icon-button" onclick={handleCreateNew} title="Create new Giraflow">
           <span class="icon">+</span>
           <span class="label">New</span>
+        </button>
+        <select
+          class="orientation-select"
+          value={pptxOrientation}
+          onchange={handleOrientationChange}
+          title="PPTX Layout"
+        >
+          <option value="horizontal">→ Horizontal</option>
+          <option value="vertical">↓ Vertikal</option>
+        </select>
+        <button class="icon-button pptx-button" onclick={handleDownloadPptx} title="Download as PowerPoint">
+          <span class="icon">📊</span>
+          <span class="label">PPTX</span>
         </button>
       </div>
     {/if}
@@ -246,6 +285,38 @@
     box-shadow: 0 4px 12px rgba(122, 162, 247, 0.25);
   }
 
+  .pptx-button:hover {
+    border-color: var(--color-event);
+    color: var(--color-event);
+    box-shadow: 0 4px 12px rgba(255, 158, 100, 0.25);
+  }
+
+  .orientation-select {
+    padding: 0.35rem 1.8rem 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-family: inherit;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.4rem center;
+    transition: all 0.15s;
+  }
+
+  .orientation-select:hover {
+    border-color: var(--color-event);
+  }
+
+  .orientation-select:focus {
+    outline: none;
+    border-color: var(--color-event);
+    box-shadow: 0 0 0 2px rgba(255, 158, 100, 0.2);
+  }
+
   .status {
     display: flex;
     align-items: center;
@@ -282,6 +353,12 @@
       padding: 0.35rem 1.5rem 0.35rem 0.5rem;
       font-size: 0.8rem;
       box-shadow: none;
+    }
+
+    .orientation-select {
+      max-width: 90px;
+      padding: 0.25rem 1.4rem 0.25rem 0.3rem;
+      font-size: 0.7rem;
     }
 
     .icon-button {
