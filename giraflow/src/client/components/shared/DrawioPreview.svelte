@@ -24,10 +24,13 @@
       const data = encoder.encode(xml);
       const compressed = pako.deflateRaw(data, { level: 9 });
       
-      // Convert to base64 (URL-safe)
-      const base64 = btoa(String.fromCharCode.apply(null, Array.from(compressed)))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_');
+      // Convert Uint8Array to base64 properly
+      let binary = '';
+      const bytes = new Uint8Array(compressed);
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const base64 = btoa(binary);
       
       const title = encodeURIComponent(model.name || 'Giraflow');
       return `https://viewer.diagrams.net/?tags=%7B%7D&highlight=0000ff&edit=_blank&layers=1&nav=1&title=${title}.drawio#R${base64}`;
