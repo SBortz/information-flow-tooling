@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giraflow – Event Modeling as Code</title>
+  <meta name="description" content="A human-readable JSON format for designing event-driven systems using Event Modeling methodology.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #F59E0B;
+      --primary-dark: #D97706;
+      --bg: #0F172A;
+      --bg-light: #1E293B;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --accent-event: #ff9e64;
+      --accent-state: #9ece6a;
+      --accent-command: #7aa2f7;
+      --accent-actor: #6b7280;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+    
+    .logo img {
+      height: 40px;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: var(--bg);
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: 70px;
+      background: radial-gradient(ellipse at top, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
+    }
+    
+    .hero .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    
+    .hero h1 span {
+      color: var(--primary);
+    }
+    
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+    
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .hero-image {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .hero-image img {
+      width: 100%;
+      display: block;
+    }
+    
+    /* Problem/Solution */
+    .problem-solution {
+      padding: 6rem 0;
+      background: var(--bg-light);
+    }
+    
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1.125rem;
+      margin-bottom: 4rem;
+    }
+    
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    
+    .comparison-card {
+      padding: 2rem;
+      border-radius: 12px;
+      background: var(--bg);
+    }
+    
+    .comparison-card.problem {
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    .comparison-card.solution {
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+    
+    .comparison-card h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 1.25rem;
+    }
+    
+    .comparison-card ul {
+      list-style: none;
+    }
+    
+    .comparison-card li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--text-muted);
+    }
+    
+    .comparison-card li:last-child {
+      border-bottom: none;
+    }
+    
+    /* Features */
+    .features {
+      padding: 6rem 0;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+    
+    .feature-card {
+      padding: 2rem;
+      background: var(--bg-light);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: border-color 0.2s;
+    }
+    
+    .feature-card:hover {
+      border-color: var(--primary);
+    }
+    
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(245, 158, 11, 0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .feature-card h3 {
+      margin-bottom: 0.5rem;
+    }
+    
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    
+    /* Code Example */
+    .code-example {
+      padding: 6rem 0;
+      background: var(--bg-light);
+    }
+    
+    .code-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    
+    .code-block {
+      background: var(--bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .code-header {
+      background: rgba(255,255,255,0.05);
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .code-header .dots {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .code-header .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+    }
+    
+    pre {
+      padding: 1.5rem;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      line-height: 1.7;
+    }
+    
+    .json-key { color: var(--accent-state); }
+    .json-string { color: var(--accent-event); }
+    .json-number { color: var(--accent-command); }
+    
+    .timeline-legend {
+      padding: 2rem;
+    }
+    
+    .timeline-legend h3 {
+      margin-bottom: 1.5rem;
+    }
+    
+    .legend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .legend-symbol {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      min-height: 32px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    
+    .legend-symbol.event { background: var(--accent-event); color: var(--bg); }
+    .legend-symbol.state { background: var(--accent-state); color: var(--bg); }
+    .legend-symbol.actor { background: var(--accent-actor); color: var(--bg); }
+    .legend-symbol.command { background: var(--accent-command); color: var(--bg); }
+    
+    /* How it Works */
+    .how-it-works {
+      padding: 6rem 0;
+    }
+    
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+    
+    .step {
+      text-align: center;
+      position: relative;
+    }
+    
+    .step:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      right: -1rem;
+      top: 2rem;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+    }
+    
+    .step-number {
+      width: 48px;
+      height: 48px;
+      background: var(--primary);
+      color: var(--bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin: 0 auto 1rem;
+    }
+    
+    .step h3 {
+      margin-bottom: 0.5rem;
+    }
+    
+    .step p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    
+    /* CTA */
+    .cta {
+      padding: 6rem 0;
+      background: linear-gradient(to bottom, var(--bg-light), var(--bg));
+      text-align: center;
+    }
+    
+    .cta h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .cta p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+      margin-bottom: 2rem;
+    }
+    
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    
+    /* Footer */
+    footer {
+      padding: 3rem 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      text-align: center;
+      color: var(--text-muted);
+    }
+    
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    
+    /* Responsive */
+    @media (max-width: 968px) {
+      .hero .container,
+      .comparison-grid,
+      .code-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .steps {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .step:not(:last-child)::after {
+        display: none;
+      }
+      
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="container">
+      <a href="/" class="logo">
+        🦒 Giraflow
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#example">Example</a></li>
+        <li><a href="#how-it-works">How it Works</a></li>
+        <li><a href="https://github.com/SBortz/giraflow">GitHub</a></li>
+      </ul>
+      <a href="/app" class="btn btn-primary">
+        Open Giraflow →
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1>Event Modeling<br><span>as Code</span></h1>
+        <p>A human-readable JSON format for designing event-driven systems. Version control your architecture. Generate code from your model.</p>
+        <div class="hero-buttons">
+          <a href="/app" class="btn btn-primary">
+            🚀 Open Giraflow
+          </a>
+          <a href="#example" class="btn btn-secondary">
+            See Example →
+          </a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="/landing/images/web-timeline.png" alt="Giraflow Timeline View">
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem/Solution -->
+  <section class="problem-solution">
+    <div class="container">
+      <h2 class="section-title">Why Giraflow?</h2>
+      <p class="section-subtitle">Event Modeling is powerful. But where do you store the model?</p>
+      
+      <div class="comparison-grid">
+        <div class="comparison-card problem">
+          <h3>❌ The Problem</h3>
+          <ul>
+            <li>Proprietary tools lock your designs into their platforms</li>
+            <li>Visual-only formats can't be version controlled meaningfully</li>
+            <li>Models live outside your codebase, getting stale</li>
+            <li>Manual sync between design and implementation</li>
+          </ul>
+        </div>
+        <div class="comparison-card solution">
+          <h3>✅ The Giraflow Solution</h3>
+          <ul>
+            <li><strong>Plain JSON</strong> – own your models, no vendor lock-in</li>
+            <li><strong>Git-friendly</strong> – meaningful diffs and history</li>
+            <li><strong>Code-adjacent</strong> – model lives with implementation</li>
+            <li><strong>Single source of truth</strong> – generate from model</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2 class="section-title">Features</h2>
+      <p class="section-subtitle">Everything you need to model event-driven systems</p>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📝</div>
+          <h3>Human-Readable JSON</h3>
+          <p>Edit with any text editor. No proprietary formats. Easy to read, write, and review in pull requests.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Live Web Preview</h3>
+          <p>Browser-based visualization with hot reload. See timeline, slices, and scenarios update as you type.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💻</div>
+          <h3>CLI Tool</h3>
+          <p>Terminal visualization for quick checks. Timeline, slice, and table views. Export to file.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧪</div>
+          <h3>Specifications</h3>
+          <p>Given-When-Then scenarios for commands and projections. Your model becomes executable documentation.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3>Wireframes</h3>
+          <p>Link HTML mockups to actors. Visualize what each user role sees and interacts with.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <h3>Schema Validation</h3>
+          <p>JSON Schema for IDE support. Autocomplete, validation, and documentation in your editor.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Code Example -->
+  <section class="code-example" id="example">
+    <div class="container">
+      <h2 class="section-title">Simple & Expressive</h2>
+      <p class="section-subtitle">Model your entire system in one readable file</p>
+      
+      <div class="code-grid">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            order-system.giraflow.json
+          </div>
+          <pre><code>{
+  <span class="json-key">"name"</span>: <span class="json-string">"Order System"</span>,
+  <span class="json-key">"timeline"</span>: [
+    { 
+      <span class="json-key">"type"</span>: <span class="json-string">"event"</span>, 
+      <span class="json-key">"name"</span>: <span class="json-string">"OrderPlaced"</span>, 
+      <span class="json-key">"tick"</span>: <span class="json-number">10</span>
+    },
+    { 
+      <span class="json-key">"type"</span>: <span class="json-string">"state"</span>, 
+      <span class="json-key">"name"</span>: <span class="json-string">"PendingOrders"</span>, 
+      <span class="json-key">"tick"</span>: <span class="json-number">20</span>,
+      <span class="json-key">"sourcedFrom"</span>: [<span class="json-string">"OrderPlaced"</span>]
+    },
+    { 
+      <span class="json-key">"type"</span>: <span class="json-string">"actor"</span>, 
+      <span class="json-key">"name"</span>: <span class="json-string">"Warehouse"</span>, 
+      <span class="json-key">"tick"</span>: <span class="json-number">30</span>,
+      <span class="json-key">"readsView"</span>: <span class="json-string">"PendingOrders"</span>,
+      <span class="json-key">"sendsCommand"</span>: <span class="json-string">"ShipOrder"</span>
+    },
+    { 
+      <span class="json-key">"type"</span>: <span class="json-string">"command"</span>, 
+      <span class="json-key">"name"</span>: <span class="json-string">"ShipOrder"</span>, 
+      <span class="json-key">"tick"</span>: <span class="json-number">40</span>
+    },
+    { 
+      <span class="json-key">"type"</span>: <span class="json-string">"event"</span>, 
+      <span class="json-key">"name"</span>: <span class="json-string">"OrderShipped"</span>, 
+      <span class="json-key">"tick"</span>: <span class="json-number">50</span>
+    }
+  ]
+}</code></pre>
+        </div>
+        
+        <div class="timeline-legend">
+          <h3>Timeline Elements</h3>
+          <div class="legend-items">
+            <div class="legend-item">
+              <div class="legend-symbol event">●</div>
+              <div>
+                <strong>Event</strong> – Something that happened<br>
+                <small style="color: var(--text-muted)">Past tense: OrderPlaced, UserRegistered</small>
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-symbol state">◆</div>
+              <div>
+                <strong>State View</strong> – Read model from events<br>
+                <small style="color: var(--text-muted)">Noun: PendingOrders, UserProfile</small>
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-symbol actor">○</div>
+              <div>
+                <strong>Actor</strong> – Who reads and acts<br>
+                <small style="color: var(--text-muted)">Role: Customer, Admin, System</small>
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-symbol command">▶</div>
+              <div>
+                <strong>Command</strong> – Intent to do something<br>
+                <small style="color: var(--text-muted)">Imperative: PlaceOrder, ShipOrder</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">From idea to implementation in four steps</p>
+      
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Model</h3>
+          <p>Define your timeline with events, states, actors, and commands in JSON</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Visualize</h3>
+          <p>Use the web preview or CLI to see your model as a swimlane diagram</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Specify</h3>
+          <p>Add scenarios with Given-When-Then to define behavior</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>Implement</h3>
+          <p>Build your system guided by the model, generate tests from specs</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="container">
+      <h2>Ready to model your system?</h2>
+      <p>Start designing event-driven systems with a format you can actually version control.</p>
+      <div class="cta-buttons">
+        <a href="/app" class="btn btn-primary">
+          🚀 Open Giraflow
+        </a>
+        <a href="https://github.com/SBortz/giraflow" class="btn btn-secondary">
+          <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>
+        Built with 🦒 by <a href="https://github.com/SBortz">Sebastian Bortz</a><br>
+        <small>MIT License • Inspired by <a href="https://eventmodeling.org/">Event Modeling</a></small>
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
