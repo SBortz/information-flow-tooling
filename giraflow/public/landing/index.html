@@ -161,26 +161,92 @@
       gap: 1rem;
     }
     
-    .install-box {
-      margin-top: 1.5rem;
+    /* CLI Section */
+    .cli-section {
+      padding: 4rem 0;
+      background: var(--bg-light);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     
-    .install-cmd {
-      display: inline-block;
-      background: var(--bg);
+    .cli-section .container {
+      max-width: 800px;
+    }
+    
+    .cli-section h2 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+    
+    .cli-section .cli-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+    
+    .terminal {
+      background: #1a1a2e;
+      border-radius: 12px;
+      overflow: hidden;
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      padding: 0.75rem 1.5rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    
+    .terminal-header {
+      background: #252538;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .terminal-dot.red { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #27ca40; }
+    
+    .terminal-body {
+      padding: 1.5rem;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.95rem;
-      color: var(--accent-state);
-      text-decoration: none;
-      transition: all 0.2s;
+      line-height: 1.8;
     }
     
-    .install-cmd:hover {
-      border-color: var(--primary);
-      box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+    .terminal-line {
+      display: flex;
+      gap: 0.75rem;
+    }
+    
+    .terminal-prompt {
+      color: var(--accent-state);
+    }
+    
+    .terminal-cmd {
+      color: var(--text);
+    }
+    
+    .terminal-comment {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    
+    .cli-link {
+      display: block;
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    
+    .cli-link:hover {
+      text-decoration: underline;
     }
     
     .hero-image {
@@ -542,13 +608,43 @@
             See Example →
           </a>
         </div>
-        <div class="install-box">
-          <a href="https://www.npmjs.com/package/giraflow" class="install-cmd" target="_blank">npm install -g giraflow</a>
-        </div>
       </div>
       <div class="hero-image">
         <img src="/landing/images/web-timeline.png" alt="Giraflow Timeline View">
       </div>
+    </div>
+  </section>
+
+  <!-- CLI Section -->
+  <section class="cli-section">
+    <div class="container">
+      <h2>📦 Use in Your Project</h2>
+      <p class="cli-subtitle">Install the CLI and run Giraflow right where your code lives</p>
+      
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-cmd">npm install -g giraflow</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-cmd">cd my-project</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-cmd">giraflow</span>
+            <span class="terminal-comment"># opens in browser, watches *.giraflow.json</span>
+          </div>
+        </div>
+      </div>
+      
+      <a href="https://www.npmjs.com/package/giraflow" class="cli-link" target="_blank">View on npm →</a>
     </div>
   </section>
 
