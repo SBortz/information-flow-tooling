@@ -236,6 +236,21 @@
       font-style: italic;
     }
     
+    .cli-note {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      padding: 1rem;
+      background: rgba(245, 158, 11, 0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    
+    .cli-note strong {
+      color: var(--text);
+    }
+    
     .cli-link {
       display: block;
       text-align: center;
@@ -643,6 +658,8 @@
           </div>
         </div>
       </div>
+      
+      <p class="cli-note">💡 <strong>Note:</strong> Giraflow is currently a viewer/visualizer — edit the JSON in your favorite editor, and Giraflow updates live.</p>
       
       <a href="https://www.npmjs.com/package/giraflow" class="cli-link" target="_blank">View on npm →</a>
     </div>
