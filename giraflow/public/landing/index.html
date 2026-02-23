@@ -301,6 +301,116 @@
       font-size: 0.95rem;
     }
     
+    /* CLI Section */
+    .cli-section {
+      padding: 6rem 0;
+    }
+    
+    .cli-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    
+    .cli-info h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .cli-info p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    
+    .cli-info ul {
+      list-style: none;
+      margin-top: 1.5rem;
+    }
+    
+    .cli-info li {
+      padding: 0.5rem 0;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .cli-info li::before {
+      content: "✓";
+      color: var(--primary);
+    }
+    
+    .terminal {
+      background: #0d1117;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      box-shadow: 0 0 40px rgba(245, 158, 11, 0.15), 0 20px 40px rgba(0,0,0,0.3);
+    }
+    
+    .terminal-header {
+      background: #161b22;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .terminal-header .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .terminal-header .dot.red { background: #ff5f56; }
+    .terminal-header .dot.yellow { background: #ffbd2e; }
+    .terminal-header .dot.green { background: #27ca40; }
+    
+    .terminal-header span {
+      margin-left: auto;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    
+    .terminal-body {
+      padding: 1.5rem;
+    }
+    
+    .terminal-line {
+      margin-bottom: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    
+    .terminal-line:last-child {
+      margin-bottom: 0;
+    }
+    
+    .terminal-prompt {
+      color: var(--primary);
+      margin-right: 0.5rem;
+    }
+    
+    .terminal-cmd {
+      color: #e6edf3;
+    }
+    
+    .terminal-output {
+      color: var(--text-muted);
+      width: 100%;
+      padding-left: 1rem;
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+    }
+    
+    .terminal-comment {
+      color: #6e7681;
+      font-style: italic;
+    }
+
     /* Code Example */
     .code-example {
       padding: 6rem 0;
@@ -543,12 +653,60 @@
             See Example →
           </a>
         </div>
-        <div class="install-box">
-          <a href="https://www.npmjs.com/package/giraflow" class="install-cmd" target="_blank">npm install -g giraflow</a>
-        </div>
       </div>
       <div class="hero-image">
         <img src="/landing/images/web-timeline.png" alt="Giraflow Timeline View">
+      </div>
+    </div>
+  </section>
+
+  <!-- CLI Section -->
+  <section class="cli-section" id="cli">
+    <div class="container">
+      <h2 class="section-title">Get Started in Seconds</h2>
+      <p class="section-subtitle">One command to install, one command to run</p>
+      
+      <div class="cli-content">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span>Terminal</span>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-cmd">npm install -g giraflow</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-cmd">cd your-project</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-cmd">giraflow</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">🦒 Watching your-project.giraflow.json</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">🌐 Open http://localhost:3333</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="cli-info">
+          <h3>How it works</h3>
+          <p>Giraflow watches your <code>.giraflow.json</code> file and serves a live web visualization. Every change is reflected instantly.</p>
+          <p>Keep your model in version control alongside your code. Review changes in pull requests. Generate documentation automatically.</p>
+          <ul>
+            <li>Auto-detects .giraflow.json files in your project</li>
+            <li>Hot reload on every save</li>
+            <li>Works offline, no account needed</li>
+            <li>Export to SVG, PowerPoint, or HTML</li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
