@@ -52,7 +52,7 @@
     "wired-elements": "^3.0.0-rc.6"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@types/node": "^25.3.0",
     "esbuild": "^0.27.2",
     "svelte": "^5.48.0",
